@@ -23,6 +23,8 @@ traefik:
       enabled: true
   gateway:
     enabled: false
+  gatewayClass:
+    enabled: false
   deployment:
     strategy:
       type: Recreate
