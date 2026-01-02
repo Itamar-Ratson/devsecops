@@ -30,22 +30,21 @@ traefik:
     general:
       level: DEBUG
 
-gatewayApi:
-  gatewayClass:
-    name: traefik
-    controllerName: traefik.io/gateway-controller
-  gateway:
-    listeners:
-      - name: https
-        protocol: HTTPS
-        port: 443
-        tls:
-          mode: Terminate
-          certificateRefs:
-            - name: gateway-tls
-        allowedRoutes:
-          namespaces:
-            from: All
+gateway:
+  name: traefik-gateway
+  className: traefik
+  controllerName: traefik.io/gateway-controller
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: gateway-tls
+      allowedRoutes:
+        namespaces:
+          from: All
 
 certificates:
   - name: gateway-tls
@@ -54,14 +53,10 @@ certificates:
       name: selfsigned
       kind: ClusterIssuer
     dnsNames:
-      - echo.localhost
-      - traefik.localhost
+      - "*.localhost"
 
 httpRoutes:
   - name: traefik-dashboard
-    parentRefs:
-      - name: traefik-gateway
-        namespace: traefik
     hostnames:
       - traefik.localhost
     rules:

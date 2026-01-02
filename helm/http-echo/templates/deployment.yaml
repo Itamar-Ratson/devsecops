@@ -1,24 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "http-echo.fullname" . }}
-  namespace: {{ .Release.Namespace }}
-  labels:
-    {{- include "http-echo.labels" . | nindent 4 }}
+  name: http-echo
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "http-echo.selectorLabels" . | nindent 6 }}
+      app: http-echo
   template:
     metadata:
       labels:
-        {{- include "http-echo.selectorLabels" . | nindent 8 }}
+        app: http-echo
     spec:
       containers:
-        - name: {{ .Chart.Name }}
+        - name: http-echo
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
             - -text={{ .Values.text }}
           ports:
