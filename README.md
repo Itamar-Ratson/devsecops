@@ -7,7 +7,6 @@ KinD + Cilium + Traefik + Gateway API + cert-manager + Sealed Secrets
 Docker, kubectl, Helm, KinD, kubeseal
 
 ## Setup
-
 ```bash
 kind create cluster --config kind-config.yaml
 helm dependency build ./helm/cilium
@@ -21,12 +20,20 @@ helm dependency build ./helm/sealed-secrets
 helm upgrade --install sealed-secrets ./helm/sealed-secrets -n sealed-secrets --create-namespace
 helm dependency build ./helm/traefik
 helm upgrade --install traefik ./helm/traefik -n traefik --create-namespace
+helm upgrade --install gateway ./helm/gateway -n gateway --create-namespace
 helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespace
 curl -k https://echo.localhost
 ```
 
-## Cleanup
+## Swap Gateway Implementation
 
+Change only `helm/gateway/values.yaml`:
+```yaml
+className: cilium
+controllerName: io.cilium/gateway-controller
+```
+
+## Cleanup
 ```bash
 kind delete cluster --name k8s-dev
 ```
