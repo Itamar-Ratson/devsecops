@@ -1,0 +1,7 @@
+cert-manager:
+  crds:
+    enabled: true
+
+clusterIssuers:
+  - name: selfsigned
+    type: selfSigned

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: http-echo
+version: 1.0.0
+description: Simple HTTP echo server for testing

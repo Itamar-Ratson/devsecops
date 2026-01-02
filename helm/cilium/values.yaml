@@ -1,0 +1,10 @@
+cilium:
+  encryption:
+    enabled: true
+    type: wireguard
+  hostPort:
+    enabled: true
+  socketLB:
+    hostNamespaceOnly: true
+  operator:
+    replicas: 1

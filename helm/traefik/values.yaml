@@ -1,0 +1,75 @@
+traefik:
+  hostNetwork: true
+  additionalArguments:
+    - "--api.insecure=true"
+  ports:
+    web:
+      port: 80
+      hostPort: null
+    websecure:
+      port: 443
+      hostPort: null
+    traefik:
+      expose:
+        default: true
+  nodeSelector:
+    ingress-ready: "true"
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Equal
+      effect: NoSchedule
+  providers:
+    kubernetesGateway:
+      enabled: true
+  gateway:
+    enabled: false
+  deployment:
+    strategy:
+      type: Recreate
+  logs:
+    general:
+      level: DEBUG
+
+gatewayApi:
+  gatewayClass:
+    name: traefik
+    controllerName: traefik.io/gateway-controller
+  gateway:
+    listeners:
+      - name: https
+        protocol: HTTPS
+        port: 443
+        tls:
+          mode: Terminate
+          certificateRefs:
+            - name: argocd-tls
+        allowedRoutes:
+          namespaces:
+            from: All
+
+certificates:
+  - name: argocd-tls
+    secretName: argocd-tls
+    issuerRef:
+      name: selfsigned
+      kind: ClusterIssuer
+    dnsNames:
+      - argocd.localhost
+      - echo.localhost
+      - traefik.localhost
+
+httpRoutes:
+  - name: traefik-dashboard
+    parentRefs:
+      - name: traefik-gateway
+        namespace: traefik
+    hostnames:
+      - traefik.localhost
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /
+        backendRefs:
+          - name: traefik
+            port: 8080

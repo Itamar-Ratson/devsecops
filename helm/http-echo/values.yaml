@@ -1,0 +1,28 @@
+replicaCount: 1
+
+image:
+  repository: hashicorp/http-echo
+  tag: latest
+  pullPolicy: IfNotPresent
+
+text: "hello world"
+port: 5678
+
+service:
+  port: 80
+
+httpRoutes:
+  - name: http-echo
+    parentRefs:
+      - name: traefik-gateway
+        namespace: traefik
+    hostnames:
+      - echo.localhost
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /
+        backendRefs:
+          - name: http-echo
+            port: 80
