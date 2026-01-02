@@ -59,6 +59,10 @@ kubectl wait --for=condition=Available deployment/traefik -n traefik --timeout=1
 # ArgoCD (after setting up sealed secret below)
 helm upgrade --install argocd ./helm/argocd -n argocd --create-namespace
 kubectl wait --for=condition=Available deployment/argocd-server -n argocd --timeout=300s
+
+# http-echo (test app)
+helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespace
+kubectl wait --for=condition=Available deployment/http-echo -n http-echo --timeout=120s
 ```
 
 ## 4. Create ArgoCD Admin Secret
@@ -85,6 +89,8 @@ Login: `admin` / `admin`
 ```bash
 argocd login argocd.localhost --grpc-web
 ```
+
+Test http-echo at <https://echo.localhost>
 
 ## Troubleshooting
 
