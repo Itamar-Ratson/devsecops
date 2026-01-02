@@ -1,25 +1,9 @@
-{{- range .Values.clusterIssuers }}
----
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: {{ .name }}
+  name: selfsigned
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": "1"
 spec:
-  {{- if eq .type "selfSigned" }}
   selfSigned: {}
-  {{- else if eq .type "ca" }}
-  ca:
-    secretName: {{ .secretName }}
-  {{- else if eq .type "acme" }}
-  acme:
-    server: {{ .server }}
-    email: {{ .email }}
-    privateKeySecretRef:
-      name: {{ .privateKeySecretRef }}
-    solvers:
-      {{- toYaml .solvers | nindent 6 }}
-  {{- end }}
-{{- end }}

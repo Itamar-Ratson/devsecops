@@ -1,0 +1,2 @@
+className: traefik
+controllerName: traefik.io/gateway-controller

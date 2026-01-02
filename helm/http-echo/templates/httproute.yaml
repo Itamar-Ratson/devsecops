@@ -7,7 +7,7 @@ spec:
     - name: {{ .Values.gateway.name }}
       namespace: {{ .Values.gateway.namespace }}
   hostnames:
-    - {{ .Values.httpRoute.hostname }}
+    - echo.localhost
   rules:
     - matches:
         - path:

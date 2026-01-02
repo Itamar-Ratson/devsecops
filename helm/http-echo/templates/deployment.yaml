@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: http-echo
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
       app: http-echo
@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: http-echo
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: hashicorp/http-echo:latest
           args:
-            - -text={{ .Values.text }}
+            - -text=hello world
           ports:
-            - containerPort: {{ .Values.port }}
+            - containerPort: 5678
