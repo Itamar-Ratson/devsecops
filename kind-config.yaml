@@ -1,6 +1,6 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
-name: argocd-dev
+name: k8s-dev
 networking:
   disableDefaultCNI: true
 nodes:

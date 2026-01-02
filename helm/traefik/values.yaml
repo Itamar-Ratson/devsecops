@@ -42,19 +42,18 @@ gatewayApi:
         tls:
           mode: Terminate
           certificateRefs:
-            - name: argocd-tls
+            - name: gateway-tls
         allowedRoutes:
           namespaces:
             from: All
 
 certificates:
-  - name: argocd-tls
-    secretName: argocd-tls
+  - name: gateway-tls
+    secretName: gateway-tls
     issuerRef:
       name: selfsigned
       kind: ClusterIssuer
     dnsNames:
-      - argocd.localhost
       - echo.localhost
       - traefik.localhost
 
