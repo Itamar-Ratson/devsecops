@@ -8,3 +8,7 @@ cilium:
     hostNamespaceOnly: true
   operator:
     replicas: 1
+  gatewayAPI:
+    enabled: true
+  nodePort:
+    enabled: true

@@ -1,12 +1,13 @@
 # Kubernetes Local Dev Setup
 
-KinD + Cilium + Traefik + Gateway API + cert-manager + Sealed Secrets
+KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets
 
 ## Prerequisites
 
 Docker, kubectl, Helm, KinD, kubeseal
 
 ## Setup
+
 ```bash
 kind create cluster --config kind-config.yaml
 helm dependency build ./helm/cilium
@@ -18,22 +19,14 @@ helm upgrade --install cert-manager ./helm/cert-manager -n cert-manager --create
 kubectl wait --for=condition=Available deployment/cert-manager -n cert-manager --timeout=120s
 helm dependency build ./helm/sealed-secrets
 helm upgrade --install sealed-secrets ./helm/sealed-secrets -n sealed-secrets --create-namespace
-helm dependency build ./helm/traefik
-helm upgrade --install traefik ./helm/traefik -n traefik --create-namespace
 helm upgrade --install gateway ./helm/gateway -n gateway --create-namespace
 helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespace
+sleep 3
 curl -k https://echo.localhost
 ```
 
-## Swap Gateway Implementation
-
-Change only `helm/gateway/values.yaml`:
-```yaml
-className: cilium
-controllerName: io.cilium/gateway-controller
-```
-
 ## Cleanup
+
 ```bash
 kind delete cluster --name k8s-dev
 ```

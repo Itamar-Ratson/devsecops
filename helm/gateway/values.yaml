@@ -1,2 +1,2 @@
 className: cilium
-controllerName: cilium.io/gateway-controller
+controllerName: io.cilium/gateway-controller
