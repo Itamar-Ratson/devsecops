@@ -2,6 +2,7 @@ cilium:
   encryption:
     enabled: true
     type: wireguard
+  kubeProxyReplacement: true
   hostPort:
     enabled: true
   socketLB:
@@ -10,5 +11,11 @@ cilium:
     replicas: 1
   gatewayAPI:
     enabled: true
-  nodePort:
-    enabled: true
+    hostNetwork:
+      enabled: true
+    gatewayClass:
+      create: "false"
+  envoy:
+    securityContext:
+      capabilities:
+        keepCapNetBindService: true
