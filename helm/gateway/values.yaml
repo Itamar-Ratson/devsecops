@@ -1,2 +1,2 @@
-className: traefik
-controllerName: traefik.io/gateway-controller
+className: cilium
+controllerName: cilium.io/gateway-controller
