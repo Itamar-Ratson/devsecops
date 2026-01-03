@@ -4,3 +4,5 @@
 !Chart.lock
 !*.yaml
 !*.md
+
+helm/
