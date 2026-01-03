@@ -1,6 +1,6 @@
 # Kubernetes Local Dev Setup
 
-KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets
+KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Hubble + Network Policies
 
 ## Prerequisites
 
@@ -35,9 +35,13 @@ helm upgrade --install sealed-secrets ./helm/sealed-secrets -n sealed-secrets --
 helm upgrade --install gateway ./helm/gateway -n gateway --create-namespace
 helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespace
 
+# Install network policies for security
+helm install network-policies ./helm/network-policies
+
 # Test the setup
 sleep 3
 curl -k https://echo.localhost
+curl -k https://hubble.localhost
 ```
 
 ## Key Configuration Requirements
@@ -75,6 +79,93 @@ If the Gateway shows `PROGRAMMED: Unknown`:
    kubectl get crd | grep gateway.networking.k8s.io
    ```
    Should include: `tlsroutes.gateway.networking.k8s.io`
+
+## Hubble - Network Observability
+
+Hubble provides deep network visibility and monitoring for your Kubernetes cluster.
+
+### Features
+
+- **Service Map**: Real-time visualization of service dependencies
+- **Flow Monitoring**: Observe all network traffic between pods
+- **Security**: Identify blocked connections and policy violations
+- **Troubleshooting**: Debug connectivity issues
+
+### Accessing Hubble UI
+
+Hubble UI is exposed through the Gateway at: **https://hubble.localhost**
+
+Open your browser and navigate to the URL to:
+- View the service dependency map
+- Monitor network flows in real-time
+- Inspect DNS requests and responses
+- Debug network policy denials
+
+### Configuration
+
+Hubble is configured in `helm/cilium/values.yaml:22`:
+```yaml
+hubble:
+  enabled: true
+  relay:
+    enabled: true  # Aggregates flows from all Cilium instances
+  ui:
+    enabled: true  # Web interface
+```
+
+## Network Policies
+
+The cluster implements **Cilium Network Policies** for defense-in-depth security.
+
+### Security Model
+
+Each namespace has:
+1. **Default deny all**: Blocks all ingress and egress traffic by default
+2. **Allow rules**: Explicitly permit only required traffic
+
+### Implemented Policies
+
+#### http-echo namespace
+- ✅ Allows ingress from Cilium Gateway only (`fromEntities: [ingress]`)
+- ✅ Allows DNS egress to kube-dns
+- ❌ All other traffic blocked
+
+#### cert-manager namespace
+- ✅ Allows egress to Kubernetes API server (`toEntities: [kube-apiserver]`)
+- ✅ Allows DNS egress
+- ✅ Allows webhook ingress from API server
+- ❌ All other traffic blocked
+
+#### sealed-secrets namespace
+- ✅ Allows egress to Kubernetes API server
+- ✅ Allows DNS egress
+- ✅ Allows controller ingress for kubeseal CLI and webhooks
+- ❌ All other traffic blocked
+
+### Why Cilium Network Policies?
+
+We use **Cilium Network Policies** instead of standard Kubernetes NetworkPolicies because:
+
+- **Host Network Support**: Cilium Gateway runs with `hostNetwork: true`, which standard K8s policies can't handle effectively
+- **Special Entities**: Cilium supports entities like `ingress`, `host`, and `kube-apiserver` for precise matching
+- **Better Integration**: Native support for Cilium-specific features and identities
+
+### Verification
+
+Check policy enforcement:
+```bash
+# List all Cilium network policies
+kubectl get ciliumnetworkpolicies -A
+
+# Check endpoint policy status
+kubectl exec -n kube-system ds/cilium -- cilium endpoint list
+```
+
+### Location
+
+Network policies are defined in:
+- `helm/http-echo/templates/networkpolicy.yaml` - http-echo policies
+- `helm/network-policies/templates/` - cert-manager and sealed-secrets policies
 
 ## Cleanup
 

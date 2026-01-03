@@ -19,3 +19,9 @@ cilium:
     securityContext:
       capabilities:
         keepCapNetBindService: true
+  hubble:
+    enabled: true
+    relay:
+      enabled: true
+    ui:
+      enabled: true
