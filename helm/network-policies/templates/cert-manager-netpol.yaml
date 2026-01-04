@@ -51,7 +51,7 @@ spec:
             - port: "443"
               protocol: TCP
 ---
-# Allow webhook ingress from kube-apiserver
+# Allow webhook ingress from kube-apiserver, host, and remote-node
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -64,6 +64,8 @@ spec:
   ingress:
     - fromEntities:
         - kube-apiserver
+        - host
+        - remote-node
       toPorts:
         - ports:
             - port: "10250"

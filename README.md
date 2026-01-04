@@ -38,11 +38,93 @@ helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespac
 # Install network policies for security
 helm install network-policies ./helm/network-policies
 
+# Install monitoring stack (Prometheus + Grafana)
+helm dependency build ./helm/monitoring
+helm upgrade --install monitoring ./helm/monitoring -n monitoring --create-namespace
+
 # Test the setup
 sleep 3
 curl -k https://echo.localhost
 curl -k https://hubble.localhost
+curl -k https://grafana.localhost
 ```
+
+## Monitoring with Grafana and Prometheus
+
+The setup includes a complete monitoring stack with Prometheus and Grafana, featuring official Cilium dashboards.
+
+### Accessing Grafana
+
+Grafana is exposed through the Gateway at: **https://grafana.localhost**
+
+- **Username**: `admin`
+- **Password**: `admin` (change after first login)
+
+### Available Dashboards
+
+The monitoring stack includes official Cilium dashboards:
+
+1. **Cilium Metrics** (Dashboard ID: 16611)
+   - Cilium Agent performance metrics
+   - BPF subsystem stats
+   - API call latency and counts
+   - Network forwarding metrics
+   - Conntrack entries
+
+2. **Cilium Operator** (Dashboard ID: 16612)
+   - Operator-specific metrics
+   - Controller reconciliation stats
+   - Resource management
+
+3. **Hubble Metrics** (Dashboard ID: 16613)
+   - Network flow metrics
+   - DNS query statistics
+   - HTTP/TCP traffic analysis
+   - Drop reasons and packet flows
+   - Service map visualization
+
+### Metrics Configuration
+
+Prometheus metrics are enabled for:
+- **Cilium Agent**: Port 9962
+- **Cilium Operator**: Port 9963
+- **Hubble**: Port 9965
+- **Hubble Relay**: Port 4245
+- **Envoy Proxy**: Port 9091
+
+All metrics are automatically discovered via ServiceMonitors configured in `helm/cilium/values.yaml`:
+```yaml
+prometheus:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+hubble:
+  metrics:
+    enabled:
+      - dns:query
+      - drop
+      - tcp
+      - flow
+      - port-distribution
+      - icmp
+      - httpV2:exemplars=true
+```
+
+### Prometheus Access
+
+Prometheus is available for direct querying:
+```bash
+# Port-forward to Prometheus
+kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-prometheus 9090:9090
+
+# Then open: http://localhost:9090
+```
+
+### Data Retention
+
+- **Prometheus**: 2 days with 2GB limit (5Gi storage allocated)
+- **AlertManager**: 24 hours (2Gi storage)
+- **Grafana**: Persistent storage (1Gi)
 
 ## Key Configuration Requirements
 

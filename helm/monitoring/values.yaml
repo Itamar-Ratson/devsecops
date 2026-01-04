@@ -1,0 +1,126 @@
+# Gateway configuration for Grafana HTTPRoute
+gateway:
+  name: main-gateway
+  namespace: gateway
+
+kube-prometheus-stack:
+  # Prometheus Configuration
+  prometheus:
+    prometheusSpec:
+      retention: 2d
+      retentionSize: "2GB"
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 5Gi
+      # Automatically discover ServiceMonitors in all namespaces
+      serviceMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelectorNilUsesHelmValues: false
+      ruleSelectorNilUsesHelmValues: false
+
+  # Grafana Configuration
+  grafana:
+    enabled: true
+    adminPassword: admin
+    persistence:
+      enabled: true
+      size: 1Gi
+
+    # Dashboard providers configuration
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+          - name: 'cilium'
+            orgId: 1
+            folder: 'Cilium'
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/cilium
+
+    # Configure dashboards using grafana.com IDs
+    dashboards:
+      cilium:
+        cilium-metrics:
+          gnetId: 16611
+          revision: 1
+          datasource: Prometheus
+        cilium-operator:
+          gnetId: 16612
+          revision: 1
+          datasource: Prometheus
+        hubble-metrics:
+          gnetId: 16613
+          revision: 1
+          datasource: Prometheus
+
+    # Grafana ingress/service configuration
+    service:
+      type: ClusterIP
+      port: 80
+
+    # Default datasource configuration
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: Prometheus
+            type: prometheus
+            url: http://monitoring-kube-prometheus-prometheus:9090
+            access: proxy
+            isDefault: true
+
+  # AlertManager Configuration (optional, can disable if not needed)
+  alertmanager:
+    enabled: true
+    alertmanagerSpec:
+      retention: 24h
+      storage:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 2Gi
+
+  # Node Exporter (useful for cluster-level metrics)
+  nodeExporter:
+    enabled: true
+
+  # Kube State Metrics (Kubernetes cluster metrics)
+  kubeStateMetrics:
+    enabled: true
+
+  # Default rules (can be customized)
+  defaultRules:
+    create: true
+    rules:
+      alertmanager: true
+      etcd: false
+      configReloaders: true
+      general: true
+      k8s: true
+      kubeApiserver: false
+      kubeApiserverAvailability: false
+      kubeApiserverSlos: false
+      kubelet: true
+      kubeProxy: false
+      kubePrometheusGeneral: true
+      kubePrometheusNodeRecording: true
+      kubernetesApps: true
+      kubernetesResources: true
+      kubernetesStorage: true
+      kubernetesSystem: true
+      kubeScheduler: false
+      kubeStateMetrics: true
+      network: true
+      node: true
+      nodeExporterAlerting: true
+      nodeExporterRecording: true
+      prometheus: true
+      prometheusOperator: true
