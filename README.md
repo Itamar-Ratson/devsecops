@@ -53,6 +53,8 @@ curl -k https://grafana.localhost
 
 The setup includes a complete monitoring stack with Prometheus and Grafana, featuring official Cilium dashboards.
 
+**📖 [Read the comprehensive Monitoring Stack Guide](MONITORING.md)** - Learn how the monitoring stack works, how metrics are collected, troubleshooting techniques, and how to add custom metrics.
+
 ### Accessing Grafana
 
 Grafana is exposed through the Gateway at: **https://grafana.localhost**
@@ -119,6 +121,24 @@ kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-prometheus 909
 
 # Then open: http://localhost:9090
 ```
+
+### AlertManager Integration
+
+AlertManager is configured as a datasource in Grafana for managing and viewing alerts:
+
+- **Access**: Navigate to **Alerting** → **Alert rules** in Grafana
+- **Datasource**: AlertManager is pre-configured and accessible via Grafana
+- **Features**:
+  - View active alerts
+  - Create silences
+  - Configure contact points (notification destinations)
+  - View alert history
+
+The monitoring stack includes default alerting rules for:
+- Kubernetes cluster health
+- Node resource usage
+- Pod status and health
+- Prometheus and monitoring stack health
 
 ### Data Retention
 
@@ -198,6 +218,8 @@ hubble:
 ## Network Policies
 
 The cluster implements **Cilium Network Policies** for defense-in-depth security.
+
+**📖 [Read the comprehensive Network Policies Guide](NETWORK_POLICIES.md)** - Learn how Cilium network policies work, common patterns, debugging techniques, and real examples from this project.
 
 ### Security Model
 

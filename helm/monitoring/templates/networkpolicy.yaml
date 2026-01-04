@@ -95,6 +95,13 @@ spec:
       toPorts:
         - ports:
             - port: "9090"
+    # Allow querying AlertManager
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: alertmanager
+      toPorts:
+        - ports:
+            - port: "9093"
     # Allow downloading dashboards from grafana.com (for init container)
     - toEntities:
         - world
@@ -185,6 +192,13 @@ spec:
         - ports:
             - port: "9093"
             - port: "8080"
+    # Allow from Grafana
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: grafana
+      toPorts:
+        - ports:
+            - port: "9093"
     # Allow mesh communication between AlertManager instances
     - fromEndpoints:
         - matchLabels:

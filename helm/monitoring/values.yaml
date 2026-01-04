@@ -74,6 +74,12 @@ kube-prometheus-stack:
             url: http://monitoring-kube-prometheus-prometheus:9090
             access: proxy
             isDefault: true
+          - name: AlertManager
+            type: alertmanager
+            url: http://monitoring-kube-prometheus-alertmanager:9093
+            access: proxy
+            jsonData:
+              implementation: prometheus
 
   # AlertManager Configuration (optional, can disable if not needed)
   alertmanager:
