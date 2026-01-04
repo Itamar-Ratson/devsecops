@@ -35,19 +35,26 @@ spec:
     # Allow API server access
     - toEntities:
         - kube-apiserver
-    # Allow scraping metrics from all pods
+    # Allow scraping metrics from all pods in monitoring namespace
     - toEndpoints:
         - {}
       toPorts:
         - ports:
             - port: "9090"  # Prometheus itself
+            - port: "8080"  # Kube state metrics
+    # Allow scraping metrics from kube-system namespace (Cilium, Hubble, CoreDNS)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
             - port: "9962"  # Cilium agent
             - port: "9963"  # Cilium operator
             - port: "9965"  # Hubble
-            - port: "4245"  # Hubble relay
+            - port: "9966"  # Hubble relay metrics
+            - port: "4245"  # Hubble relay gRPC
             - port: "9091"  # Envoy
             - port: "10254" # Node exporter
-            - port: "8080"  # Kube state metrics
             - port: "9153"  # CoreDNS metrics
     # Allow scraping metrics from host network (Cilium components on nodes)
     - toEntities:
@@ -57,8 +64,9 @@ spec:
             - port: "9962"  # Cilium agent
             - port: "9963"  # Cilium operator
             - port: "9965"  # Hubble
+            - port: "9966"  # Hubble relay metrics
             - port: "10250" # Kubelet
-            - port: "4245"  # Hubble relay
+            - port: "4245"  # Hubble relay gRPC
 ---
 # Allow Grafana to query Prometheus
 apiVersion: cilium.io/v2
