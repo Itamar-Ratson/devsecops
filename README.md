@@ -12,15 +12,22 @@ Docker, kubectl, Helm, KinD, kubeseal
 # Create Kind cluster with disabled CNI
 kind create cluster --config kind-config.yaml
 
+# Install Gateway API CRDs (experimental required for Cilium)
+# Cilium's Gateway controller requires TLSRoute and other experimental CRDs
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/experimental-install.yaml
+
+# Install Prometheus Operator CRDs (required before Cilium for ServiceMonitors)
+kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+
 # Install Cilium as CNI and Gateway controller
 # Note: kubeProxyReplacement must be enabled for Gateway API support
 helm dependency build ./helm/cilium
 helm install cilium ./helm/cilium -n kube-system
 kubectl wait --for=condition=Ready nodes --all --timeout=300s
-
-# Install Gateway API CRDs (experimental required for Cilium)
-# Cilium's Gateway controller requires TLSRoute and other experimental CRDs
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/experimental-install.yaml
 
 # Install cert-manager for TLS certificate management
 helm dependency build ./helm/cert-manager
@@ -38,9 +45,14 @@ helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespac
 # Install network policies for security
 helm install network-policies ./helm/network-policies
 
-# Install monitoring stack (Prometheus + Grafana)
+# Install monitoring stack (Prometheus + Grafana + Loki + Alloy)
+# Note: Uses split values files for better organization
 helm dependency build ./helm/monitoring
-helm upgrade --install monitoring ./helm/monitoring -n monitoring --create-namespace
+helm upgrade --install monitoring ./helm/monitoring -n monitoring --create-namespace \
+  -f ./helm/monitoring/values.yaml \
+  -f ./helm/monitoring/values-kube-prometheus.yaml \
+  -f ./helm/monitoring/values-loki.yaml \
+  -f ./helm/monitoring/values-alloy.yaml
 
 # Test the setup
 sleep 3

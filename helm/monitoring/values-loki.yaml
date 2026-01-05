@@ -1,0 +1,86 @@
+# Loki Configuration (Log Aggregation)
+loki:
+  # Deploy Loki in single binary mode (simpler for local dev)
+  deploymentMode: SingleBinary
+
+  loki:
+    # Disable multi-tenancy (not needed for local dev)
+    auth_enabled: false
+    # Disable usage reporting to Grafana Cloud
+    analytics:
+      reporting_enabled: false
+    # Storage configuration
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: filesystem
+    schemaConfig:
+      configs:
+        - from: "2024-01-01"
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h
+    # Retention configuration (keep logs for 2 days)
+    limits_config:
+      retention_period: 48h
+    # Compactor for retention enforcement
+    compactor:
+      retention_enabled: true
+      retention_delete_delay: 2h
+      retention_delete_worker_count: 150
+      delete_request_store: filesystem
+
+  # Single binary deployment
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 5Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  # Gateway (nginx proxy for Loki)
+  gateway:
+    enabled: true
+    replicas: 1
+    service:
+      type: ClusterIP
+      port: 80
+
+  # Disable unnecessary components for single binary mode
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  backend:
+    replicas: 0
+
+  # Monitoring
+  monitoring:
+    selfMonitoring:
+      enabled: false
+      grafanaAgent:
+        installOperator: false
+    lokiCanary:
+      enabled: false
+    serviceMonitor:
+      enabled: true
+    prometheusRule:
+      enabled: false
+
+  # Disable minio (we use filesystem storage)
+  minio:
+    enabled: false
+
+  # Test pod
+  test:
+    enabled: false
+

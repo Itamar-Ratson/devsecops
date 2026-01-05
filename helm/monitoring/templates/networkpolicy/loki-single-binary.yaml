@@ -1,0 +1,90 @@
+---
+# Allow Loki single binary ingress from Gateway
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: loki-single-binary-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: loki
+      app.kubernetes.io/component: single-binary
+  ingress:
+    # Allow from Loki Gateway
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: gateway
+      toPorts:
+        - ports:
+            - port: "3100"
+              protocol: TCP
+    # Allow self-connections for internal operations
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: single-binary
+      toPorts:
+        - ports:
+            - port: "3100"
+              protocol: TCP
+    # Allow Prometheus to scrape metrics
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "3100"
+              protocol: TCP
+---
+# Allow Loki single binary egress for DNS
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: loki-single-binary-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: loki
+      app.kubernetes.io/component: single-binary
+  egress:
+    # Allow DNS
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+    # Allow API server access (for configmap/secret access)
+    - toEntities:
+        - kube-apiserver
+    # Allow self-connections for internal operations
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: single-binary
+      toPorts:
+        - ports:
+            - port: "3100"
+              protocol: TCP
+    # Allow connections to memcached caches
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: memcached-chunks-cache
+      toPorts:
+        - ports:
+            - port: "11211"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: memcached-results-cache
+      toPorts:
+        - ports:
+            - port: "11211"
+              protocol: TCP

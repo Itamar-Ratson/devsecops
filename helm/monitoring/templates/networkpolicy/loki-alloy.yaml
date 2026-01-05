@@ -1,0 +1,33 @@
+---
+# Allow Alloy egress to Loki and API server
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: alloy-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: alloy
+  egress:
+    # Allow DNS
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+    # Allow sending logs to Loki Gateway
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: gateway
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Allow API server access (for Kubernetes service discovery)
+    - toEntities:
+        - kube-apiserver

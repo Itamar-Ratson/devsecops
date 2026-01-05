@@ -1,0 +1,80 @@
+---
+# Allow Loki Gateway to access Loki single binary
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: loki-gateway-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: loki
+      app.kubernetes.io/component: gateway
+  egress:
+    # Allow DNS
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+    # Allow API server access (for configmap/secret access)
+    - toEntities:
+        - kube-apiserver
+    # Allow access to Loki single binary
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: single-binary
+      toPorts:
+        - ports:
+            - port: "3100"
+              protocol: TCP
+---
+# Allow Loki Gateway ingress from Grafana and Alloy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: loki-gateway-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: loki
+      app.kubernetes.io/component: gateway
+  ingress:
+    # Allow from Grafana
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: grafana
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Allow from Alloy
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: alloy
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Allow from Loki Canary
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: canary
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Allow Prometheus to scrape metrics
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

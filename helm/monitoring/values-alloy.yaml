@@ -1,0 +1,84 @@
+# Grafana Alloy Configuration (Unified Observability Agent)
+alloy:
+  # Deploy as DaemonSet to collect logs from all nodes
+  controller:
+    type: daemonset
+
+  # Disable usage reporting to Grafana Cloud and set configuration
+  alloy:
+    stabilityLevel: "generally-available"
+    extraEnv:
+      - name: DISABLE_REPORTING
+        value: "true"
+    # Alloy configuration in River format
+    configMap:
+      content: |-
+        // Discover Kubernetes pods
+        discovery.kubernetes "pods" {
+          role = "pod"
+        }
+
+        // Relabel discovered pods
+        discovery.relabel "pods" {
+          targets = discovery.kubernetes.pods.targets
+
+          // Add namespace label
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+
+          // Add pod name label
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+
+          // Add container name label
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+
+          // Add node name label
+          rule {
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            target_label  = "node"
+          }
+
+          // Set log path
+          rule {
+            source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+            separator     = "/"
+            target_label  = "__path__"
+            replacement   = "/var/log/pods/*$1/*.log"
+          }
+        }
+
+        // Scrape logs from discovered pods
+        loki.source.kubernetes "pods" {
+          targets    = discovery.relabel.pods.output
+          forward_to = [loki.process.pods.receiver]
+        }
+
+        // Process logs (extract container runtime metadata)
+        loki.process "pods" {
+          forward_to = [loki.write.loki.receiver]
+
+          stage.cri {}
+        }
+
+        // Send logs to Loki
+        loki.write "loki" {
+          endpoint {
+            url = "http://monitoring-loki-gateway:80/loki/api/v1/push"
+          }
+        }
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
