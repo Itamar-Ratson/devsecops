@@ -42,6 +42,7 @@ spec:
             - port: "9090"  # Prometheus itself
             - port: "8080"  # Kube state metrics
             - port: "9093"  # AlertManager
+            - port: "3000"  # Grafana metrics
             - port: "10250" # Prometheus operator webhook
     # Allow scraping metrics from kube-system namespace (Cilium, Hubble, CoreDNS)
     - toEndpoints:
