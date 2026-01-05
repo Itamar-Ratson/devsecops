@@ -69,6 +69,11 @@ spec:
             - port: "9966"  # Hubble relay metrics
             - port: "10250" # Kubelet
             - port: "4245"  # Hubble relay gRPC
+            - port: "9100"  # Node exporter
+            - port: "10257" # kube-controller-manager
+            - port: "10259" # kube-scheduler
+            - port: "10249" # kube-proxy
+            - port: "2381"  # etcd metrics
 ---
 # Allow Grafana to query Prometheus
 apiVersion: cilium.io/v2
@@ -340,6 +345,9 @@ spec:
         - ports:
             - port: "53"
               protocol: UDP
+    # Allow API server access (for configmap/secret access)
+    - toEntities:
+        - kube-apiserver
     # Allow access to Loki single binary
     - toEndpoints:
         - matchLabels:
@@ -402,6 +410,9 @@ spec:
         - ports:
             - port: "53"
               protocol: UDP
+    # Allow API server access (for configmap/secret access)
+    - toEntities:
+        - kube-apiserver
     # Allow self-connections for internal operations
     - toEndpoints:
         - matchLabels:
@@ -410,6 +421,23 @@ spec:
       toPorts:
         - ports:
             - port: "3100"
+              protocol: TCP
+    # Allow connections to memcached caches
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: memcached-chunks-cache
+      toPorts:
+        - ports:
+            - port: "11211"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: memcached-results-cache
+      toPorts:
+        - ports:
+            - port: "11211"
               protocol: TCP
 ---
 # Allow Loki Gateway ingress from Grafana and Alloy
@@ -436,6 +464,15 @@ spec:
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/name: alloy
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Allow from Loki Canary
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: canary
       toPorts:
         - ports:
             - port: "8080"
@@ -473,3 +510,122 @@ spec:
     # Allow API server access (for Kubernetes service discovery)
     - toEntities:
         - kube-apiserver
+---
+# Allow Loki Canary egress to Gateway and DNS
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: loki-canary-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: loki
+      app.kubernetes.io/component: canary
+  egress:
+    # Allow DNS
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+    # Allow sending logs to Loki Gateway
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: gateway
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+# Allow Loki memcached chunks cache ingress from single-binary
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: loki-memcached-chunks-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: loki
+      app.kubernetes.io/component: memcached-chunks-cache
+  ingress:
+    # Allow from Loki single-binary
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: single-binary
+      toPorts:
+        - ports:
+            - port: "11211"
+              protocol: TCP
+---
+# Allow Loki memcached chunks cache egress for DNS
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: loki-memcached-chunks-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: loki
+      app.kubernetes.io/component: memcached-chunks-cache
+  egress:
+    # Allow DNS
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+---
+# Allow Loki memcached results cache ingress from single-binary
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: loki-memcached-results-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: loki
+      app.kubernetes.io/component: memcached-results-cache
+  ingress:
+    # Allow from Loki single-binary
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: single-binary
+      toPorts:
+        - ports:
+            - port: "11211"
+              protocol: TCP
+---
+# Allow Loki memcached results cache egress for DNS
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: loki-memcached-results-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: loki
+      app.kubernetes.io/component: memcached-results-cache
+  egress:
+    # Allow DNS
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
