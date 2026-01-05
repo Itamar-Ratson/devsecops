@@ -33,6 +33,10 @@ cilium:
       enabled: true
   hubble:
     enabled: true
+    tls:
+      enabled: false  # Disable TLS to avoid "too many open files" error in local dev
+    peerService:
+      enabled: true
     relay:
       enabled: true
       prometheus:
@@ -49,7 +53,15 @@ cilium:
         - flow
         - port-distribution
         - icmp
+        - policy:sourceContext=app|workload-name|pod|reserved-identity;destinationContext=app|workload-name|pod|dns|reserved-identity;labelsContext=source_namespace,destination_namespace
         - httpV2:exemplars=true;labelsContext=source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction
       enableOpenMetrics: true
       serviceMonitor:
         enabled: true
+    # Export Hubble flows to stdout for Alloy/Loki collection
+    export:
+      static:
+        enabled: true
+        filePath: stdout
+        fieldMask: []  # Export all fields for full context
+        # No allowList/denyList = export all flows
