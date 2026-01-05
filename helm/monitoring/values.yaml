@@ -1259,7 +1259,12 @@ alloy:
   controller:
     type: daemonset
 
+  # Disable usage reporting to Grafana Cloud and set configuration
   alloy:
+    stabilityLevel: "generally-available"
+    extraEnv:
+      - name: DISABLE_REPORTING
+        value: "true"
     # Alloy configuration in River format
     configMap:
       content: |-
