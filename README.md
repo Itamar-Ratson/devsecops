@@ -20,14 +20,14 @@ kind create cluster --config kind-config.yaml
 kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/experimental-install.yaml
 
 # Prometheus Operator CRDs (required before Cilium for ServiceMonitors)
-kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.87.1/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.87.1/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.87.1/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.87.1/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.87.1/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
 
 # cert-manager CRDs (recommended by cert-manager docs for production)
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.1/cert-manager.crds.yaml
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.19.2/cert-manager.crds.yaml
 
 # Install Cilium as CNI and Gateway controller
 # Note: kubeProxyReplacement must be enabled for Gateway API support
