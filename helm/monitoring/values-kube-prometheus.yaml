@@ -1,4 +1,8 @@
 kube-prometheus-stack:
+  # Simplify resource names (remove release name prefix)
+  # This creates services like: prometheus, alertmanager, kube-state-metrics
+  nameOverride: ""
+
   # Prometheus Configuration
   prometheus:
     prometheusSpec:
@@ -16,14 +20,36 @@ kube-prometheus-stack:
       podMonitorSelectorNilUsesHelmValues: false
       ruleSelectorNilUsesHelmValues: false
 
+  # AlertManager Configuration
+  alertmanager:
+    fullnameOverride: alertmanager
+
+  # Prometheus Operator Configuration
+  prometheusOperator:
+    fullnameOverride: prometheus-operator
+
+  # Kube State Metrics
+  kube-state-metrics:
+    fullnameOverride: kube-state-metrics
+
+  # Node Exporter
+  prometheus-node-exporter:
+    fullnameOverride: node-exporter
+
   # Grafana Configuration
   grafana:
+    fullnameOverride: grafana
     enabled: true
     defaultDatasourceEnabled: false
     adminPassword: admin
     persistence:
       enabled: true
       size: 1Gi
+
+    # Disable sidecar datasources (we define them manually below)
+    sidecar:
+      datasources:
+        enabled: false
 
     # Dashboard providers configuration
     dashboardProviders:
@@ -90,7 +116,7 @@ kube-prometheus-stack:
               implementation: prometheus
           - name: Loki
             type: loki
-            url: http://monitoring-loki-gateway:80
+            url: http://loki-gateway:80
             access: proxy
             jsonData:
               maxLines: 1000

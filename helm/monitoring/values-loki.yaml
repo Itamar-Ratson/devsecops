@@ -1,5 +1,8 @@
 # Loki Configuration (Log Aggregation)
 loki:
+  # Simplify resource names (remove redundant 'monitoring-loki-' prefix)
+  fullnameOverride: loki
+
   # Deploy Loki in single binary mode (simpler for local dev)
   deploymentMode: SingleBinary
 

@@ -1,5 +1,8 @@
 # Grafana Alloy Configuration (Unified Observability Agent)
 alloy:
+  # Simplify resource names (remove redundant 'monitoring-' prefix)
+  fullnameOverride: alloy
+
   # Deploy as DaemonSet to collect logs from all nodes
   controller:
     type: daemonset
@@ -71,7 +74,7 @@ alloy:
         // Send logs to Loki
         loki.write "loki" {
           endpoint {
-            url = "http://monitoring-loki-gateway:80/loki/api/v1/push"
+            url = "http://loki-gateway:80/loki/api/v1/push"
           }
         }
 
