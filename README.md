@@ -26,7 +26,7 @@ kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-oper
 # Install Cilium as CNI and Gateway controller
 # Note: kubeProxyReplacement must be enabled for Gateway API support
 helm dependency build ./helm/cilium
-helm install cilium ./helm/cilium -n kube-system
+helm upgrade --install cilium ./helm/cilium -n kube-system
 kubectl wait --for=condition=Ready nodes --all --timeout=300s
 
 # Install cert-manager for TLS certificate management
@@ -43,7 +43,7 @@ helm upgrade --install gateway ./helm/gateway -n gateway --create-namespace
 helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespace
 
 # Install network policies for security
-helm install network-policies ./helm/network-policies
+helm upgrade --install network-policies ./helm/network-policies
 
 # Install monitoring stack (Prometheus + Grafana + Loki + Alloy)
 # Note: Uses split values files for better organization
@@ -63,7 +63,7 @@ curl -k https://grafana.localhost
 
 ## Monitoring with Grafana and Prometheus
 
-The setup includes a complete monitoring stack with Prometheus and Grafana, featuring official Cilium dashboards.
+The setup includes a complete monitoring stack with Prometheus, Grafana, Loki (log aggregation), and Alloy (log collection), featuring official dashboards from grafana.com.
 
 **📖 [Read the comprehensive Monitoring Stack Guide](MONITORING.md)** - Learn how the monitoring stack works, how metrics are collected, troubleshooting techniques, and how to add custom metrics.
 
@@ -76,8 +76,9 @@ Grafana is exposed through the Gateway at: **https://grafana.localhost**
 
 ### Available Dashboards
 
-The monitoring stack includes official Cilium dashboards:
+The monitoring stack includes official dashboards from grafana.com:
 
+**Cilium Dashboards:**
 1. **Cilium Metrics** (Dashboard ID: 16611)
    - Cilium Agent performance metrics
    - BPF subsystem stats
@@ -96,6 +97,14 @@ The monitoring stack includes official Cilium dashboards:
    - HTTP/TCP traffic analysis
    - Drop reasons and packet flows
    - Service map visualization
+
+**Loki Dashboard:**
+4. **Loki Stack Monitoring** (Dashboard ID: 14055)
+   - Log ingestion rate (lines/sec and bytes/sec)
+   - Active log streams
+   - Query performance and latency
+   - Loki component resource usage
+   - Memcached cache statistics
 
 ### Metrics Configuration
 
@@ -157,6 +166,7 @@ The monitoring stack includes default alerting rules for:
 - **Prometheus**: 2 days with 2GB limit (5Gi storage allocated)
 - **AlertManager**: 24 hours (2Gi storage)
 - **Grafana**: Persistent storage (1Gi)
+- **Loki**: 48 hours (2 days) with 2GB limit (2Gi storage)
 
 ## Key Configuration Requirements
 
@@ -258,6 +268,14 @@ Each namespace has:
 - ✅ Allows controller ingress for kubeseal CLI and webhooks
 - ❌ All other traffic blocked
 
+#### monitoring namespace
+- ✅ Allows Prometheus to scrape metrics from all monitoring components and kube-system
+- ✅ Allows Grafana to access Prometheus, AlertManager, and Loki datasources
+- ✅ Allows Loki components (gateway, single-binary, memcached, canary) to communicate
+- ✅ Allows Alloy daemonset to send logs to Loki Gateway
+- ✅ Allows DNS egress and API server access
+- ❌ All other traffic blocked
+
 ### Why Cilium Network Policies?
 
 We use **Cilium Network Policies** instead of standard Kubernetes NetworkPolicies because:
@@ -282,6 +300,7 @@ kubectl exec -n kube-system ds/cilium -- cilium endpoint list
 Network policies are defined in:
 - `helm/http-echo/templates/networkpolicy.yaml` - http-echo policies
 - `helm/network-policies/templates/` - cert-manager and sealed-secrets policies
+- `helm/monitoring/templates/networkpolicy/` - monitoring stack policies (20 policies across 11 files)
 
 ## Cleanup
 
