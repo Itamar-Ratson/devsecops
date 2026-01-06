@@ -12,16 +12,22 @@ Docker, kubectl, Helm, KinD, kubeseal
 # Create Kind cluster with disabled CNI
 kind create cluster --config kind-config.yaml
 
-# Install Gateway API CRDs (experimental required for Cilium)
+# Install all CRDs upfront (best practice: CRDs define APIs, apps implement them)
+# This allows faster Helm operations and better version control
+
+# Gateway API CRDs (experimental required for Cilium)
 # Cilium's Gateway controller requires TLSRoute and other experimental CRDs
 kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/experimental-install.yaml
 
-# Install Prometheus Operator CRDs (required before Cilium for ServiceMonitors)
+# Prometheus Operator CRDs (required before Cilium for ServiceMonitors)
 kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
 kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
 kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
 kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
 kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.77.2/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+
+# cert-manager CRDs (recommended by cert-manager docs for production)
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.1/cert-manager.crds.yaml
 
 # Install Cilium as CNI and Gateway controller
 # Note: kubeProxyReplacement must be enabled for Gateway API support
