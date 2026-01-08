@@ -34,11 +34,18 @@ cilium:
   hubble:
     enabled: true
     tls:
-      enabled: false  # Disable TLS to avoid "too many open files" error in local dev
+      enabled: true
+      auto:
+        enabled: true
+        method: helm
+        certValidityDuration: 1095  # 3 years
     peerService:
       enabled: true
     relay:
       enabled: true
+      tls:
+        server:
+          enabled: true
       prometheus:
         enabled: true
         serviceMonitor:

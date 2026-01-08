@@ -9,6 +9,16 @@ Docker, kubectl, Helm, KinD, kubeseal
 ## Setup
 
 ```bash
+# Increase inotify limits (required for Hubble mTLS and monitoring stack)
+# Current usage: ~100 instances, ~400 watches per node
+# These provide comfortable headroom without being excessive
+sudo sysctl -w fs.inotify.max_user_instances=1024
+sudo sysctl -w fs.inotify.max_user_watches=16384
+
+# To make permanent, add to /etc/sysctl.conf:
+# fs.inotify.max_user_instances=1024
+# fs.inotify.max_user_watches=16384
+
 # Create Kind cluster with disabled CNI
 kind create cluster --config kind-config.yaml
 
