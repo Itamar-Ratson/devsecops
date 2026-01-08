@@ -1,0 +1,81 @@
+# Tempo Configuration (Distributed Tracing)
+tempo:
+  # Simplify resource names (remove redundant 'monitoring-tempo-' prefix)
+  fullnameOverride: tempo
+
+  # Single replica for monolithic mode
+  replicas: 1
+
+  # Tempo server configuration
+  tempo:
+    # Disable usage reporting to Grafana Cloud
+    reportingEnabled: false
+
+    # Disable multi-tenancy (not needed for local dev)
+    multitenancyEnabled: false
+
+    # Memory ballast for stable GC performance (1GB)
+    memBallastSizeMbs: 1024
+
+    # Server configuration
+    server:
+      http_listen_port: 3200
+
+    # Storage configuration (local filesystem)
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo/traces
+        wal:
+          path: /var/tempo/wal
+
+    # Trace retention (24 hours, matches Prometheus pattern)
+    retention: 24h
+
+    # OTLP receivers configuration (receive traces from Alloy)
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "0.0.0.0:4317"
+          http:
+            endpoint: "0.0.0.0:4318"
+
+    # Metrics generator (disabled for simplicity)
+    metricsGenerator:
+      enabled: false
+
+  # Resource limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Persistence for trace storage
+  persistence:
+    enabled: true
+    # storageClassName: standard (use default)
+    accessModes:
+      - ReadWriteOnce
+    size: 2Gi
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 3200
+
+  # ServiceMonitor for Prometheus scraping
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+
+  # Security context (non-root user)
+  securityContext:
+    fsGroup: 10001
+    runAsGroup: 10001
+    runAsNonRoot: true
+    runAsUser: 10001

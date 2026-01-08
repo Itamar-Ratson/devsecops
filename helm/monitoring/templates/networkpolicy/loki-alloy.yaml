@@ -28,6 +28,46 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
+    # Allow sending traces to Tempo
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: tempo
+      toPorts:
+        - ports:
+            - port: "4317"  # OTLP gRPC
+              protocol: TCP
     # Allow API server access (for Kubernetes service discovery)
     - toEntities:
         - kube-apiserver
+---
+# Allow Alloy ingress from applications sending traces
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: alloy-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: alloy
+  ingress:
+    # Allow OTLP traces from any pod in any namespace (cluster-wide)
+    - fromEndpoints:
+        - matchExpressions:
+          - key: k8s:io.kubernetes.pod.namespace
+            operator: Exists
+      toPorts:
+        - ports:
+            - port: "4317"  # OTLP gRPC
+              protocol: TCP
+            - port: "4318"  # OTLP HTTP
+              protocol: TCP
+    # Allow metrics scraping from Prometheus (namespace-scoped)
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: {{ .Release.Namespace }}
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "12345"  # Alloy metrics
+              protocol: TCP

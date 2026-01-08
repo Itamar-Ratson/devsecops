@@ -72,6 +72,14 @@ kube-prometheus-stack:
             editable: true
             options:
               path: /var/lib/grafana/dashboards/loki
+          - name: 'tempo'
+            orgId: 1
+            folder: 'Tempo'
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/tempo
 
     # Configure dashboards using grafana.com IDs
     dashboards:
@@ -92,6 +100,11 @@ kube-prometheus-stack:
         loki-stack-monitoring:
           gnetId: 14055
           revision: 5
+          datasource: Prometheus
+      tempo:
+        opentelemetry-tempo:
+          gnetId: 23242
+          revision: 1
           datasource: Prometheus
     # Grafana ingress/service configuration
     service:
@@ -120,6 +133,36 @@ kube-prometheus-stack:
             access: proxy
             jsonData:
               maxLines: 1000
+          - name: Tempo
+            type: tempo
+            url: http://tempo:3200
+            access: proxy
+            jsonData:
+              # Enable trace-to-logs correlation
+              tracesToLogsV2:
+                datasourceUid: loki
+                tags:
+                  - key: service.name
+                    value: service
+                  - key: service.namespace
+                    value: namespace
+              # Enable trace-to-metrics correlation
+              tracesToMetrics:
+                datasourceUid: prometheus
+                tags:
+                  - key: service.name
+                    value: service
+                  - key: service.namespace
+                    value: namespace
+              # Enable service map from Prometheus metrics
+              serviceMap:
+                datasourceUid: prometheus
+              # Enable node graph visualization
+              nodeGraph:
+                enabled: true
+              # Enable trace search
+              search:
+                hide: false
 
   # AlertManager Configuration (optional, can disable if not needed)
   alertmanager:

@@ -1,0 +1,73 @@
+---
+# Allow Tempo ingress from Alloy for trace ingestion
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tempo-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: tempo
+  ingress:
+    # Allow OTLP traces from Alloy DaemonSet
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: alloy
+      toPorts:
+        - ports:
+            - port: "4317"  # OTLP gRPC
+              protocol: TCP
+            - port: "4318"  # OTLP HTTP
+              protocol: TCP
+    # Allow Grafana to query traces
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: grafana
+      toPorts:
+        - ports:
+            - port: "3200"  # Tempo HTTP API
+              protocol: TCP
+    # Allow Prometheus to scrape metrics
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "3200"  # Metrics on same port
+              protocol: TCP
+    # Allow from host for port-forwarding
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "3200"
+              protocol: TCP
+            - port: "4317"
+              protocol: TCP
+            - port: "4318"
+              protocol: TCP
+---
+# Allow Tempo egress for DNS and API server
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tempo-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: tempo
+  egress:
+    # Allow DNS
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+    # Allow API server access (for configmap/secret access)
+    - toEntities:
+        - kube-apiserver

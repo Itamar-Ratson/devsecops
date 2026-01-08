@@ -32,9 +32,11 @@ spec:
             - port: "9093"  # AlertManager
             - port: "3000"  # Grafana metrics
             - port: "3100"  # Loki single-binary
+            - port: "3200"  # Tempo metrics
             - port: "3500"  # Loki Canary
             - port: "9150"  # Memcached exporter
             - port: "10250" # Prometheus operator webhook
+            - port: "12345" # Alloy metrics
     # Allow scraping metrics from kube-system namespace (Cilium, Hubble, CoreDNS)
     - toEndpoints:
         - matchLabels:

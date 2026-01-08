@@ -44,6 +44,14 @@ spec:
       toPorts:
         - ports:
             - port: "8080"
+    # Allow querying Tempo
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: tempo
+      toPorts:
+        - ports:
+            - port: "3200"  # Tempo HTTP API
+              protocol: TCP
     # Allow downloading dashboards from grafana.com (for init container)
     - toEntities:
         - world

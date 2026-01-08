@@ -13,6 +13,16 @@ alloy:
     extraEnv:
       - name: DISABLE_REPORTING
         value: "true"
+    # Expose OTLP receiver ports for trace collection
+    extraPorts:
+      - name: "otlp-grpc"
+        port: 4317
+        targetPort: 4317
+        protocol: "TCP"
+      - name: "otlp-http"
+        port: 4318
+        targetPort: 4318
+        protocol: "TCP"
     # Alloy configuration in River format
     configMap:
       content: |-
@@ -75,6 +85,47 @@ alloy:
         loki.write "loki" {
           endpoint {
             url = "http://loki-gateway:80/loki/api/v1/push"
+          }
+        }
+
+        // ========================================
+        // OTLP TRACE PIPELINE
+        // ========================================
+
+        // Receive traces via OTLP (gRPC and HTTP)
+        otelcol.receiver.otlp "default" {
+          // Listen on standard OTLP ports
+          grpc {
+            endpoint = "0.0.0.0:4317"
+          }
+
+          http {
+            endpoint = "0.0.0.0:4318"
+          }
+
+          output {
+            traces  = [otelcol.processor.batch.default.input]
+            // Discard metrics and logs (focus on traces only)
+            metrics = []
+            logs    = []
+          }
+        }
+
+        // Batch traces before sending (improves performance)
+        otelcol.processor.batch "default" {
+          output {
+            traces = [otelcol.exporter.otlp.tempo.input]
+          }
+        }
+
+        // Export traces to Tempo
+        otelcol.exporter.otlp "tempo" {
+          client {
+            endpoint = "tempo:4317"
+            // Use insecure connection (internal cluster communication)
+            tls {
+              insecure = true
+            }
           }
         }
 

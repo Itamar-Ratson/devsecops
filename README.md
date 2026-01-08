@@ -1,6 +1,6 @@
 # Kubernetes Local Dev Setup
 
-KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Hubble + Network Policies
+KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Hubble + Network Policies + Monitoring (Prometheus + Grafana + Loki + Alloy + Tempo)
 
 ## Prerequisites
 
@@ -51,14 +51,16 @@ helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespac
 # Install network policies for security
 helm upgrade --install network-policies ./helm/network-policies
 
-# Install monitoring stack (Prometheus + Grafana + Loki + Alloy)
+# Install monitoring stack (Prometheus + Grafana + Loki + Alloy + Tempo)
 # Note: Uses split values files for better organization
+# IMPORTANT: All values files must be explicitly specified with -f flags
 helm dependency build ./helm/monitoring
 helm upgrade --install monitoring ./helm/monitoring -n monitoring --create-namespace \
   -f ./helm/monitoring/values.yaml \
   -f ./helm/monitoring/values-kube-prometheus.yaml \
   -f ./helm/monitoring/values-loki.yaml \
-  -f ./helm/monitoring/values-alloy.yaml
+  -f ./helm/monitoring/values-alloy.yaml \
+  -f ./helm/monitoring/values-tempo.yaml
 
 # Test the setup
 sleep 3
@@ -69,7 +71,7 @@ curl -k https://grafana.localhost
 
 ## Monitoring with Grafana and Prometheus
 
-The setup includes a complete monitoring stack with Prometheus, Grafana, Loki (log aggregation), and Alloy (log collection), featuring official dashboards from grafana.com.
+The setup includes a complete monitoring stack with Prometheus, Grafana, Loki (log aggregation), Alloy (log collection), and Tempo (distributed tracing), featuring official dashboards from grafana.com.
 
 **📖 [Read the comprehensive Monitoring Stack Guide](MONITORING.md)** - Learn how the monitoring stack works, how metrics are collected, troubleshooting techniques, and how to add custom metrics.
 
@@ -111,6 +113,15 @@ The monitoring stack includes official dashboards from grafana.com:
    - Query performance and latency
    - Loki component resource usage
    - Memcached cache statistics
+
+**Tempo Dashboard:**
+5. **OpenTelemetry & Tempo** (Dashboard ID: 23242)
+   - Tempo querier, writer, and cache metrics
+   - Query latency and throughput
+   - Block compaction and retention
+   - Trace ingestion performance
+   - OpenTelemetry receiver/processor/exporter metrics
+   - Tail sampling processor statistics
 
 ### Metrics Configuration
 
