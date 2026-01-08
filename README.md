@@ -345,7 +345,7 @@ kubectl exec -n kube-system ds/cilium -- cilium endpoint list
 Network policies are defined in:
 - `helm/http-echo/templates/networkpolicy.yaml` - http-echo policies
 - `helm/network-policies/templates/` - cert-manager and sealed-secrets policies
-- `helm/monitoring/templates/networkpolicy/` - monitoring stack policies (20 policies across 11 files)
+- `helm/monitoring/templates/networkpolicy/` - monitoring stack policies (24 policies across 12 files)
 
 ## Cleanup
 
