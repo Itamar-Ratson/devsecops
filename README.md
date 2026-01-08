@@ -184,6 +184,34 @@ The monitoring stack includes default alerting rules for:
 - **AlertManager**: 24 hours (2Gi storage)
 - **Grafana**: Persistent storage (1Gi)
 - **Loki**: 48 hours (2 days) with 2GB limit (2Gi storage)
+- **Tempo**: 24 hours (2Gi storage)
+
+### Testing Distributed Tracing
+
+To test the distributed tracing pipeline and populate Tempo with sample traces:
+
+```bash
+# Create namespace for test workloads
+kubectl create namespace trace-test
+
+# Run trace generator (generates 5 traces/second for 2 hours)
+kubectl run trace-generator -n trace-test \
+  --image=ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest \
+  --restart=Never \
+  -- traces --otlp-endpoint=alloy.monitoring:4317 --otlp-insecure --rate=5 --duration=7200s
+
+# Verify traces are being received
+kubectl logs -n trace-test trace-generator
+
+# Query Tempo for traces
+kubectl exec -n monitoring deploy/grafana -c grafana -- \
+  wget -qO- 'http://tempo:3200/api/search?tags=service.name=telemetrygen&limit=10'
+
+# View traces in Grafana
+# Open https://grafana.localhost → Explore → Select "Tempo" datasource → Query: {service.name="telemetrygen"}
+```
+
+**Note**: Logs are automatically collected by Alloy from all pods cluster-wide, so no log generator is needed. The trace generator is only necessary because applications must actively instrument and send traces using OpenTelemetry SDKs.
 
 ## Key Configuration Requirements
 
