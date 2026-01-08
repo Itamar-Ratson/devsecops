@@ -17,7 +17,7 @@ spec:
             k8s:k8s-app: kube-dns
       toPorts:
         - ports:
-            - port: "53"
+            - port: "{{ .Values.ports.dns }}"
               protocol: UDP
     # Allow sending logs to Loki Gateway
     - toEndpoints:
@@ -26,7 +26,7 @@ spec:
             app.kubernetes.io/component: gateway
       toPorts:
         - ports:
-            - port: "8080"
+            - port: "{{ .Values.ports.loki.gateway }}"
               protocol: TCP
     # Allow sending traces to Tempo
     - toEndpoints:
@@ -34,7 +34,7 @@ spec:
             app.kubernetes.io/name: tempo
       toPorts:
         - ports:
-            - port: "4317"  # OTLP gRPC
+            - port: "{{ .Values.ports.tempo.otlpGrpc }}"
               protocol: TCP
     # Allow API server access (for Kubernetes service discovery)
     - toEntities:
@@ -58,9 +58,9 @@ spec:
             operator: Exists
       toPorts:
         - ports:
-            - port: "4317"  # OTLP gRPC
+            - port: "{{ .Values.ports.alloy.otlpGrpc }}"
               protocol: TCP
-            - port: "4318"  # OTLP HTTP
+            - port: "{{ .Values.ports.alloy.otlpHttp }}"
               protocol: TCP
     # Allow metrics scraping from Prometheus (namespace-scoped)
     - fromEndpoints:
@@ -69,5 +69,5 @@ spec:
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
-            - port: "12345"  # Alloy metrics
+            - port: "{{ .Values.ports.alloy.http }}"
               protocol: TCP

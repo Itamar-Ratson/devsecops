@@ -17,7 +17,7 @@ spec:
             k8s:k8s-app: kube-dns
       toPorts:
         - ports:
-            - port: "53"
+            - port: "{{ .Values.ports.dns }}"
               protocol: UDP
     # Allow mesh communication between AlertManager instances
     - toEndpoints:
@@ -25,8 +25,8 @@ spec:
             app.kubernetes.io/name: alertmanager
       toPorts:
         - ports:
-            - port: "9093"
-            - port: "9094"
+            - port: "{{ .Values.ports.alertmanager.http }}"
+            - port: "{{ .Values.ports.alertmanager.cluster }}"
 ---
 # Allow Prometheus to access AlertManager
 apiVersion: cilium.io/v2
@@ -45,20 +45,20 @@ spec:
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
-            - port: "9093"
-            - port: "8080"
+            - port: "{{ .Values.ports.alertmanager.http }}"
+            - port: "{{ .Values.ports.alertmanager.web }}"
     # Allow from Grafana
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/name: grafana
       toPorts:
         - ports:
-            - port: "9093"
+            - port: "{{ .Values.ports.alertmanager.http }}"
     # Allow mesh communication between AlertManager instances
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/name: alertmanager
       toPorts:
         - ports:
-            - port: "9093"
-            - port: "9094"
+            - port: "{{ .Values.ports.alertmanager.http }}"
+            - port: "{{ .Values.ports.alertmanager.cluster }}"

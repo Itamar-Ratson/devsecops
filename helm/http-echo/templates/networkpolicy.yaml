@@ -24,7 +24,7 @@ spec:
         - ingress
       toPorts:
         - ports:
-            - port: "5678"
+            - port: "{{ .Values.ports.httpEcho }}"
               protocol: TCP
 ---
 # Allow DNS egress for all pods
@@ -41,8 +41,8 @@ spec:
             io.kubernetes.pod.namespace: kube-system
       toPorts:
         - ports:
-            - port: "53"
+            - port: "{{ .Values.ports.dns }}"
               protocol: UDP
         - ports:
-            - port: "53"
+            - port: "{{ .Values.ports.dns }}"
               protocol: TCP

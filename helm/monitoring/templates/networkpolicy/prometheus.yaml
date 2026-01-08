@@ -17,7 +17,7 @@ spec:
             k8s:k8s-app: kube-dns
       toPorts:
         - ports:
-            - port: "53"
+            - port: "{{ .Values.ports.dns }}"
               protocol: UDP
     # Allow API server access
     - toEntities:
@@ -27,46 +27,47 @@ spec:
         - {}
       toPorts:
         - ports:
-            - port: "9090"  # Prometheus itself
-            - port: "8080"  # Kube state metrics, Loki Gateway
-            - port: "9093"  # AlertManager
-            - port: "3000"  # Grafana metrics
-            - port: "3100"  # Loki single-binary
-            - port: "3200"  # Tempo metrics
-            - port: "3500"  # Loki Canary
-            - port: "9150"  # Memcached exporter
-            - port: "10250" # Prometheus operator webhook
-            - port: "12345" # Alloy metrics
+            - port: "{{ .Values.ports.prometheus }}"
+            - port: "{{ .Values.ports.kubeStateMetrics }}"
+            - port: "{{ .Values.ports.loki.gateway }}"
+            - port: "{{ .Values.ports.alertmanager.http }}"
+            - port: "{{ .Values.ports.grafana }}"
+            - port: "{{ .Values.ports.loki.http }}"
+            - port: "{{ .Values.ports.tempo.http }}"
+            - port: "{{ .Values.ports.loki.canary }}"
+            - port: "{{ .Values.ports.memcached.exporter }}"
+            - port: "{{ .Values.ports.prometheusOperatorWebhook }}"
+            - port: "{{ .Values.ports.alloy.http }}"
     # Allow scraping metrics from kube-system namespace (Cilium, Hubble, CoreDNS)
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: kube-system
       toPorts:
         - ports:
-            - port: "9962"  # Cilium agent
-            - port: "9963"  # Cilium operator
-            - port: "9965"  # Hubble
-            - port: "9966"  # Hubble relay metrics
-            - port: "4245"  # Hubble relay gRPC
-            - port: "9091"  # Envoy
-            - port: "10254" # Node exporter
-            - port: "9153"  # CoreDNS metrics
+            - port: "{{ .Values.ports.ciliumAgent }}"
+            - port: "{{ .Values.ports.ciliumOperator }}"
+            - port: "{{ .Values.ports.hubble }}"
+            - port: "{{ .Values.ports.hubbleRelay }}"
+            - port: "{{ .Values.ports.hubbleRelayGrpc }}"
+            - port: "{{ .Values.ports.envoy }}"
+            - port: "10254"
+            - port: "{{ .Values.ports.coreDns }}"
     # Allow scraping metrics from host network (Cilium components on nodes)
     - toEntities:
         - host
       toPorts:
         - ports:
-            - port: "9962"  # Cilium agent
-            - port: "9963"  # Cilium operator
-            - port: "9965"  # Hubble
-            - port: "9966"  # Hubble relay metrics
-            - port: "10250" # Kubelet
-            - port: "4245"  # Hubble relay gRPC
-            - port: "9100"  # Node exporter
-            - port: "10257" # kube-controller-manager
-            - port: "10259" # kube-scheduler
-            - port: "10249" # kube-proxy
-            - port: "2381"  # etcd metrics
+            - port: "{{ .Values.ports.ciliumAgent }}"
+            - port: "{{ .Values.ports.ciliumOperator }}"
+            - port: "{{ .Values.ports.hubble }}"
+            - port: "{{ .Values.ports.hubbleRelay }}"
+            - port: "{{ .Values.ports.kubelet }}"
+            - port: "{{ .Values.ports.hubbleRelayGrpc }}"
+            - port: "{{ .Values.ports.nodeExporter }}"
+            - port: "{{ .Values.ports.controllerManager }}"
+            - port: "{{ .Values.ports.scheduler }}"
+            - port: "{{ .Values.ports.proxy }}"
+            - port: "{{ .Values.ports.etcd }}"
 ---
 # Allow Grafana to access Prometheus
 apiVersion: cilium.io/v2
@@ -85,11 +86,11 @@ spec:
             app.kubernetes.io/name: grafana
       toPorts:
         - ports:
-            - port: "9090"
+            - port: "{{ .Values.ports.prometheus }}"
     # Allow from Prometheus (for federation)
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
-            - port: "9090"
+            - port: "{{ .Values.ports.prometheus }}"

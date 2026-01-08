@@ -1,0 +1,60 @@
+# Centralized port definitions for all charts
+# Pass this file to helm commands with: -f helm/ports.yaml
+
+ports:
+  # Monitoring stack
+  grafana: 3000
+  prometheus: 9090
+  alertmanager:
+    http: 9093
+    cluster: 9094
+    web: 8080
+  loki:
+    http: 3100
+    grpc: 9095
+    gateway: 8080
+    canary: 3500
+  tempo:
+    http: 3200
+    grpc: 9096
+    otlpGrpc: 4317
+    otlpHttp: 4318
+  alloy:
+    http: 12345
+    clustering: 12346
+    otlpGrpc: 4317
+    otlpHttp: 4318
+  memcached:
+    server: 11211
+    exporter: 9150
+  kubeStateMetrics: 8080
+  prometheusOperatorWebhook: 10250
+
+  # Gateway
+  gateway:
+    http: 80
+    https: 443
+
+  # DNS
+  dns: 53
+
+  # Kubernetes
+  apiServer: 443
+  kubelet: 10250
+  controllerManager: 10257
+  scheduler: 10259
+  proxy: 10249
+  etcd: 2381
+
+  # Cilium
+  ciliumAgent: 9962
+  ciliumOperator: 9963
+  hubble: 9965
+  hubbleRelay: 9966
+  hubbleRelayGrpc: 4245
+  envoy: 9091
+  coreDns: 9153
+  nodeExporter: 9100
+
+  # Demo apps
+  httpEcho: 5678

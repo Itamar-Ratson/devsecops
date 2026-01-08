@@ -18,7 +18,7 @@ spec:
             k8s:k8s-app: kube-dns
       toPorts:
         - ports:
-            - port: "53"
+            - port: "{{ .Values.ports.dns }}"
               protocol: UDP
     # Allow API server access (for configmap/secret access)
     - toEntities:
@@ -30,7 +30,7 @@ spec:
             app.kubernetes.io/component: single-binary
       toPorts:
         - ports:
-            - port: "3100"
+            - port: "{{ .Values.ports.loki.http }}"
               protocol: TCP
 ---
 # Allow Loki Gateway ingress from Grafana and Alloy
@@ -51,7 +51,7 @@ spec:
             app.kubernetes.io/name: grafana
       toPorts:
         - ports:
-            - port: "8080"
+            - port: "{{ .Values.ports.loki.gateway }}"
               protocol: TCP
     # Allow from Alloy
     - fromEndpoints:
@@ -59,7 +59,7 @@ spec:
             app.kubernetes.io/name: alloy
       toPorts:
         - ports:
-            - port: "8080"
+            - port: "{{ .Values.ports.loki.gateway }}"
               protocol: TCP
     # Allow from Loki Canary
     - fromEndpoints:
@@ -68,7 +68,7 @@ spec:
             app.kubernetes.io/component: canary
       toPorts:
         - ports:
-            - port: "8080"
+            - port: "{{ .Values.ports.loki.gateway }}"
               protocol: TCP
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
@@ -76,5 +76,5 @@ spec:
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
-            - port: "8080"
+            - port: "{{ .Values.ports.loki.gateway }}"
               protocol: TCP

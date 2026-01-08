@@ -18,7 +18,7 @@ spec:
             app.kubernetes.io/component: single-binary
       toPorts:
         - ports:
-            - port: "11211"
+            - port: "{{ .Values.ports.memcached.server }}"
               protocol: TCP
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
@@ -26,7 +26,7 @@ spec:
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
-            - port: "9150"
+            - port: "{{ .Values.ports.memcached.exporter }}"
               protocol: TCP
 ---
 # Allow Loki memcached chunks cache egress for DNS
@@ -48,7 +48,7 @@ spec:
             k8s:k8s-app: kube-dns
       toPorts:
         - ports:
-            - port: "53"
+            - port: "{{ .Values.ports.dns }}"
               protocol: UDP
 ---
 # Allow Loki memcached results cache ingress from single-binary
@@ -70,7 +70,7 @@ spec:
             app.kubernetes.io/component: single-binary
       toPorts:
         - ports:
-            - port: "11211"
+            - port: "{{ .Values.ports.memcached.server }}"
               protocol: TCP
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
@@ -78,7 +78,7 @@ spec:
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
-            - port: "9150"
+            - port: "{{ .Values.ports.memcached.exporter }}"
               protocol: TCP
 ---
 # Allow Loki memcached results cache egress for DNS
@@ -100,5 +100,5 @@ spec:
             k8s:k8s-app: kube-dns
       toPorts:
         - ports:
-            - port: "53"
+            - port: "{{ .Values.ports.dns }}"
               protocol: UDP

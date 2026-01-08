@@ -16,9 +16,9 @@ spec:
             app.kubernetes.io/name: alloy
       toPorts:
         - ports:
-            - port: "4317"  # OTLP gRPC
+            - port: "{{ .Values.ports.tempo.otlpGrpc }}"
               protocol: TCP
-            - port: "4318"  # OTLP HTTP
+            - port: "{{ .Values.ports.tempo.otlpHttp }}"
               protocol: TCP
     # Allow Grafana to query traces
     - fromEndpoints:
@@ -26,7 +26,7 @@ spec:
             app.kubernetes.io/name: grafana
       toPorts:
         - ports:
-            - port: "3200"  # Tempo HTTP API
+            - port: "{{ .Values.ports.tempo.http }}"
               protocol: TCP
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
@@ -34,18 +34,18 @@ spec:
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
-            - port: "3200"  # Metrics on same port
+            - port: "{{ .Values.ports.tempo.http }}"
               protocol: TCP
     # Allow from host for port-forwarding
     - fromEntities:
         - host
       toPorts:
         - ports:
-            - port: "3200"
+            - port: "{{ .Values.ports.tempo.http }}"
               protocol: TCP
-            - port: "4317"
+            - port: "{{ .Values.ports.tempo.otlpGrpc }}"
               protocol: TCP
-            - port: "4318"
+            - port: "{{ .Values.ports.tempo.otlpHttp }}"
               protocol: TCP
 ---
 # Allow Tempo egress for DNS and API server
@@ -66,7 +66,7 @@ spec:
             k8s:k8s-app: kube-dns
       toPorts:
         - ports:
-            - port: "53"
+            - port: "{{ .Values.ports.dns }}"
               protocol: UDP
     # Allow API server access (for configmap/secret access)
     - toEntities:

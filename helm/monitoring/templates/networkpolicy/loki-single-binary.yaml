@@ -18,7 +18,7 @@ spec:
             app.kubernetes.io/component: gateway
       toPorts:
         - ports:
-            - port: "3100"
+            - port: "{{ .Values.ports.loki.http }}"
               protocol: TCP
     # Allow self-connections for internal operations
     - fromEndpoints:
@@ -27,7 +27,7 @@ spec:
             app.kubernetes.io/component: single-binary
       toPorts:
         - ports:
-            - port: "3100"
+            - port: "{{ .Values.ports.loki.http }}"
               protocol: TCP
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
@@ -35,7 +35,7 @@ spec:
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
-            - port: "3100"
+            - port: "{{ .Values.ports.loki.http }}"
               protocol: TCP
 ---
 # Allow Loki single binary egress for DNS
@@ -57,7 +57,7 @@ spec:
             k8s:k8s-app: kube-dns
       toPorts:
         - ports:
-            - port: "53"
+            - port: "{{ .Values.ports.dns }}"
               protocol: UDP
     # Allow API server access (for configmap/secret access)
     - toEntities:
@@ -69,7 +69,7 @@ spec:
             app.kubernetes.io/component: single-binary
       toPorts:
         - ports:
-            - port: "3100"
+            - port: "{{ .Values.ports.loki.http }}"
               protocol: TCP
     # Allow connections to memcached caches
     - toEndpoints:
@@ -78,7 +78,7 @@ spec:
             app.kubernetes.io/component: memcached-chunks-cache
       toPorts:
         - ports:
-            - port: "11211"
+            - port: "{{ .Values.ports.memcached.server }}"
               protocol: TCP
     - toEndpoints:
         - matchLabels:
@@ -86,5 +86,5 @@ spec:
             app.kubernetes.io/component: memcached-results-cache
       toPorts:
         - ports:
-            - port: "11211"
+            - port: "{{ .Values.ports.memcached.server }}"
               protocol: TCP
