@@ -6,20 +6,20 @@ KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Hu
 
 Docker, kubectl, Helm, KinD, kubeseal
 
-# Increase inotify limits (required for Hubble mTLS and monitoring stack)
+### Increase inotify limits (required for Hubble mTLS and monitoring stack)
 
-# Current usage: ~100 instances, ~400 watches per node
+### Current usage: ~100 instances, ~400 watches per node
 
-# These provide comfortable headroom without being excessive
+### These provide comfortable headroom without being excessive
 
 sudo sysctl -w fs.inotify.max_user_instances=1024
 sudo sysctl -w fs.inotify.max_user_watches=16384
 
-# To make permanent, add to /etc/sysctl.conf
+### To make permanent, add to /etc/sysctl.conf
 
-# fs.inotify.max_user_instances=1024
+### fs.inotify.max_user_instances=1024
 
-# fs.inotify.max_user_watches=16384
+### fs.inotify.max_user_watches=16384
 
 ## Setup
 
