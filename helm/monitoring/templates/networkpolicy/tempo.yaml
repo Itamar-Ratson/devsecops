@@ -1,9 +1,9 @@
 ---
-# Allow Tempo ingress from Alloy for trace ingestion
+# Tempo network policy - ingress and egress
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: tempo-ingress
+  name: tempo
   namespace: {{ .Release.Namespace }}
 spec:
   endpointSelector:
@@ -47,27 +47,7 @@ spec:
               protocol: TCP
             - port: "{{ .Values.ports.tempo.otlpHttp }}"
               protocol: TCP
----
-# Allow Tempo egress for DNS and API server
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: tempo-egress
-  namespace: {{ .Release.Namespace }}
-spec:
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: tempo
   egress:
-    # Allow DNS
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s:k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.dns }}"
-              protocol: UDP
     # Allow API server access (for configmap/secret access)
     - toEntities:
         - kube-apiserver

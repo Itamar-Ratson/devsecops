@@ -1,0 +1,25 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tetragon-operator
+  namespace: kube-system
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: tetragon-operator
+
+  ingress:
+    # Allow Prometheus to scrape operator metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.tetragonOperator }}"
+              protocol: TCP
+
+  egress:
+    # Allow Kubernetes API access (for CRD management)
+    - toEntities:
+        - kube-apiserver

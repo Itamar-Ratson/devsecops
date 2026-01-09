@@ -4,7 +4,7 @@ metadata:
   name: http-echo
 spec:
   ports:
-    - port: 80
-      targetPort: 5678
+    - port: {{ .Values.ports.httpService }}
+      targetPort: {{ .Values.ports.httpEcho }}
   selector:
     app: http-echo

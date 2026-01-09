@@ -1,0 +1,39 @@
+---
+# Allow egress to Kubernetes API server
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-k8s-api-egress
+  namespace: cert-manager
+spec:
+  endpointSelector: {}
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.apiServerSecure }}"
+              protocol: TCP
+        - ports:
+            - port: "{{ .Values.ports.apiServer }}"
+              protocol: TCP
+---
+# Allow webhook ingress from kube-apiserver, host, and remote-node
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-webhook-ingress
+  namespace: cert-manager
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: webhook
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kubelet }}"
+              protocol: TCP

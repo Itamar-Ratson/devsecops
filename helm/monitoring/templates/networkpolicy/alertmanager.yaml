@@ -1,38 +1,9 @@
 ---
-# Allow AlertManager communication
+# AlertManager network policy - ingress and egress
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: alertmanager-egress
-  namespace: {{ .Release.Namespace }}
-spec:
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: alertmanager
-  egress:
-    # Allow DNS
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s:k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.dns }}"
-              protocol: UDP
-    # Allow mesh communication between AlertManager instances
-    - toEndpoints:
-        - matchLabels:
-            app.kubernetes.io/name: alertmanager
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.alertmanager.http }}"
-            - port: "{{ .Values.ports.alertmanager.cluster }}"
----
-# Allow Prometheus to access AlertManager
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: alertmanager-ingress
+  name: alertmanager
   namespace: {{ .Release.Namespace }}
 spec:
   endpointSelector:
@@ -56,6 +27,15 @@ spec:
             - port: "{{ .Values.ports.alertmanager.http }}"
     # Allow mesh communication between AlertManager instances
     - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: alertmanager
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.alertmanager.http }}"
+            - port: "{{ .Values.ports.alertmanager.cluster }}"
+  egress:
+    # Allow mesh communication between AlertManager instances
+    - toEndpoints:
         - matchLabels:
             app.kubernetes.io/name: alertmanager
       toPorts:

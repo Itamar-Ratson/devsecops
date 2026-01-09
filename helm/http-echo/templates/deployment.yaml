@@ -18,4 +18,4 @@ spec:
           args:
             - -text=hello world
           ports:
-            - containerPort: 5678
+            - containerPort: {{ .Values.ports.httpEcho }}

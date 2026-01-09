@@ -1,15 +1,4 @@
 ---
-# Default deny all ingress and egress using Cilium Network Policy
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: default-deny-all
-spec:
-  endpointSelector: {}
-  # Empty arrays mean deny all
-  ingress: []
-  egress: []
----
 # Allow ingress to http-echo from Gateway (Cilium Gateway uses ingress identity)
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -25,24 +14,4 @@ spec:
       toPorts:
         - ports:
             - port: "{{ .Values.ports.httpEcho }}"
-              protocol: TCP
----
-# Allow DNS egress for all pods
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-dns-egress
-spec:
-  endpointSelector: {}
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            k8s-app: kube-dns
-            io.kubernetes.pod.namespace: kube-system
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.dns }}"
-              protocol: UDP
-        - ports:
-            - port: "{{ .Values.ports.dns }}"
               protocol: TCP

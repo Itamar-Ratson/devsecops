@@ -1,9 +1,9 @@
 ---
-# Allow Loki memcached chunks cache ingress from single-binary
+# Loki memcached chunks cache network policy - ingress and egress
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: loki-memcached-chunks-ingress
+  name: loki-memcached-chunks
   namespace: {{ .Release.Namespace }}
 spec:
   endpointSelector:
@@ -28,34 +28,13 @@ spec:
         - ports:
             - port: "{{ .Values.ports.memcached.exporter }}"
               protocol: TCP
+  egress: []
 ---
-# Allow Loki memcached chunks cache egress for DNS
+# Loki memcached results cache network policy - ingress and egress
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: loki-memcached-chunks-egress
-  namespace: {{ .Release.Namespace }}
-spec:
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: loki
-      app.kubernetes.io/component: memcached-chunks-cache
-  egress:
-    # Allow DNS
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s:k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.dns }}"
-              protocol: UDP
----
-# Allow Loki memcached results cache ingress from single-binary
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: loki-memcached-results-ingress
+  name: loki-memcached-results
   namespace: {{ .Release.Namespace }}
 spec:
   endpointSelector:
@@ -80,25 +59,4 @@ spec:
         - ports:
             - port: "{{ .Values.ports.memcached.exporter }}"
               protocol: TCP
----
-# Allow Loki memcached results cache egress for DNS
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: loki-memcached-results-egress
-  namespace: {{ .Release.Namespace }}
-spec:
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: loki
-      app.kubernetes.io/component: memcached-results-cache
-  egress:
-    # Allow DNS
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s:k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.dns }}"
-              protocol: UDP
+  egress: []

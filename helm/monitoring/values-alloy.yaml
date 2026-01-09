@@ -59,6 +59,12 @@ alloy:
             target_label  = "node"
           }
 
+          // Add cluster label (required by Tetragon dashboards)
+          rule {
+            target_label  = "cluster"
+            replacement   = "k8s-dev"
+          }
+
           // Set log path
           rule {
             source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]

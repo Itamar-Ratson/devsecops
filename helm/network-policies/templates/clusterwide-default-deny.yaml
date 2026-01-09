@@ -1,0 +1,12 @@
+---
+# Cluster-wide default deny all ingress and egress
+# This applies to ALL pods in ALL namespaces
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: clusterwide-default-deny
+spec:
+  endpointSelector: {}
+  # Empty arrays mean deny all
+  ingress: []
+  egress: []

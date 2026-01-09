@@ -1,6 +1,6 @@
 # Kubernetes Local Dev Setup
 
-KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Hubble + Network Policies + Monitoring (Prometheus + Grafana + Loki + Alloy + Tempo)
+KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Hubble + Tetragon + Network Policies + Monitoring (Prometheus + Grafana + Loki + Alloy + Tempo)
 
 ## Prerequisites
 
@@ -44,6 +44,14 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 helm dependency build ./helm/cilium
 helm upgrade --install cilium ./helm/cilium -n kube-system
 kubectl wait --for=condition=Ready nodes --all --timeout=300s
+
+# Install Tetragon for security observability
+helm dependency build ./helm/tetragon
+helm upgrade --install tetragon ./helm/tetragon -n kube-system \
+  -f ./helm/ports.yaml \
+  -f ./helm/tetragon/values.yaml \
+  -f ./helm/tetragon/values-tetragon.yaml
+kubectl rollout status -n kube-system ds/tetragon -w
 
 # Install cert-manager for TLS certificate management
 helm dependency build ./helm/cert-manager
@@ -290,6 +298,75 @@ hubble:
     enabled: true  # Aggregates flows from all Cilium instances
   ui:
     enabled: true  # Web interface
+```
+
+## Tetragon - Security Observability
+
+Tetragon provides deep kernel-level security observability and runtime enforcement using eBPF.
+
+**📖 [Read the comprehensive Tetragon Guide](TETRAGON.md)** - Learn how Tetragon works, what it monitors, security policies, and troubleshooting techniques.
+
+### Features
+
+- **Process Monitoring**: Track all process executions, arguments, and genealogy
+- **System Call Tracing**: Monitor security-critical syscalls (file access, privilege escalation)
+- **File I/O Tracking**: Observe file access patterns and sensitive file operations
+- **Runtime Enforcement**: Block malicious activities at the kernel level with eBPF
+- **Kubernetes Context**: Enriches events with pod, namespace, and label metadata
+- **Low Overhead**: < 1% performance impact using in-kernel filtering
+
+### How Tetragon Complements Hubble
+
+- **Hubble**: Network-level observability (L3/L4/L7 traffic flows between pods)
+- **Tetragon**: System-level observability (processes, syscalls, file I/O within pods)
+
+Together they provide comprehensive visibility from network to system level.
+
+### Accessing Tetragon Events
+
+Tetragon events are automatically collected by Alloy and stored in Loki:
+
+1. Open Grafana: **https://grafana.localhost**
+2. Go to **Explore** → Select **Loki** datasource
+3. Example queries:
+   ```
+   # All Tetragon events
+   {namespace="kube-system", app="tetragon"}
+
+   # Process executions
+   {namespace="kube-system", app="tetragon"} |= "process_exec"
+
+   # File access events
+   {namespace="kube-system", app="tetragon"} |= "process_kprobe" |= "fd_install"
+   ```
+
+### Metrics
+
+Tetragon exposes Prometheus metrics automatically scraped via ServiceMonitors:
+- **Agent metrics**: Port 2112
+- **Operator metrics**: Port 2113
+
+Access metrics in Grafana or Prometheus UI.
+
+### Using the Tetra CLI (Optional)
+
+For interactive event querying, install the tetra CLI:
+
+```bash
+# Install tetra CLI
+GOOS=$(go env GOOS)
+GOARCH=$(go env GOARCH)
+curl -L https://github.com/cilium/tetragon/releases/latest/download/tetra-${GOOS}-${GOARCH}.tar.gz | tar -xz
+sudo mv tetra /usr/local/bin
+
+# Port-forward to Tetragon
+kubectl port-forward -n kube-system ds/tetragon 54321:54321 &
+
+# Query live events
+tetra getevents -o compact
+
+# Filter specific event types
+tetra getevents -o compact --event-types process_exec
 ```
 
 ## Network Policies

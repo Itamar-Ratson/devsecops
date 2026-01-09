@@ -12,7 +12,7 @@ ports:
   loki:
     http: 3100
     grpc: 9095
-    gateway: 8080
+    gateway: 8080  # Container port (network policies use pod-level ports)
     canary: 3500
   tempo:
     http: 3200
@@ -40,6 +40,7 @@ ports:
 
   # Kubernetes
   apiServer: 443
+  apiServerSecure: 6443
   kubelet: 10250
   controllerManager: 10257
   scheduler: 10259
@@ -56,5 +57,17 @@ ports:
   coreDns: 9153
   nodeExporter: 9100
 
+  # Tetragon
+  tetragon: 2112
+  tetragonOperator: 2113
+  tetragonGrpc: 54321
+
+  # Sealed Secrets
+  sealedSecretsController: 8080
+
+  # Ingress/Traefik
+  ingressMetrics: 10254
+
   # Demo apps
   httpEcho: 5678
+  httpService: 80

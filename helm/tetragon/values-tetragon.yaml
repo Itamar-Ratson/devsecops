@@ -1,0 +1,65 @@
+tetragon:
+  # Enable Kubernetes API integration for pod/namespace context enrichment
+  enabled: true
+
+  # Host network required for full process visibility
+  hostNetwork: true
+
+  # Privileged mode required for eBPF operations
+  privileged: true
+
+  # Export configuration - JSON events to stdout (collected by Alloy → Loki)
+  export:
+    mode: stdout
+    filename: tetragon.log
+    filePerm: "600"
+
+  # Enable Prometheus metrics
+  prometheus:
+    enabled: true
+    port: 2112
+    address: ""
+    metricsLabelFilter: "namespace,workload,pod,binary"
+    serviceMonitor:
+      enabled: true
+      labelsOverride: {}
+
+  # Resource limits (tuned for local development)
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+  # Enable policy filtering for namespace/pod-based policies
+  enablePolicyFilter: true
+
+  # Enable Kubernetes API integration
+  enableK8sAPI: true
+
+tetragonOperator:
+  enabled: true
+
+  # Operator resources
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+
+  # Operator Prometheus metrics
+  prometheus:
+    enabled: true
+    port: 2113
+    address: ""
+    serviceMonitor:
+      enabled: true
+      labelsOverride: {}
+
+# Install CRDs via operator (not Helm)
+crds:
+  installMethod: operator

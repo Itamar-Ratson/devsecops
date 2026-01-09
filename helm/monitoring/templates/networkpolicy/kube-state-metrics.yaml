@@ -1,24 +1,15 @@
 ---
-# Allow kube-state-metrics to access API server
+# Kube-state-metrics network policy - egress only
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: kube-state-metrics-egress
+  name: kube-state-metrics
   namespace: {{ .Release.Namespace }}
 spec:
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: kube-state-metrics
   egress:
-    # Allow DNS
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s:k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.dns }}"
-              protocol: UDP
     # Allow API server access
     - toEntities:
         - kube-apiserver

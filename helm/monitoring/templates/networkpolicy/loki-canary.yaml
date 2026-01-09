@@ -1,9 +1,9 @@
 ---
-# Allow Loki Canary ingress from Prometheus
+# Loki Canary network policy - ingress and egress
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: loki-canary-ingress
+  name: loki-canary
   namespace: {{ .Release.Namespace }}
 spec:
   endpointSelector:
@@ -19,28 +19,7 @@ spec:
         - ports:
             - port: "{{ .Values.ports.loki.canary }}"
               protocol: TCP
----
-# Allow Loki Canary egress to Gateway and DNS
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: loki-canary-egress
-  namespace: {{ .Release.Namespace }}
-spec:
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: loki
-      app.kubernetes.io/component: canary
   egress:
-    # Allow DNS
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s:k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.dns }}"
-              protocol: UDP
     # Allow sending logs to Loki Gateway
     - toEndpoints:
         - matchLabels:

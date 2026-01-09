@@ -46,66 +46,25 @@ kube-prometheus-stack:
       enabled: true
       size: 1Gi
 
-    # Disable sidecar datasources (we define them manually below)
+    # Disable init container that changes ownership (causes permission issues)
+    initChownData:
+      enabled: false
+
+    # Sidecar configuration
     sidecar:
       datasources:
         enabled: false
+      dashboards:
+        enabled: true
+        label: grafana_dashboard
+        labelValue: "1"
+        searchNamespace: ALL
+        folderAnnotation: grafana_folder
+        provider:
+          foldersFromFilesStructure: true
 
-    # Dashboard providers configuration
-    dashboardProviders:
-      dashboardproviders.yaml:
-        apiVersion: 1
-        providers:
-          - name: 'cilium'
-            orgId: 1
-            folder: 'Cilium'
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboards/cilium
-          - name: 'loki'
-            orgId: 1
-            folder: 'Loki'
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboards/loki
-          - name: 'tempo'
-            orgId: 1
-            folder: 'Tempo'
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboards/tempo
-
-    # Configure dashboards using grafana.com IDs
-    dashboards:
-      cilium:
-        cilium-metrics:
-          gnetId: 16611
-          revision: 1
-          datasource: Prometheus
-        cilium-operator:
-          gnetId: 16612
-          revision: 1
-          datasource: Prometheus
-        hubble-metrics:
-          gnetId: 16613
-          revision: 1
-          datasource: Prometheus
-      loki:
-        loki-stack-monitoring:
-          gnetId: 14055
-          revision: 5
-          datasource: Prometheus
-      tempo:
-        opentelemetry-tempo:
-          gnetId: 23242
-          revision: 1
-          datasource: Prometheus
+    # Dashboards are provisioned via ConfigMaps (see templates/grafana-dashboards.yaml)
+    # The sidecar will automatically load them from ConfigMaps with label grafana_dashboard=1
     # Grafana ingress/service configuration
     service:
       type: ClusterIP
@@ -118,6 +77,7 @@ kube-prometheus-stack:
         datasources:
           - name: Prometheus
             type: prometheus
+            uid: prometheus
             url: http://monitoring-kube-prometheus-prometheus:9090
             access: proxy
             isDefault: true
@@ -129,12 +89,14 @@ kube-prometheus-stack:
               implementation: prometheus
           - name: Loki
             type: loki
+            uid: loki
             url: http://loki-gateway:80
             access: proxy
             jsonData:
               maxLines: 1000
           - name: Tempo
             type: tempo
+            uid: tempo
             url: http://tempo:3200
             access: proxy
             jsonData:

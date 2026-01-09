@@ -1,43 +1,9 @@
 ---
-# Allow Loki Gateway to access Loki single binary
+# Loki Gateway network policy - ingress and egress
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: loki-gateway-egress
-  namespace: {{ .Release.Namespace }}
-spec:
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: loki
-      app.kubernetes.io/component: gateway
-  egress:
-    # Allow DNS
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s:k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.dns }}"
-              protocol: UDP
-    # Allow API server access (for configmap/secret access)
-    - toEntities:
-        - kube-apiserver
-    # Allow access to Loki single binary
-    - toEndpoints:
-        - matchLabels:
-            app.kubernetes.io/name: loki
-            app.kubernetes.io/component: single-binary
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.loki.http }}"
-              protocol: TCP
----
-# Allow Loki Gateway ingress from Grafana and Alloy
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: loki-gateway-ingress
+  name: loki-gateway
   namespace: {{ .Release.Namespace }}
 spec:
   endpointSelector:
@@ -77,4 +43,17 @@ spec:
       toPorts:
         - ports:
             - port: "{{ .Values.ports.loki.gateway }}"
+              protocol: TCP
+  egress:
+    # Allow API server access (for configmap/secret access)
+    - toEntities:
+        - kube-apiserver
+    # Allow access to Loki single binary
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: loki
+            app.kubernetes.io/component: single-binary
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.loki.http }}"
               protocol: TCP

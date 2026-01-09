@@ -1,37 +1,4 @@
 ---
-# Default deny all for sealed-secrets namespace
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: default-deny-all
-  namespace: sealed-secrets
-spec:
-  endpointSelector: {}
-  # Empty arrays mean deny all
-  ingress: []
-  egress: []
----
-# Allow DNS egress
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-dns-egress
-  namespace: sealed-secrets
-spec:
-  endpointSelector: {}
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            k8s-app: kube-dns
-            io.kubernetes.pod.namespace: kube-system
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-        - ports:
-            - port: "53"
-              protocol: TCP
----
 # Allow egress to Kubernetes API server
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -45,10 +12,10 @@ spec:
         - kube-apiserver
       toPorts:
         - ports:
-            - port: "6443"
+            - port: "{{ .Values.ports.apiServerSecure }}"
               protocol: TCP
         - ports:
-            - port: "443"
+            - port: "{{ .Values.ports.apiServer }}"
               protocol: TCP
 ---
 # Allow ingress for sealed-secrets controller (for kubeseal CLI and webhook)
@@ -68,5 +35,5 @@ spec:
         - host
       toPorts:
         - ports:
-            - port: "8080"
+            - port: "{{ .Values.ports.sealedSecretsController }}"
               protocol: TCP

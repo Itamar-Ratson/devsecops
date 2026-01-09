@@ -1,0 +1,80 @@
+{{- if index .Values "kube-prometheus-stack" "grafana" "enabled" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-cilium-metrics
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  cilium-metrics.json: |-
+{{ .Files.Get "dashboards/cilium/cilium-metrics.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-cilium-operator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  cilium-operator.json: |-
+{{ .Files.Get "dashboards/cilium/cilium-operator.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-hubble-metrics
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  hubble-metrics.json: |-
+{{ .Files.Get "dashboards/cilium/hubble-metrics.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-loki
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  loki-stack-monitoring.json: |-
+{{ .Files.Get "dashboards/loki/loki-stack-monitoring.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-tempo
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  opentelemetry-tempo.json: |-
+{{ .Files.Get "dashboards/tempo/opentelemetry-tempo.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-tetragon
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  kubectl-exec-audit.json: |-
+{{ .Files.Get "dashboards/tetragon/kubectl-exec-audit.json" | indent 4 }}
+{{- end }}

@@ -1,9 +1,9 @@
 ---
-# Allow Loki single binary ingress from Gateway
+# Loki single-binary network policy - ingress and egress
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: loki-single-binary-ingress
+  name: loki-single-binary
   namespace: {{ .Release.Namespace }}
 spec:
   endpointSelector:
@@ -37,28 +37,7 @@ spec:
         - ports:
             - port: "{{ .Values.ports.loki.http }}"
               protocol: TCP
----
-# Allow Loki single binary egress for DNS
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: loki-single-binary-egress
-  namespace: {{ .Release.Namespace }}
-spec:
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: loki
-      app.kubernetes.io/component: single-binary
   egress:
-    # Allow DNS
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s:k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.dns }}"
-              protocol: UDP
     # Allow API server access (for configmap/secret access)
     - toEntities:
         - kube-apiserver

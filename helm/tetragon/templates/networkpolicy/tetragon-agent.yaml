@@ -1,0 +1,39 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tetragon-agent
+  namespace: kube-system
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: tetragon
+
+  ingress:
+    # Allow Prometheus to scrape metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.tetragon }}"
+              protocol: TCP
+
+    # Allow host network access (for port-forward debugging)
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.tetragon }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.tetragonGrpc }}"
+              protocol: TCP
+
+  egress:
+    # Allow Kubernetes API access (for pod/namespace enrichment)
+    - toEntities:
+        - kube-apiserver
+
+    # Allow host access (required for hostNetwork operation)
+    - toEntities:
+        - host
