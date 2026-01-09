@@ -37,3 +37,18 @@ spec:
 # Having ANY allow rule (like the DNS and API server policies above)
 # automatically enables default-deny mode in Cilium for all matched pods.
 # Traffic not explicitly allowed will be denied.
+---
+# 3. Allow egress to cluster endpoints (for Gateway API and pod-to-pod)
+# Enables Gateway API ingress to reach backends and pod-to-pod communication.
+# Each service controls its own ingress policy for defense in depth.
+# External/world egress remains blocked (add explicit rules where needed).
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: clusterwide-allow-cluster-egress
+spec:
+  description: "Allow egress to cluster endpoints"
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - {}  # All cluster endpoints
