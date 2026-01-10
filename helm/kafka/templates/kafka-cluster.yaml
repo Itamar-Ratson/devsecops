@@ -21,12 +21,12 @@ spec:
         type: internal
         tls: true
     config:
-      # Replication factors for internal topics
+      # Replication factors for internal topics (min 1 for single-node support)
       offsets.topic.replication.factor: {{ min .Values.kafka.replicas 3 }}
       transaction.state.log.replication.factor: {{ min .Values.kafka.replicas 3 }}
-      transaction.state.log.min.isr: {{ min .Values.kafka.replicas 2 }}
+      transaction.state.log.min.isr: {{ max 1 (min .Values.kafka.replicas 2) }}
       default.replication.factor: {{ min .Values.kafka.replicas 3 }}
-      min.insync.replicas: {{ min (sub .Values.kafka.replicas 1) 2 }}
+      min.insync.replicas: {{ max 1 (min (sub .Values.kafka.replicas 1) 2) }}
     metricsConfig:
       type: jmxPrometheusExporter
       valueFrom:
