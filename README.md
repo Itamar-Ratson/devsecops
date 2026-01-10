@@ -1,6 +1,6 @@
 # Kubernetes Local Dev Setup
 
-KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Hubble + Tetragon + Kyverno + Network Policies + Monitoring (Prometheus + Grafana + Loki + Alloy + Tempo)
+KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Hubble + Tetragon + Kyverno + Network Policies + Monitoring (Prometheus + Grafana + Loki + Alloy + Tempo) + Kafka (Strimzi + Kafka UI)
 
 ## Prerequisites
 
@@ -101,9 +101,30 @@ helm upgrade --install monitoring ./helm/monitoring -n monitoring --create-names
   -f ./helm/monitoring/values-alloy.yaml \
   -f ./helm/monitoring/values-tempo.yaml
 
+# Install Strimzi Kafka Operator
+helm dependency build ./helm/strimzi-operator
+helm upgrade --install strimzi ./helm/strimzi-operator -n strimzi-system --create-namespace \
+  -f ./helm/ports.yaml \
+  -f ./helm/strimzi-operator/values.yaml \
+  -f ./helm/strimzi-operator/values-strimzi.yaml
+kubectl wait --for=condition=Available deployment/strimzi-cluster-operator -n strimzi-system --timeout=120s
+
+# Install Kafka cluster (Strimzi CRDs, KRaft mode - no Zookeeper)
+helm upgrade --install kafka ./helm/kafka -n kafka --create-namespace \
+  -f ./helm/ports.yaml \
+  -f ./helm/kafka/values.yaml
+kubectl wait --for=condition=Ready kafka/kafka-cluster -n kafka --timeout=300s
+
+# Install Kafka UI
+helm dependency build ./helm/kafka-ui
+helm upgrade --install kafka-ui ./helm/kafka-ui -n kafka-ui --create-namespace \
+  -f ./helm/ports.yaml \
+  -f ./helm/kafka-ui/values.yaml \
+  -f ./helm/kafka-ui/values-kafka-ui.yaml
+
 # Test the setup
-sleep 3
 curl -k https://echo.localhost
 curl -k https://hubble.localhost
 curl -k https://grafana.localhost
+curl -k https://kafka-ui.localhost
 ```
