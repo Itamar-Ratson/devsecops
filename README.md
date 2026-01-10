@@ -90,18 +90,7 @@ helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespac
 # Install network policies for security
 helm upgrade --install network-policies ./helm/network-policies
 
-# Install monitoring stack (Prometheus + Grafana + Loki + Alloy + Tempo)
-# Note: Uses split values files for better organization
-# IMPORTANT: All values files must be explicitly specified with -f flags
-helm dependency build ./helm/monitoring
-helm upgrade --install monitoring ./helm/monitoring -n monitoring --create-namespace \
-  -f ./helm/monitoring/values.yaml \
-  -f ./helm/monitoring/values-kube-prometheus.yaml \
-  -f ./helm/monitoring/values-loki.yaml \
-  -f ./helm/monitoring/values-alloy.yaml \
-  -f ./helm/monitoring/values-tempo.yaml
-
-# Install Strimzi Kafka Operator
+# Install Strimzi Kafka Operator (before monitoring - Alloy sends logs via Kafka)
 helm dependency build ./helm/strimzi-operator
 helm upgrade --install strimzi ./helm/strimzi-operator -n strimzi-system --create-namespace \
   -f ./helm/ports.yaml \
@@ -114,6 +103,19 @@ helm upgrade --install kafka ./helm/kafka -n kafka --create-namespace \
   -f ./helm/ports.yaml \
   -f ./helm/kafka/values.yaml
 kubectl wait --for=condition=Ready kafka/kafka-cluster -n kafka --timeout=300s
+
+# Install monitoring stack (Prometheus + Grafana + Loki + Alloy + Tempo)
+# Log pipeline: Alloy (producer) -> Kafka -> Alloy Consumer -> Loki
+# Note: Uses split values files for better organization
+helm dependency build ./helm/monitoring
+helm upgrade --install monitoring ./helm/monitoring -n monitoring --create-namespace \
+  -f ./helm/ports.yaml \
+  -f ./helm/monitoring/values.yaml \
+  -f ./helm/monitoring/values-kube-prometheus.yaml \
+  -f ./helm/monitoring/values-loki.yaml \
+  -f ./helm/monitoring/values-alloy.yaml \
+  -f ./helm/monitoring/values-alloy-consumer.yaml \
+  -f ./helm/monitoring/values-tempo.yaml
 
 # Install Kafka UI
 helm dependency build ./helm/kafka-ui
