@@ -52,3 +52,17 @@ spec:
   egress:
     - toEndpoints:
         - {}  # All cluster endpoints
+---
+# 4. Allow egress to host entity for services running on host network
+# Required for hubble-relay to reach cilium agents (hubble-peer) which run
+# in host network mode. Also needed for node health checks and metrics.
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: clusterwide-allow-host-egress
+spec:
+  description: "Allow egress to host network services"
+  endpointSelector: {}
+  egress:
+    - toEntities:
+        - host
