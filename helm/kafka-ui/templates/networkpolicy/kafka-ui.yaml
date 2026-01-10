@@ -1,0 +1,38 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kafka-ui
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kafka-ui
+
+  ingress:
+    # Allow from Gateway (Cilium Envoy)
+    - fromEntities:
+        - ingress
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafkaUi.http }}"
+              protocol: TCP
+
+    # Allow from host for port-forwarding
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafkaUi.http }}"
+              protocol: TCP
+
+  egress:
+    # Allow connection to Kafka brokers
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kafka
+            strimzi.io/cluster: kafka-cluster
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
+              protocol: TCP

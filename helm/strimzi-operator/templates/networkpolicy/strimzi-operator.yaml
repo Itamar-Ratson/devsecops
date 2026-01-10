@@ -1,0 +1,47 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: strimzi-cluster-operator
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      strimzi.io/kind: cluster-operator
+
+  ingress:
+    # Allow Prometheus to scrape metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.strimziOperator.metrics }}"
+              protocol: TCP
+
+    # Allow webhook calls from kube-apiserver
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.strimziOperator.webhook }}"
+              protocol: TCP
+
+  egress:
+    # Allow Kubernetes API access (for CRD management, watching Kafka CRs)
+    - toEntities:
+        - kube-apiserver
+
+    # Allow communication with Kafka brokers (for health checks, config)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kafka
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.broker.controller }}"
+              protocol: TCP

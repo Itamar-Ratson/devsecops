@@ -1,0 +1,4 @@
+# Gateway configuration (if exposing via Gateway API)
+gateway:
+  name: main-gateway
+  namespace: gateway

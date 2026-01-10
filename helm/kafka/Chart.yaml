@@ -1,0 +1,5 @@
+apiVersion: v2
+name: kafka
+description: Apache Kafka cluster using Strimzi CRDs with KRaft mode
+version: 1.0.0
+# No dependencies - uses Strimzi CRDs directly

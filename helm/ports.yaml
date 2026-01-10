@@ -76,3 +76,17 @@ ports:
   # Demo apps
   httpEcho: 5678
   httpService: 80
+
+  # Kafka / Strimzi
+  kafka:
+    broker:
+      plain: 9092
+      tls: 9093
+      controller: 9090
+    exporter: 9404
+    jmxMetrics: 9091
+  strimziOperator:
+    webhook: 8443
+    metrics: 8080
+  kafkaUi:
+    http: 8080

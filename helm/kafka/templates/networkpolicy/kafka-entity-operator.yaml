@@ -1,0 +1,39 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kafka-entity-operator
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      strimzi.io/name: {{ .Values.kafka.name }}-entity-operator
+
+  ingress:
+    # Allow Prometheus to scrape metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.strimziOperator.metrics }}"
+              protocol: TCP
+
+  egress:
+    # Allow Kubernetes API access (for topic/user CRD management)
+    - toEntities:
+        - kube-apiserver
+
+    # Allow connection to Kafka brokers (includes replication port 9091)
+    - toEndpoints:
+        - matchLabels:
+            strimzi.io/name: {{ .Values.kafka.name }}-kafka
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.broker.tls }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.jmxMetrics }}"
+              protocol: TCP

@@ -1,0 +1,50 @@
+# Gateway configuration
+gateway:
+  name: main-gateway
+  namespace: gateway
+
+# Kafka cluster configuration
+kafka:
+  name: kafka-cluster
+  version: "3.9.0"
+  replicas: 3
+
+  # Storage configuration
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 10Gi
+        deleteClaim: false
+
+  # Resource limits
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 200m
+      memory: 1Gi
+
+# Entity Operator (Topic + User operators)
+entityOperator:
+  topicOperator:
+    enabled: true
+  userOperator:
+    # Disabled due to startup issues in resource-constrained environment
+    # Enable if KafkaUser management is needed
+    enabled: false
+
+# Kafka Exporter for consumer lag metrics
+kafkaExporter:
+  enabled: true
+  groupRegex: ".*"
+  topicRegex: ".*"
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi

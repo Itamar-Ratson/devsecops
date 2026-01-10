@@ -1,0 +1,31 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kafka-exporter
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      strimzi.io/name: {{ .Values.kafka.name }}-kafka-exporter
+
+  ingress:
+    # Allow Prometheus to scrape consumer lag metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.exporter }}"
+              protocol: TCP
+
+  egress:
+    # Allow connection to Kafka brokers
+    - toEndpoints:
+        - matchLabels:
+            strimzi.io/name: {{ .Values.kafka.name }}-kafka
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
+              protocol: TCP

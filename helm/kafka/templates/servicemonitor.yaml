@@ -1,0 +1,38 @@
+---
+# PodMonitor for Kafka brokers (JMX metrics)
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: kafka-brokers
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      strimzi.io/cluster: {{ .Values.kafka.name }}
+      strimzi.io/kind: Kafka
+  podMetricsEndpoints:
+    - port: tcp-prometheus
+      interval: 30s
+      path: /metrics
+---
+# ServiceMonitor for Kafka Exporter (consumer lag)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kafka-exporter
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: kafka-exporter
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      strimzi.io/cluster: {{ .Values.kafka.name }}
+      strimzi.io/name: {{ .Values.kafka.name }}-kafka-exporter
+  endpoints:
+    - port: tcp-prometheus
+      interval: 30s
+      path: /metrics

@@ -67,6 +67,22 @@ spec:
       toPorts:
         - ports:
             - port: "{{ .Values.ports.kyverno.metrics }}"
+    # Allow scraping metrics from kafka namespace
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kafka
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.jmxMetrics }}"
+            - port: "{{ .Values.ports.kafka.exporter }}"
+            - port: "{{ .Values.ports.strimziOperator.metrics }}"
+    # Allow scraping metrics from strimzi-system namespace
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: strimzi-system
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.strimziOperator.metrics }}"
     # Allow scraping metrics from host network (Cilium, Tetragon components on nodes)
     - toEntities:
         - host

@@ -1,0 +1,25 @@
+strimzi-kafka-operator:
+  # Watch all namespaces for Kafka CRs
+  watchAnyNamespace: true
+
+  # KRaft is the default in Strimzi 0.45.0+, no feature gates needed
+
+  # Resource limits
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+  # Enable dashboard ConfigMaps for Grafana
+  dashboards:
+    enabled: true
+    namespace: monitoring
+    label: grafana_dashboard
+    labelValue: "1"
+
+  # Generate cluster roles (required)
+  generateClusterRoles: true
+  generateNetworkPolicy: false  # We manage network policies via Cilium

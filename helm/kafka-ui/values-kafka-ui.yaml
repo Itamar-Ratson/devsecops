@@ -1,0 +1,29 @@
+kafka-ui:
+  # Environment variables for Kafka cluster connection
+  yamlApplicationConfig:
+    kafka:
+      clusters:
+        - name: kafka-cluster
+          bootstrapServers: kafka-cluster-kafka-bootstrap.kafka:9092
+          # For KRaft mode clusters, no Zookeeper connection needed
+    auth:
+      type: disabled
+    management:
+      health:
+        ldap:
+          enabled: false
+
+  # Resource limits (reduced for constrained environments)
+  resources:
+    limits:
+      cpu: 500m
+      memory: 384Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080

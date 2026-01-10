@@ -1,0 +1,113 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kafka-broker
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      strimzi.io/name: {{ .Values.kafka.name }}-kafka
+
+  ingress:
+    # Allow inter-broker communication (replication, controller, JMX)
+    - fromEndpoints:
+        - matchLabels:
+            strimzi.io/cluster: {{ .Values.kafka.name }}
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.broker.tls }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.broker.controller }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.jmxMetrics }}"
+              protocol: TCP
+
+    # Allow Entity Operator to connect (includes replication port 9091)
+    - fromEndpoints:
+        - matchLabels:
+            strimzi.io/name: {{ .Values.kafka.name }}-entity-operator
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.broker.tls }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.jmxMetrics }}"
+              protocol: TCP
+
+    # Allow Kafka Exporter to connect
+    - fromEndpoints:
+        - matchLabels:
+            strimzi.io/name: {{ .Values.kafka.name }}-kafka-exporter
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
+              protocol: TCP
+
+    # Allow Kafka UI to connect
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kafka-ui
+            app.kubernetes.io/name: kafka-ui
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
+              protocol: TCP
+
+    # Allow Strimzi Operator (needs JMX port for broker config)
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: strimzi-system
+            strimzi.io/kind: cluster-operator
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.broker.controller }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.jmxMetrics }}"
+              protocol: TCP
+
+    # Allow Prometheus to scrape metrics (JMX on 9091, Prometheus exporter on 9404)
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.jmxMetrics }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.exporter }}"
+              protocol: TCP
+
+    # Allow from other namespaces (producers/consumers) - customize as needed
+    # For now, allow any pod in the cluster to produce/consume
+    - fromEndpoints:
+        - {}
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
+              protocol: TCP
+
+  egress:
+    # Allow Kubernetes API access (required for KRaft metadata)
+    - toEntities:
+        - kube-apiserver
+
+    # Allow inter-broker communication (replication, controller, JMX)
+    - toEndpoints:
+        - matchLabels:
+            strimzi.io/cluster: {{ .Values.kafka.name }}
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.broker.tls }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.broker.controller }}"
+              protocol: TCP
+            - port: "{{ .Values.ports.kafka.jmxMetrics }}"
+              protocol: TCP

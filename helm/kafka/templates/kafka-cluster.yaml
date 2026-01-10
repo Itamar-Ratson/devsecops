@@ -1,0 +1,116 @@
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: {{ .Values.kafka.name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    strimzi.io/kraft: enabled
+    strimzi.io/node-pools: enabled
+spec:
+  kafka:
+    version: {{ .Values.kafka.version }}
+    # Listeners configuration
+    listeners:
+      - name: plain
+        port: {{ .Values.ports.kafka.broker.plain }}
+        type: internal
+        tls: false
+      - name: tls
+        port: {{ .Values.ports.kafka.broker.tls }}
+        type: internal
+        tls: true
+    config:
+      # Replication factors for internal topics
+      offsets.topic.replication.factor: {{ min .Values.kafka.replicas 3 }}
+      transaction.state.log.replication.factor: {{ min .Values.kafka.replicas 3 }}
+      transaction.state.log.min.isr: {{ min .Values.kafka.replicas 2 }}
+      default.replication.factor: {{ min .Values.kafka.replicas 3 }}
+      min.insync.replicas: {{ min (sub .Values.kafka.replicas 1) 2 }}
+    metricsConfig:
+      type: jmxPrometheusExporter
+      valueFrom:
+        configMapKeyRef:
+          name: kafka-metrics
+          key: kafka-metrics-config.yml
+
+  # Entity Operator for topic/user management
+  entityOperator:
+    {{- if .Values.entityOperator.topicOperator.enabled }}
+    topicOperator:
+      resources:
+        limits:
+          cpu: 200m
+          memory: 256Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+    {{- end }}
+    {{- if .Values.entityOperator.userOperator.enabled }}
+    userOperator:
+      resources:
+        limits:
+          cpu: 200m
+          memory: 256Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+    {{- end }}
+
+  # Kafka Exporter for consumer lag metrics
+  {{- if .Values.kafkaExporter.enabled }}
+  kafkaExporter:
+    groupRegex: {{ .Values.kafkaExporter.groupRegex | quote }}
+    topicRegex: {{ .Values.kafkaExporter.topicRegex | quote }}
+    resources:
+      {{- toYaml .Values.kafkaExporter.resources | nindent 6 }}
+  {{- end }}
+---
+# JMX metrics configuration ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-metrics
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  kafka-metrics-config.yml: |
+    lowercaseOutputName: true
+    lowercaseOutputLabelNames: true
+    rules:
+      # Broker metrics
+      - pattern: kafka.server<type=(.+), name=(.+), clientId=(.+), topic=(.+), partition=(.*)><>Value
+        name: kafka_server_$1_$2
+        type: GAUGE
+        labels:
+          clientId: "$3"
+          topic: "$4"
+          partition: "$5"
+      - pattern: kafka.server<type=(.+), name=(.+), clientId=(.+), brokerHost=(.+), brokerPort=(.+)><>Value
+        name: kafka_server_$1_$2
+        type: GAUGE
+        labels:
+          clientId: "$3"
+          broker: "$4:$5"
+      - pattern: kafka.server<type=(.+), name=(.+)><>Value
+        name: kafka_server_$1_$2
+        type: GAUGE
+      # Controller metrics
+      - pattern: kafka.controller<type=(.+), name=(.+)><>Value
+        name: kafka_controller_$1_$2
+        type: GAUGE
+      # Network metrics
+      - pattern: kafka.network<type=(.+), name=(.+), request=(.+)><>Value
+        name: kafka_network_$1_$2
+        type: GAUGE
+        labels:
+          request: "$3"
+      # Log metrics
+      - pattern: kafka.log<type=(.+), name=(.+), topic=(.+), partition=(.+)><>Value
+        name: kafka_log_$1_$2
+        type: GAUGE
+        labels:
+          topic: "$3"
+          partition: "$4"

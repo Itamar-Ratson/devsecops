@@ -1,0 +1,25 @@
+---
+# KafkaNodePool is required for KRaft mode
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: {{ .Values.kafka.name }}-controller
+  namespace: {{ .Release.Namespace }}
+  labels:
+    strimzi.io/cluster: {{ .Values.kafka.name }}
+spec:
+  replicas: {{ .Values.kafka.replicas }}
+  roles:
+    - controller
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      {{- range .Values.kafka.storage.volumes }}
+      - id: {{ .id }}
+        type: {{ .type }}
+        size: {{ .size }}
+        deleteClaim: {{ .deleteClaim }}
+      {{- end }}
+  resources:
+    {{- toYaml .Values.kafka.resources | nindent 4 }}
