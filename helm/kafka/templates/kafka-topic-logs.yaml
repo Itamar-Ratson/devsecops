@@ -1,0 +1,22 @@
+---
+# KafkaTopic for OTLP-formatted logs from Alloy
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: logs-otlp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    strimzi.io/cluster: {{ .Values.kafka.name }}
+spec:
+  partitions: {{ .Values.topics.logsOtlp.partitions }}
+  # Replicas cannot exceed number of brokers
+  replicas: {{ min .Values.kafka.replicas .Values.topics.logsOtlp.replicas }}
+  config:
+    # Retain logs for 24 hours (buffer before Loki ingestion)
+    retention.ms: "{{ int64 .Values.topics.logsOtlp.retentionMs }}"
+    # Segment size for efficient cleanup (100MB)
+    segment.bytes: "{{ int64 .Values.topics.logsOtlp.segmentBytes }}"
+    # LZ4 compression for log data
+    compression.type: {{ .Values.topics.logsOtlp.compression }}
+    # Delete old segments (vs compact)
+    cleanup.policy: {{ .Values.topics.logsOtlp.cleanupPolicy }}

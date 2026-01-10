@@ -19,10 +19,18 @@ spec:
         - ports:
             - port: "{{ .Values.ports.loki.gateway }}"
               protocol: TCP
-    # Allow from Alloy
+    # Allow from Alloy (legacy - kept for traces)
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/name: alloy
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.loki.gateway }}"
+              protocol: TCP
+    # Allow from Alloy Consumer (Kafka to Loki pipeline)
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: alloy-consumer
       toPorts:
         - ports:
             - port: "{{ .Values.ports.loki.gateway }}"

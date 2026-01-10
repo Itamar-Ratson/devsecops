@@ -82,15 +82,52 @@ alloy:
 
         // Process logs (extract container runtime metadata)
         loki.process "pods" {
-          forward_to = [loki.write.loki.receiver]
+          forward_to = [otelcol.receiver.loki.to_kafka.receiver]
 
           stage.cri {}
         }
 
-        // Send logs to Loki
-        loki.write "loki" {
-          endpoint {
-            url = "http://loki-gateway:80/loki/api/v1/push"
+        // ========================================
+        // LOG PRODUCER PIPELINE (to Kafka)
+        // ========================================
+
+        // Convert Loki format logs to OTLP format
+        otelcol.receiver.loki "to_kafka" {
+          output {
+            logs = [otelcol.processor.batch.logs.input]
+          }
+        }
+
+        // Batch logs before sending to Kafka (improves throughput)
+        otelcol.processor.batch "logs" {
+          timeout = "5s"
+          send_batch_size = 1000
+          send_batch_max_size = 2000
+
+          output {
+            logs = [otelcol.exporter.kafka.logs.input]
+          }
+        }
+
+        // Export logs to Kafka using OTLP protocol
+        otelcol.exporter.kafka "logs" {
+          protocol_version = "2.0.0"
+
+          brokers = ["kafka-cluster-kafka-bootstrap.kafka:9092"]
+          topic = "logs-otlp"
+
+          encoding = "otlp_proto"
+
+          producer {
+            max_message_bytes = 10000000
+            compression = "lz4"
+          }
+
+          retry_on_failure {
+            enabled = true
+            initial_interval = "1s"
+            max_interval = "30s"
+            max_elapsed_time = "5m"
           }
         }
 

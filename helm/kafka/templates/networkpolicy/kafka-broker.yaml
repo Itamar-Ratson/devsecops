@@ -83,6 +83,19 @@ spec:
             - port: "{{ .Values.ports.kafka.exporter }}"
               protocol: TCP
 
+    # Allow Alloy (log producer) and Alloy Consumer (log consumer) from monitoring
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: alloy
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: alloy-consumer
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
+              protocol: TCP
+
     # Allow from other namespaces (producers/consumers) - customize as needed
     # For now, allow any pod in the cluster to produce/consume
     - fromEndpoints:

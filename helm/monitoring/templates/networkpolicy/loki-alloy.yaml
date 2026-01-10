@@ -31,14 +31,13 @@ spec:
             - port: "{{ .Values.ports.alloy.http }}"
               protocol: TCP
   egress:
-    # Allow sending logs to Loki Gateway
+    # Allow sending logs to Kafka brokers
     - toEndpoints:
         - matchLabels:
-            app.kubernetes.io/name: loki
-            app.kubernetes.io/component: gateway
+            k8s:io.kubernetes.pod.namespace: kafka
       toPorts:
         - ports:
-            - port: "{{ .Values.ports.loki.gateway }}"
+            - port: "{{ .Values.ports.kafka.broker.plain }}"
               protocol: TCP
     # Allow sending traces to Tempo
     - toEndpoints:

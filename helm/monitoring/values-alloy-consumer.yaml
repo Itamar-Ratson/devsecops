@@ -1,0 +1,60 @@
+# Grafana Alloy Consumer Configuration (Kafka to Loki)
+alloy-consumer:
+  # Simplify resource names
+  fullnameOverride: alloy-consumer
+
+  # Deploy as Deployment (single replica consumer)
+  controller:
+    type: deployment
+    replicas: 1
+
+  # Disable usage reporting and set configuration
+  alloy:
+    stabilityLevel: "generally-available"
+    extraEnv:
+      - name: DISABLE_REPORTING
+        value: "true"
+    # Alloy configuration in River format
+    configMap:
+      content: |-
+        // ========================================
+        // LOG CONSUMER PIPELINE (Kafka to Loki)
+        // ========================================
+
+        // Receive logs from Kafka in OTLP format
+        otelcol.receiver.kafka "logs" {
+          protocol_version = "2.0.0"
+
+          brokers = ["kafka-cluster-kafka-bootstrap.kafka:9092"]
+          topic = "logs-otlp"
+          group_id = "alloy-loki-consumer"
+
+          encoding = "otlp_proto"
+
+          // Start from earliest offset on first run
+          initial_offset = "earliest"
+
+          output {
+            logs = [otelcol.exporter.loki.default.input]
+          }
+        }
+
+        // Convert OTLP logs to Loki format and forward
+        otelcol.exporter.loki "default" {
+          forward_to = [loki.write.loki.receiver]
+        }
+
+        // Send logs to Loki Gateway
+        loki.write "loki" {
+          endpoint {
+            url = "http://loki-gateway:80/loki/api/v1/push"
+          }
+        }
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi

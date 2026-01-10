@@ -36,6 +36,16 @@ entityOperator:
     # Enable if KafkaUser management is needed
     enabled: false
 
+# Topic configurations
+topics:
+  logsOtlp:
+    partitions: 3
+    replicas: 1
+    retentionMs: 86400000      # 24 hours
+    segmentBytes: 104857600    # 100MB
+    compression: "lz4"
+    cleanupPolicy: "delete"
+
 # Kafka Exporter for consumer lag metrics
 kafkaExporter:
   enabled: true
