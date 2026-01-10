@@ -5,6 +5,13 @@ networking:
   disableDefaultCNI: true
 nodes:
   - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          taints:
+            - key: "node-role.kubernetes.io/control-plane"
+              effect: "NoSchedule"
   - role: worker
     kubeadmConfigPatches:
       - |
