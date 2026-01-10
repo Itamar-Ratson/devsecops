@@ -62,6 +62,11 @@ ports:
   tetragonOperator: 2113
   tetragonGrpc: 54321
 
+  # Kyverno
+  kyverno:
+    webhook: 9443
+    metrics: 8000
+
   # Sealed Secrets
   sealedSecretsController: 8080
 

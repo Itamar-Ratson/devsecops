@@ -1,0 +1,39 @@
+{{- if .Values.policies.bestPractices.enabled }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-default-namespace
+  annotations:
+    policies.kyverno.io/title: Disallow Default Namespace
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      Disallow resources from being created in the default namespace.
+      Using the default namespace is discouraged as it makes resource
+      management and access control more difficult.
+spec:
+  validationFailureAction: {{ .Values.policies.bestPractices.validationFailureAction }}
+  background: true
+  rules:
+    - name: validate-namespace
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+                - Deployment
+                - StatefulSet
+                - DaemonSet
+                - ReplicaSet
+                - Job
+                - CronJob
+                - Service
+                - ConfigMap
+                - Secret
+                - PersistentVolumeClaim
+      validate:
+        message: "Using the 'default' namespace is not allowed. Please specify a namespace."
+        pattern:
+          metadata:
+            namespace: "!default"
+{{- end }}

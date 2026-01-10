@@ -33,6 +33,15 @@ spec:
             - port: "{{ .Values.ports.grafana }}"
               protocol: TCP
   egress:
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
     # Allow API server access (for Kubernetes data source plugin)
     - toEntities:
         - kube-apiserver

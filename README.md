@@ -1,6 +1,6 @@
 # Kubernetes Local Dev Setup
 
-KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Hubble + Tetragon + Network Policies + Monitoring (Prometheus + Grafana + Loki + Alloy + Tempo)
+KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Hubble + Tetragon + Kyverno + Network Policies + Monitoring (Prometheus + Grafana + Loki + Alloy + Tempo)
 
 ## Prerequisites
 
@@ -74,6 +74,20 @@ helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespac
 
 # Install network policies for security
 helm upgrade --install network-policies ./helm/network-policies
+
+# Install Kyverno for policy management (admission controller only)
+helm dependency build ./helm/kyverno
+helm upgrade --install kyverno ./helm/kyverno -n kyverno --create-namespace \
+  -f ./helm/ports.yaml \
+  -f ./helm/kyverno/values.yaml \
+  -f ./helm/kyverno/values-kyverno.yaml
+kubectl wait --for=condition=Ready pod -l app.kubernetes.io/component=admission-controller -n kyverno --timeout=120s
+
+# Install Kyverno policies (PSS restricted + best practices, audit mode)
+helm dependency build ./helm/kyverno-policies
+helm upgrade --install kyverno-policies ./helm/kyverno-policies -n kyverno \
+  -f ./helm/ports.yaml \
+  -f ./helm/kyverno-policies/values.yaml
 
 # Install monitoring stack (Prometheus + Grafana + Loki + Alloy + Tempo)
 # Note: Uses split values files for better organization

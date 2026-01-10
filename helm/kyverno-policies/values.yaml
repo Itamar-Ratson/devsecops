@@ -1,0 +1,37 @@
+# Kyverno Policies chart configuration
+# Pod Security Standards (restricted) - admission only
+
+# Custom best practices policies (require-labels, disallow-default-namespace)
+policies:
+  bestPractices:
+    enabled: true
+    validationFailureAction: Audit
+
+kyverno-policies:
+  # Pod Security Standard profile: baseline, restricted, or privileged
+  podSecurityStandard: restricted
+
+  # Validation failure action: Audit, Enforce, or Warn
+  # Start with Audit to see violations without blocking
+  validationFailureAction: Audit
+
+  # Background scanning disabled (no background controller)
+  background: false
+
+  # Exclude system and infrastructure namespaces from policy enforcement
+  excludeNamespaces:
+    - kube-system
+    - kube-node-lease
+    - kube-public
+    # Cilium requires privileged access
+    - cilium
+    # Gateway namespace
+    - gateway
+    # Monitoring stack
+    - monitoring
+    # Certificate management
+    - cert-manager
+    # Secrets encryption
+    - sealed-secrets
+    # Kyverno itself
+    - kyverno

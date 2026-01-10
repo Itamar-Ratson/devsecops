@@ -60,6 +60,13 @@ spec:
             - port: "{{ .Values.ports.tetragonOperator }}"
             - port: "{{ .Values.ports.ingressMetrics }}"
             - port: "{{ .Values.ports.coreDns }}"
+    # Allow scraping metrics from kyverno namespace
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kyverno
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.kyverno.metrics }}"
     # Allow scraping metrics from host network (Cilium, Tetragon components on nodes)
     - toEntities:
         - host

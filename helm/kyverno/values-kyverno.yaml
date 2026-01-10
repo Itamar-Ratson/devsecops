@@ -1,0 +1,48 @@
+# Kyverno chart configuration - Admission Controller Only
+# Validates/mutates resources at admission time
+
+kyverno:
+  # CRD installation
+  crds:
+    install: true
+
+  # Admission Controller - handles validation/mutation webhooks
+  admissionController:
+    replicas: 1
+
+    container:
+      resources:
+        limits:
+          memory: 512Mi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+
+    # ServiceMonitor for Prometheus
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+
+  # Disable other controllers - not needed for admission-only mode
+  backgroundController:
+    enabled: false
+
+  cleanupController:
+    enabled: false
+
+  reportsController:
+    enabled: false
+
+  # Grafana dashboard (disabled - we provision via ConfigMap)
+  grafana:
+    enabled: false
+
+  # Webhooks configuration
+  config:
+    webhooks:
+      namespaceSelector:
+        matchExpressions:
+          - key: kubernetes.io/metadata.name
+            operator: NotIn
+            values:
+              - kyverno
