@@ -147,6 +147,15 @@ spec:
             - port: "{{ .Values.ports.argocd.ssh }}"
               protocol: TCP
 
+    # Allow communication with Redis (for caching)
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: argocd-redis
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.argocd.redis }}"
+              protocol: TCP
+
 ---
 # ArgoCD Application Controller Network Policy
 apiVersion: cilium.io/v2
@@ -229,6 +238,15 @@ spec:
     - fromEndpoints:
         - matchLabels:
             app.kubernetes.io/name: argocd-application-controller
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.argocd.redis }}"
+              protocol: TCP
+
+    # Allow from ArgoCD repo-server (for caching)
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: argocd-repo-server
       toPorts:
         - ports:
             - port: "{{ .Values.ports.argocd.redis }}"

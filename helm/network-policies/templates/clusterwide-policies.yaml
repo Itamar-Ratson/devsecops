@@ -66,3 +66,25 @@ spec:
   egress:
     - toEntities:
         - host
+---
+# 5. Allow CoreDNS to reach upstream DNS servers
+# Required for external DNS resolution (CoreDNS forwards to upstream)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-coredns-upstream
+  namespace: kube-system
+spec:
+  description: "Allow CoreDNS to reach upstream DNS"
+  endpointSelector:
+    matchLabels:
+      k8s-app: kube-dns
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP
+            - port: "{{ .Values.ports.dns }}"
+              protocol: TCP
