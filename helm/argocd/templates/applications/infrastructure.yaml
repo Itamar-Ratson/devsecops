@@ -113,7 +113,6 @@ spec:
       valueFiles:
         - ../ports.yaml
         - values.yaml
-        - values-cert-manager.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
@@ -144,7 +143,6 @@ spec:
       valueFiles:
         - ../ports.yaml
         - values.yaml
-        - values-sealed-secrets.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: sealed-secrets
@@ -204,7 +202,6 @@ spec:
     helm:
       valueFiles:
         - ../ports.yaml
-        - values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
@@ -265,7 +262,7 @@ spec:
       valueFiles:
         - ../ports.yaml
         - values.yaml
-        - values-strimzi-operator.yaml
+        - values-strimzi.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: strimzi-system
