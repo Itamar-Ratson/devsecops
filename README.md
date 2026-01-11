@@ -95,6 +95,8 @@ helm upgrade --install network-policies ./helm/network-policies -n kube-system \
   -f ./helm/ports.yaml
 
 # Install Strimzi Kafka Operator (before monitoring - Alloy sends logs via Kafka)
+# Note: monitoring namespace must exist for Strimzi network policies
+kubectl create namespace monitoring
 helm dependency build ./helm/strimzi-operator
 helm upgrade --install strimzi ./helm/strimzi-operator -n strimzi-system --create-namespace \
   -f ./helm/ports.yaml \
@@ -106,7 +108,7 @@ kubectl wait --for=condition=Available deployment/strimzi-cluster-operator -n st
 helm upgrade --install kafka ./helm/kafka -n kafka --create-namespace \
   -f ./helm/ports.yaml \
   -f ./helm/kafka/values.yaml
-kubectl wait --for=condition=Ready kafka/kafka-cluster -n kafka --timeout=300s
+kubectl wait --for=condition=Ready kafka/main -n kafka --timeout=300s
 
 # Install monitoring stack (Prometheus + Grafana + Loki + Alloy + Tempo)
 # Log pipeline: Alloy (producer) -> Kafka -> Alloy Consumer -> Loki
