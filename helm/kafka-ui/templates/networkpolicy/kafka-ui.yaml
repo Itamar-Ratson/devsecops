@@ -31,7 +31,7 @@ spec:
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: kafka
-            strimzi.io/cluster: kafka-cluster
+            strimzi.io/cluster: main
       toPorts:
         - ports:
             - port: "{{ .Values.ports.kafka.broker.plain }}"

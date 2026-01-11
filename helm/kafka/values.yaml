@@ -5,7 +5,7 @@ gateway:
 
 # Kafka cluster configuration
 kafka:
-  name: kafka-cluster
+  name: main
   version: "3.9.0"
   replicas: 1
 

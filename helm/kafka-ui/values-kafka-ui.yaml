@@ -3,8 +3,8 @@ kafka-ui:
   yamlApplicationConfig:
     kafka:
       clusters:
-        - name: kafka-cluster
-          bootstrapServers: kafka-cluster-kafka-bootstrap.kafka:9092
+        - name: main
+          bootstrapServers: main-kafka-bootstrap.kafka:9092
           # For KRaft mode clusters, no Zookeeper connection needed
     auth:
       type: disabled
