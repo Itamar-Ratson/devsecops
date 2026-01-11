@@ -38,9 +38,9 @@ loki:
           index:
             prefix: index_
             period: 24h
-    # Retention configuration (keep logs for 2 days)
+    # Retention configuration (keep logs for 1 day)
     limits_config:
-      retention_period: 48h
+      retention_period: 24h
     # Compactor for retention enforcement
     compactor:
       retention_enabled: true
@@ -57,10 +57,10 @@ loki:
     resources:
       requests:
         cpu: 100m
-        memory: 256Mi
+        memory: 512Mi
       limits:
         cpu: 500m
-        memory: 512Mi
+        memory: 896Mi
 
   # Gateway (nginx proxy for Loki)
   gateway:

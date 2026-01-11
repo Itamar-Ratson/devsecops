@@ -40,11 +40,11 @@ spec:
     topicOperator:
       resources:
         limits:
-          cpu: 200m
-          memory: 256Mi
+          cpu: 500m
+          memory: 448Mi
         requests:
-          cpu: 50m
-          memory: 128Mi
+          cpu: 100m
+          memory: 256Mi
     {{- end }}
     {{- if .Values.entityOperator.userOperator.enabled }}
     userOperator:

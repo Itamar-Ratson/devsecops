@@ -24,7 +24,7 @@ tetragon:
       enabled: true
       labelsOverride: {}
 
-  # Resource limits (tuned for local development)
+  # Resource limits for local development
   resources:
     limits:
       cpu: 500m
@@ -42,14 +42,14 @@ tetragon:
 tetragonOperator:
   enabled: true
 
-  # Operator resources
+  # Operator resources (reduced - operator is mostly idle)
   resources:
     limits:
-      cpu: 500m
-      memory: 128Mi
-    requests:
-      cpu: 10m
+      cpu: 100m
       memory: 64Mi
+    requests:
+      cpu: 5m
+      memory: 32Mi
 
   # Operator Prometheus metrics
   prometheus:

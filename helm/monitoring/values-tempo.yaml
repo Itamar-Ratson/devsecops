@@ -14,8 +14,8 @@ tempo:
     # Disable multi-tenancy (not needed for local dev)
     multitenancyEnabled: false
 
-    # Memory ballast for stable GC performance (1GB)
-    memBallastSizeMbs: 1024
+    # Memory ballast for stable GC performance (128MB for local dev)
+    memBallastSizeMbs: 128
 
     # Server configuration
     server:
@@ -46,22 +46,22 @@ tempo:
     metricsGenerator:
       enabled: false
 
-  # Resource limits
+  # Resource limits (reduced for local dev)
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
+      cpu: 50m
+      memory: 128Mi
     limits:
-      cpu: 500m
-      memory: 512Mi
+      cpu: 250m
+      memory: 256Mi
 
-  # Persistence for trace storage
+  # Persistence for trace storage (reduced for local dev)
   persistence:
     enabled: true
     # storageClassName: standard (use default)
     accessModes:
       - ReadWriteOnce
-    size: 2Gi
+    size: 1Gi
 
   # Service configuration
   service:

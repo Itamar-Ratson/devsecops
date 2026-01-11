@@ -3,18 +3,18 @@ kube-prometheus-stack:
   # This creates services like: prometheus, alertmanager, kube-state-metrics
   nameOverride: ""
 
-  # Prometheus Configuration
+  # Prometheus Configuration (reduced retention/storage for local dev)
   prometheus:
     prometheusSpec:
-      retention: 2d
-      retentionSize: "2GB"
+      retention: 1d
+      retentionSize: "1GB"
       storageSpec:
         volumeClaimTemplate:
           spec:
             accessModes: ["ReadWriteOnce"]
             resources:
               requests:
-                storage: 5Gi
+                storage: 2Gi
       # Automatically discover ServiceMonitors in all namespaces
       serviceMonitorSelectorNilUsesHelmValues: false
       podMonitorSelectorNilUsesHelmValues: false
@@ -60,6 +60,9 @@ kube-prometheus-stack:
         labelValue: "1"
         searchNamespace: ALL
         folderAnnotation: grafana_folder
+        # Folder annotation for kube-prometheus-stack built-in dashboards
+        annotations:
+          grafana_folder: "Prometheus Stack"
         provider:
           foldersFromFilesStructure: true
 
@@ -137,7 +140,7 @@ kube-prometheus-stack:
             accessModes: ["ReadWriteOnce"]
             resources:
               requests:
-                storage: 2Gi
+                storage: 500Mi
 
   # Node Exporter (useful for cluster-level metrics)
   nodeExporter:

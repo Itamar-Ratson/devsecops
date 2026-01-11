@@ -9,23 +9,23 @@ kafka:
   version: "3.9.0"
   replicas: 1
 
-  # Storage configuration
+  # Storage configuration (reduced for local dev)
   storage:
     type: jbod
     volumes:
       - id: 0
         type: persistent-claim
-        size: 10Gi
+        size: 5Gi
         deleteClaim: false
 
-  # Resource limits (reduced for local KinD cluster)
+  # Resource limits for local KinD cluster
   resources:
     limits:
       cpu: 500m
-      memory: 768Mi
+      memory: 1152Mi
     requests:
       cpu: 100m
-      memory: 384Mi
+      memory: 768Mi
 
 # Entity Operator (Topic + User operators)
 entityOperator:
@@ -53,8 +53,8 @@ kafkaExporter:
   topicRegex: ".*"
   resources:
     limits:
-      cpu: 200m
-      memory: 128Mi
-    requests:
-      cpu: 50m
+      cpu: 100m
       memory: 64Mi
+    requests:
+      cpu: 10m
+      memory: 32Mi

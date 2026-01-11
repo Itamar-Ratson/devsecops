@@ -8,10 +8,10 @@ strimzi-kafka-operator:
   resources:
     limits:
       cpu: 500m
-      memory: 512Mi
+      memory: 576Mi
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 384Mi
 
   # Enable dashboard ConfigMaps for Grafana
   dashboards:
@@ -19,6 +19,8 @@ strimzi-kafka-operator:
     namespace: monitoring
     label: grafana_dashboard
     labelValue: "1"
+    annotations:
+      grafana_folder: "Kafka"
 
   # Generate cluster roles (required)
   generateClusterRoles: true
