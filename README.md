@@ -76,19 +76,23 @@ helm upgrade --install kyverno-policies ./helm/kyverno-policies -n kyverno \
 
 # Install cert-manager for TLS certificate management
 helm dependency build ./helm/cert-manager
-helm upgrade --install cert-manager ./helm/cert-manager -n cert-manager --create-namespace
+helm upgrade --install cert-manager ./helm/cert-manager -n cert-manager --create-namespace \
+  -f ./helm/ports.yaml
 kubectl wait --for=condition=Available deployment/cert-manager -n cert-manager --timeout=120s
 
 # Install sealed-secrets for secret management
 helm dependency build ./helm/sealed-secrets
-helm upgrade --install sealed-secrets ./helm/sealed-secrets -n sealed-secrets --create-namespace
+helm upgrade --install sealed-secrets ./helm/sealed-secrets -n sealed-secrets --create-namespace \
+  -f ./helm/ports.yaml
 
 # Install Gateway and test application
 helm upgrade --install gateway ./helm/gateway -n gateway --create-namespace
-helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespace
+helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespace \
+  -f ./helm/ports.yaml
 
-# Install network policies for security
-helm upgrade --install network-policies ./helm/network-policies
+# Install network policies for security (clusterwide, applies to all namespaces)
+helm upgrade --install network-policies ./helm/network-policies -n kube-system \
+  -f ./helm/ports.yaml
 
 # Install Strimzi Kafka Operator (before monitoring - Alloy sends logs via Kafka)
 helm dependency build ./helm/strimzi-operator
