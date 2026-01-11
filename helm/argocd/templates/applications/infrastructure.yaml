@@ -61,6 +61,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
 ---
 # Wave 2: Kyverno Policies (needs Kyverno first)
 apiVersion: argoproj.io/v1alpha1
