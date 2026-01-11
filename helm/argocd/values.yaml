@@ -1,0 +1,12 @@
+# Gateway configuration for ArgoCD HTTPRoute
+gateway:
+  name: main-gateway
+  namespace: gateway
+
+# GitOps repository configuration
+gitops:
+  # Set to your git repo URL (SSH or HTTPS)
+  repoURL: https://github.com/your-org/secure-k8s.git
+  targetRevision: HEAD
+  # Enable to have ArgoCD manage the infrastructure components
+  enabled: false

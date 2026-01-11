@@ -128,9 +128,20 @@ helm upgrade --install kafka-ui ./helm/kafka-ui -n kafka-ui --create-namespace \
   -f ./helm/kafka-ui/values.yaml \
   -f ./helm/kafka-ui/values-kafka-ui.yaml
 
+# Install ArgoCD for GitOps continuous delivery
+helm dependency build ./helm/argocd
+helm upgrade --install argocd ./helm/argocd -n argocd --create-namespace \
+  -f ./helm/ports.yaml \
+  -f ./helm/argocd/values.yaml \
+  -f ./helm/argocd/values-argocd.yaml
+
+# Get ArgoCD admin password
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
+
 # Test the setup
 curl -k https://echo.localhost
 curl -k https://hubble.localhost
 curl -k https://grafana.localhost
 curl -k https://kafka-ui.localhost
+curl -k https://argocd.localhost
 ```

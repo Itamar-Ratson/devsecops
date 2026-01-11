@@ -83,6 +83,13 @@ spec:
       toPorts:
         - ports:
             - port: "{{ .Values.ports.strimziOperator.metrics }}"
+    # Allow scraping metrics from argocd namespace
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.argocd.metrics }}"
     # Allow scraping metrics from host network (Cilium, Tetragon components on nodes)
     - toEntities:
         - host

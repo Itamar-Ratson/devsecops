@@ -1,0 +1,126 @@
+argo-cd:
+  # Global settings
+  global:
+    # Disable network policies - we manage via CiliumNetworkPolicy
+    networkPolicy:
+      create: false
+
+  # ArgoCD Server (UI + API)
+  server:
+    replicas: 1
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+
+    # Expose metrics for Prometheus
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: false  # We create our own ServiceMonitor
+
+    # Insecure mode (terminate TLS at gateway)
+    extraArgs:
+      - --insecure
+
+    service:
+      type: ClusterIP
+      servicePortHttp: 8080
+      servicePortHttps: 443
+
+  # Repo Server - handles Git operations
+  repoServer:
+    replicas: 1
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: false
+
+  # Application Controller - reconciles desired vs actual state
+  controller:
+    replicas: 1
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: false
+
+  # Redis - used for caching
+  redis:
+    enabled: true
+    resources:
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+  # Disable HA components for minimal installation
+  redis-ha:
+    enabled: false
+
+  # ApplicationSet Controller - for generating Applications
+  applicationSet:
+    enabled: true
+    replicas: 1
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 25m
+        memory: 64Mi
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: false
+
+  # Notifications Controller - disable unless needed
+  notifications:
+    enabled: false
+
+  # Dex - disable external OIDC (use built-in auth)
+  dex:
+    enabled: false
+
+  # CRDs - install via Helm
+  crds:
+    install: true
+    keep: true
+
+  # ConfigMaps for ArgoCD configuration
+  configs:
+    # Repository credentials templates (for SSH keys)
+    # Configure via SealedSecret after installation:
+    # kubectl create secret generic argocd-repo-creds -n argocd \
+    #   --from-literal=type=git \
+    #   --from-literal=url=git@github.com:yourorg \
+    #   --from-file=sshPrivateKey=/path/to/key
+    credentialTemplates: {}
+    repositories: {}
+
+    params:
+      server.enable.gzip: true
+      application.instanceLabelKey: argocd.argoproj.io/instance
