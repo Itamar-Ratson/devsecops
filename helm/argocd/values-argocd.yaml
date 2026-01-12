@@ -55,11 +55,11 @@ argo-cd:
 
     resources:
       limits:
-        cpu: "1"
-        memory: 1Gi
+        cpu: "2"
+        memory: 2Gi
       requests:
         cpu: 250m
-        memory: 512Mi
+        memory: 1Gi
 
     metrics:
       enabled: true
@@ -112,12 +112,20 @@ argo-cd:
 
   # ConfigMaps for ArgoCD configuration
   configs:
-    # Repository credentials templates (for SSH keys)
-    # Configure via SealedSecret after installation:
+    # Repository credentials are automatically configured by setup.sh:
+    # - SSH key generated at ~/.ssh/argocd-deploy-key
+    # - Secret created, sealed, and applied as SealedSecret
+    # - Public key displayed for adding to GitHub as deploy key
+    #
+    # For manual setup or additional repos, create a SealedSecret:
     # kubectl create secret generic argocd-repo-creds -n argocd \
     #   --from-literal=type=git \
     #   --from-literal=url=git@github.com:yourorg \
-    #   --from-file=sshPrivateKey=/path/to/key
+    #   --from-file=sshPrivateKey=/path/to/key \
+    #   --dry-run=client -o yaml | \
+    #   kubectl label --local -f - argocd.argoproj.io/secret-type=repo-creds -o yaml | \
+    #   kubeseal --controller-name=sealed-secrets --controller-namespace=sealed-secrets -o yaml | \
+    #   kubectl apply -f -
     credentialTemplates: {}
     repositories: {}
 
