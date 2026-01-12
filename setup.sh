@@ -17,6 +17,7 @@ command -v kubectl >/dev/null 2>&1 || error "kubectl is required but not install
 command -v helm >/dev/null 2>&1 || error "helm is required but not installed"
 command -v kind >/dev/null 2>&1 || error "kind is required but not installed"
 command -v kubeseal >/dev/null 2>&1 || error "kubeseal is required but not installed"
+command -v gh >/dev/null 2>&1 || error "gh (GitHub CLI) is required but not installed"
 
 log "Starting Kubernetes cluster setup..."
 
@@ -215,26 +216,18 @@ echo "  - https://kafka-ui.localhost"
 echo "  - https://argocd.localhost"
 echo ""
 
-# Show deploy key setup instructions
+# Add deploy key to GitHub using gh CLI
 if [ "${ARGOCD_SSH_KEY_GENERATED}" = true ]; then
-    echo -e "${YELLOW}========================================${NC}"
-    echo -e "${YELLOW}  ACTION REQUIRED: Add GitHub Deploy Key${NC}"
-    echo -e "${YELLOW}========================================${NC}"
-    echo ""
-    echo "A new SSH deploy key was generated for ArgoCD."
-    echo "Add it to your repository as a deploy key:"
-    echo ""
-    echo "1. Go to: https://github.com/Itamar-Ratson/secure-k8s/settings/keys"
-    echo "2. Click 'Add deploy key'"
-    echo "3. Title: argocd-deploy-key"
-    echo "4. Key (copy the line below):"
-    echo ""
-    echo -e "${GREEN}$(cat ${ARGOCD_SSH_KEY_PATH}.pub)${NC}"
-    echo ""
-    echo "5. Click 'Add key' (read-only access is sufficient)"
-    echo ""
+    GITHUB_REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner')
+    log "Adding SSH deploy key to GitHub repository (${GITHUB_REPO})..."
+    if gh repo deploy-key add "${ARGOCD_SSH_KEY_PATH}.pub" \
+        --repo "${GITHUB_REPO}" \
+        --title "argocd-deploy-key" 2>/dev/null; then
+        log "Deploy key added successfully"
+    else
+        warn "Could not add deploy key (may already exist or insufficient permissions)"
+        warn "If needed, add manually at: https://github.com/${GITHUB_REPO}/settings/keys"
+    fi
 else
-    echo "Using existing SSH deploy key: ${ARGOCD_SSH_KEY_PATH}"
-    echo "Ensure this key is added as a deploy key to your repository."
-    echo ""
+    log "Using existing SSH deploy key: ${ARGOCD_SSH_KEY_PATH}"
 fi
