@@ -146,8 +146,8 @@ helm upgrade --install http-echo ./helm/http-echo -n http-echo --create-namespac
 helm upgrade --install network-policies ./helm/network-policies -n kube-system \
   -f ./helm/ports.yaml
 
-# Install Strimzi Kafka Operator
-kubectl create namespace monitoring
+# Install Strimzi Kafka Operator (create monitoring namespace first for network policies)
+kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 helm dependency build ./helm/strimzi-operator
 helm upgrade --install strimzi ./helm/strimzi-operator -n strimzi-system --create-namespace \
   -f ./helm/ports.yaml \
@@ -161,7 +161,7 @@ helm upgrade --install kafka ./helm/kafka -n kafka --create-namespace \
 
 # Install monitoring stack
 helm dependency build ./helm/monitoring
-helm upgrade --install monitoring ./helm/monitoring -n monitoring \
+helm upgrade --install monitoring ./helm/monitoring -n monitoring --create-namespace \
   -f ./helm/ports.yaml \
   -f ./helm/monitoring/values.yaml \
   -f ./helm/monitoring/values-kube-prometheus.yaml \

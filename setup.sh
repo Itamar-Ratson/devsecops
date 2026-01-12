@@ -136,7 +136,7 @@ helm upgrade --install network-policies ./helm/network-policies -n kube-system \
 
 # Create monitoring namespace before Strimzi (required for network policies)
 log "Creating monitoring namespace for Strimzi network policies..."
-kubectl create namespace monitoring
+kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 
 # Install Strimzi Kafka Operator
 log "Building and installing Strimzi operator..."
@@ -159,7 +159,7 @@ kubectl wait --for=condition=Ready kafka/main -n kafka --timeout=300s
 # Install monitoring stack
 log "Building and installing monitoring stack..."
 helm dependency build ./helm/monitoring
-helm upgrade --install monitoring ./helm/monitoring -n monitoring \
+helm upgrade --install monitoring ./helm/monitoring -n monitoring --create-namespace \
   -f ./helm/ports.yaml \
   -f ./helm/monitoring/values.yaml \
   -f ./helm/monitoring/values-kube-prometheus.yaml \
