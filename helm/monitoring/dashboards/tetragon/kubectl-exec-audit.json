@@ -119,7 +119,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({cluster=~\"$cluster\", job=\"$export_job\"} |~ \"process_exec\" |~ \"$namespace\" |~ \"$container_runtime\" | json | process_exec_process_pod_namespace =~ \"$namespace\" and process_exec_parent_binary=`$container_runtime` and process_exec_parent_pid != 1 [$__range])) by (process_exec_process_pod_workload)",
+          "expr": "sum(count_over_time({cluster=~\"$cluster\", job=\"$export_job\"} |~ \"process_exec\" |~ \"$namespace\" |~ \"$container_runtime\" | json | line_format \"{{.body}}\" | json | process_exec_process_pod_namespace =~ \"$namespace\" and process_exec_parent_binary=`$container_runtime` and process_exec_parent_pid != 1 [$__range])) by (process_exec_process_pod_workload)",
           "legendFormat": "{{process_exec_process_pod_workload}}",
           "queryType": "instant",
           "refId": "A"
@@ -191,7 +191,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({cluster=~\"$cluster\", job=\"$export_job\"} |~\"process_exec\" |~\"$namespace\" | json | (process_exec_process_pod_namespace=~\"$namespace\" and (process_exec_parent_binary=`/bin/sh` or process_exec_parent_binary=`/usr/bin/sh` or process_exec_parent_binary=`/bin/bash` or process_exec_parent_binary=`/usr/bin/bash`) or (process_exec_parent_binary=`$container_runtime` and process_exec_parent_pid != 1)) [$__range])) by (process_exec_process_pod_workload)",
+          "expr": "sum(count_over_time({cluster=~\"$cluster\", job=\"$export_job\"} |~\"process_exec\" |~\"$namespace\" | json | line_format \"{{.body}}\" | json | (process_exec_process_pod_namespace=~\"$namespace\" and (process_exec_parent_binary=`/bin/sh` or process_exec_parent_binary=`/usr/bin/sh` or process_exec_parent_binary=`/bin/bash` or process_exec_parent_binary=`/usr/bin/bash`) or (process_exec_parent_binary=`$container_runtime` and process_exec_parent_pid != 1)) [$__range])) by (process_exec_process_pod_workload)",
           "legendFormat": "{{process_exec_pod_workload}}",
           "queryType": "instant",
           "refId": "A"
@@ -505,7 +505,7 @@
             "uid": "loki"
           },
           "editorMode": "code",
-          "expr": "{cluster=~\"$cluster\", job=\"$export_job\"} |~\"process_exec\" |~\"$namespace\" |~\"$container_runtime\" | json | process_exec_process_pod_namespace=~\"$namespace\" and process_exec_parent_binary=`$container_runtime` and process_exec_parent_pid != 1",
+          "expr": "{cluster=~\"$cluster\", job=\"$export_job\"} |~\"process_exec\" |~\"$namespace\" |~\"$container_runtime\" | json | line_format \"{{.body}}\" | json | process_exec_process_pod_namespace=~\"$namespace\" and process_exec_parent_binary=`$container_runtime` and process_exec_parent_pid != 1",
           "queryType": "range",
           "refId": "A"
         }
@@ -680,8 +680,8 @@
       {
         "current": {
           "selected": true,
-          "text": "loki.source.kubernetes.pods",
-          "value": "loki.source.kubernetes.pods"
+          "text": "tetragon",
+          "value": "tetragon"
         },
         "datasource": {
           "type": "loki",
@@ -772,9 +772,9 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "/usr/sbin/runc",
-          "value": "/usr/sbin/runc"
+          "selected": true,
+          "text": "/usr/local/sbin/runc",
+          "value": "/usr/local/sbin/runc"
         },
         "hide": 0,
         "label": "container runtime",
@@ -782,11 +782,11 @@
         "options": [
           {
             "selected": true,
-            "text": "/usr/sbin/runc",
-            "value": "/usr/sbin/runc"
+            "text": "/usr/local/sbin/runc",
+            "value": "/usr/local/sbin/runc"
           }
         ],
-        "query": "/usr/sbin/runc",
+        "query": "/usr/local/sbin/runc",
         "skipUrlSync": false,
         "type": "textbox"
       }

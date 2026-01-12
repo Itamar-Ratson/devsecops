@@ -6,6 +6,13 @@ alloy:
   # Deploy as DaemonSet to collect logs from all nodes
   controller:
     type: daemonset
+    # Define host path volumes for log collection
+    volumes:
+      extra:
+        - name: tetragon-logs
+          hostPath:
+            path: /var/run/cilium/tetragon
+            type: DirectoryOrCreate
 
   # Disable usage reporting to Grafana Cloud and set configuration
   alloy:
@@ -85,6 +92,45 @@ alloy:
           forward_to = [otelcol.receiver.loki.to_kafka.receiver]
 
           stage.cri {}
+        }
+
+        // ========================================
+        // TETRAGON EVENT LOGS
+        // ========================================
+
+        // Discover Tetragon export log file on nodes
+        local.file_match "tetragon" {
+          path_targets = [{
+            __path__ = "/var/run/cilium/tetragon/tetragon.log",
+            job      = "tetragon",
+            cluster  = "k8s-dev",
+          }]
+        }
+
+        // Read Tetragon export logs
+        loki.source.file "tetragon" {
+          targets    = local.file_match.tetragon.targets
+          forward_to = [loki.process.tetragon.receiver]
+        }
+
+        // Process Tetragon logs (they're JSON format)
+        loki.process "tetragon" {
+          forward_to = [otelcol.receiver.loki.to_kafka.receiver]
+
+          // Parse JSON to extract fields for better querying
+          stage.json {
+            expressions = {
+              process_exec = "process_exec",
+              node_name    = "node_name",
+            }
+          }
+
+          // Add node label from JSON
+          stage.labels {
+            values = {
+              node = "node_name",
+            }
+          }
         }
 
         // ========================================
@@ -172,10 +218,19 @@ alloy:
           }
         }
 
-  resources:
-    requests:
-      cpu: 50m
-      memory: 256Mi
-    limits:
-      cpu: 300m
-      memory: 576Mi
+    # Resources for Alloy container
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        cpu: 300m
+        memory: 576Mi
+
+    # Mount host paths for log collection (Alloy container mounts)
+    mounts:
+      extra:
+        # Tetragon export logs
+        - name: tetragon-logs
+          mountPath: /var/run/cilium/tetragon
+          readOnly: true
