@@ -57,10 +57,10 @@ loki:
     resources:
       requests:
         cpu: 100m
-        memory: 512Mi
+        memory: 768Mi  # Increased based on metrics (472Mi used, 728Mi max)
       limits:
         cpu: 500m
-        memory: 896Mi
+        memory: 1Gi
 
   # Gateway (nginx proxy for Loki)
   gateway:
@@ -102,21 +102,21 @@ loki:
   # Memcached caches (reduced for local dev - defaults are way too large)
   chunksCache:
     enabled: true
-    allocatedMemory: 512  # MB (default is 9830MB!)
-    resources:
-      requests:
-        cpu: 10m
-        memory: 600Mi
-      limits:
-        memory: 700Mi
-
-  resultsCache:
-    enabled: true
-    allocatedMemory: 256  # MB (default is 1229MB)
+    allocatedMemory: 256  # MB - reduced for dev (329MB was used with 512MB)
     resources:
       requests:
         cpu: 10m
         memory: 300Mi
       limits:
-        memory: 400Mi
+        memory: 384Mi
+
+  resultsCache:
+    enabled: true
+    allocatedMemory: 48  # MB - reduced based on metrics (only 35KB used)
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 96Mi
 

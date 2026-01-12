@@ -4,14 +4,14 @@ strimzi-kafka-operator:
 
   # KRaft is the default in Strimzi 0.45.0+, no feature gates needed
 
-  # Resource limits
+  # Resource limits (reduced based on metrics: 305Mi used, 310Mi max)
   resources:
     limits:
       cpu: 500m
-      memory: 576Mi
+      memory: 512Mi
     requests:
       cpu: 100m
-      memory: 384Mi
+      memory: 320Mi
 
   # Enable dashboard ConfigMaps for Grafana
   dashboards:

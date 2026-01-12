@@ -12,10 +12,10 @@ argo-cd:
     resources:
       limits:
         cpu: 500m
-        memory: 512Mi
+        memory: 128Mi
       requests:
         cpu: 100m
-        memory: 256Mi
+        memory: 64Mi  # Reduced based on metrics (33Mi used, 50Mi max)
 
     # Expose metrics for Prometheus
     metrics:
@@ -39,10 +39,10 @@ argo-cd:
     resources:
       limits:
         cpu: "1"
-        memory: 1Gi
+        memory: 512Mi
       requests:
         cpu: 250m
-        memory: 512Mi
+        memory: 320Mi  # Reduced based on metrics (134Mi used, 274Mi max)
 
     metrics:
       enabled: true
