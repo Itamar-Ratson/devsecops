@@ -10,9 +10,9 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: argocd-server
+      app.kubernetes.io/name: argocd-server-metrics
   endpoints:
-    - port: metrics
+    - port: http-metrics
       interval: 30s
       path: /metrics
 ---
@@ -27,9 +27,9 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: argocd-repo-server
+      app.kubernetes.io/name: argocd-repo-server-metrics
   endpoints:
-    - port: metrics
+    - port: http-metrics
       interval: 30s
       path: /metrics
 ---
@@ -44,9 +44,9 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: argocd-application-controller
+      app.kubernetes.io/name: argocd-metrics
   endpoints:
-    - port: metrics
+    - port: http-metrics
       interval: 30s
       path: /metrics
 ---
@@ -61,8 +61,8 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: argocd-applicationset-controller
+      app.kubernetes.io/name: argocd-metrics
   endpoints:
-    - port: metrics
+    - port: http-metrics
       interval: 30s
       path: /metrics

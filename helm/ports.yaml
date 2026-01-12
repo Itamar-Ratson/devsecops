@@ -95,7 +95,11 @@ ports:
   argocd:
     http: 8080
     https: 443
-    metrics: 8083
+    metrics:
+      server: 8083
+      repoServer: 8084
+      controller: 8082
+      applicationset: 8080
     repoServer: 8081
     redis: 6379
     ssh: 22

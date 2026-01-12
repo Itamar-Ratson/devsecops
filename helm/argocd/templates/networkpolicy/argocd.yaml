@@ -34,7 +34,7 @@ spec:
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
-            - port: "{{ .Values.ports.argocd.metrics }}"
+            - port: "{{ .Values.ports.argocd.metrics.server }}"
               protocol: TCP
 
   egress:
@@ -117,7 +117,7 @@ spec:
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
-            - port: "{{ .Values.ports.argocd.metrics }}"
+            - port: "{{ .Values.ports.argocd.metrics.repoServer }}"
               protocol: TCP
 
   egress:
@@ -176,7 +176,7 @@ spec:
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
-            - port: "{{ .Values.ports.argocd.metrics }}"
+            - port: "{{ .Values.ports.argocd.metrics.controller }}"
               protocol: TCP
 
   egress:
@@ -274,7 +274,7 @@ spec:
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
-            - port: "{{ .Values.ports.argocd.metrics }}"
+            - port: "{{ .Values.ports.argocd.metrics.applicationset }}"
               protocol: TCP
 
   egress:

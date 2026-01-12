@@ -89,7 +89,10 @@ spec:
             k8s:io.kubernetes.pod.namespace: argocd
       toPorts:
         - ports:
-            - port: "{{ .Values.ports.argocd.metrics }}"
+            - port: "{{ .Values.ports.argocd.metrics.server }}"
+            - port: "{{ .Values.ports.argocd.metrics.repoServer }}"
+            - port: "{{ .Values.ports.argocd.metrics.controller }}"
+            - port: "{{ .Values.ports.argocd.metrics.applicationset }}"
     # Allow scraping metrics from host network (Cilium, Tetragon components on nodes)
     - toEntities:
         - host
