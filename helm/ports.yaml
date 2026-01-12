@@ -76,6 +76,7 @@ ports:
   # Demo apps
   httpEcho: 5678
   httpService: 80
+  juiceShop: 3000
 
   # Kafka / Strimzi
   kafka:

@@ -1,0 +1,29 @@
+---
+# Juice Shop Network Policy
+# Default-deny with explicit allows for Gateway and port-forwarding
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: juice-shop
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app: juice-shop
+
+  ingress:
+    # Allow from Gateway (Cilium Envoy)
+    - fromEntities:
+        - ingress
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.juiceShop }}"
+              protocol: TCP
+
+    # Allow from host for port-forwarding
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.juiceShop }}"
+              protocol: TCP

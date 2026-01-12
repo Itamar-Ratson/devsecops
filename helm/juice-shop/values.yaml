@@ -1,0 +1,18 @@
+gateway:
+  name: main-gateway
+  namespace: gateway
+
+image:
+  repository: bkimminich/juice-shop
+  tag: latest
+  pullPolicy: IfNotPresent
+
+resources:
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+
+replicaCount: 1
