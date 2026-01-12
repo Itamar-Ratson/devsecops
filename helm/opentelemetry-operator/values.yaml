@@ -1,0 +1,30 @@
+# OpenTelemetry Operator Configuration
+opentelemetry-operator:
+  # Manager (operator) configuration
+  manager:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 64Mi
+
+    # Enable Prometheus metrics
+    serviceMonitor:
+      enabled: true
+
+  # Admission webhooks
+  admissionWebhooks:
+    certManager:
+      enabled: true  # Use cert-manager for webhook certificates
+
+  # Kube RBAC Proxy
+  kubeRBACProxy:
+    resources:
+      requests:
+        cpu: 5m
+        memory: 16Mi
+      limits:
+        cpu: 50m
+        memory: 32Mi

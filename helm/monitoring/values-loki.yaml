@@ -99,3 +99,24 @@ loki:
   test:
     enabled: false
 
+  # Memcached caches (reduced for local dev - defaults are way too large)
+  chunksCache:
+    enabled: true
+    allocatedMemory: 512  # MB (default is 9830MB!)
+    resources:
+      requests:
+        cpu: 10m
+        memory: 600Mi
+      limits:
+        memory: 700Mi
+
+  resultsCache:
+    enabled: true
+    allocatedMemory: 256  # MB (default is 1229MB)
+    resources:
+      requests:
+        cpu: 10m
+        memory: 300Mi
+      limits:
+        memory: 400Mi
+

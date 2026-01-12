@@ -91,6 +91,11 @@ ports:
   kafkaUi:
     http: 8080
 
+  # OpenTelemetry Operator
+  otelOperator:
+    webhook: 9443
+    metrics: 8443
+
   # ArgoCD
   argocd:
     http: 8080

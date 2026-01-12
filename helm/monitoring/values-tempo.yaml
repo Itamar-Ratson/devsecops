@@ -42,9 +42,17 @@ tempo:
           http:
             endpoint: "0.0.0.0:4318"
 
-    # Metrics generator (disabled for simplicity)
+    # Metrics generator (generates metrics from traces)
     metricsGenerator:
-      enabled: false
+      enabled: true
+      remoteWriteUrl: "http://monitoring-kube-prometheus-prometheus:9090/api/v1/write"
+      processor:
+        service_graphs:
+          dimensions:
+            - service.namespace
+        span_metrics:
+          dimensions:
+            - service.namespace
 
   # Resource limits (reduced for local dev)
   resources:

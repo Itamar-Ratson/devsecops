@@ -1,0 +1,43 @@
+# Default Instrumentation configuration for auto-instrumentation
+# Applications can opt-in by adding annotation:
+#   instrumentation.opentelemetry.io/inject-python: "true"
+#   instrumentation.opentelemetry.io/inject-java: "true"
+#   instrumentation.opentelemetry.io/inject-nodejs: "true"
+#   instrumentation.opentelemetry.io/inject-dotnet: "true"
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: auto-instrumentation
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+spec:
+  # Send traces to Alloy in monitoring namespace
+  exporter:
+    endpoint: http://monitoring-alloy.monitoring:{{ .Values.ports.alloy.otlpGrpc }}
+
+  # Context propagation
+  propagators:
+    - tracecontext
+    - baggage
+
+  # Sampling configuration (sample all traces for dev)
+  sampler:
+    type: always_on
+
+  # Language-specific configuration
+  python:
+    env:
+      - name: OTEL_PYTHON_LOG_CORRELATION
+        value: "true"
+
+  java:
+    env:
+      - name: OTEL_INSTRUMENTATION_JDBC_ENABLED
+        value: "true"
+
+  nodejs:
+    env:
+      - name: OTEL_NODE_RESOURCE_DETECTORS
+        value: "env,host,os"
