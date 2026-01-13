@@ -4,8 +4,10 @@
 trivy-operator:
   # Operator configuration
   operator:
-    # Scan all namespaces
-    scanJobsConcurrentLimit: 3
+    # Limit concurrent scans to reduce resource usage
+    scanJobsConcurrentLimit: 1
+    # Clean up completed scan jobs after 60 seconds
+    scanJobTTL: 60s
     # Vulnerability scanner configuration
     vulnerabilityScannerEnabled: true
     # Config audit scanner
@@ -14,10 +16,10 @@ trivy-operator:
     rbacAssessmentScannerEnabled: true
     # Exposed secret scanner
     exposedSecretScannerEnabled: true
-    # SBOM generation
-    sbomGenerationEnabled: true
-    # Cluster compliance reports
-    clusterComplianceEnabled: true
+    # SBOM generation (disabled - high resource cost)
+    sbomGenerationEnabled: false
+    # Cluster compliance reports (disabled - enable for audits)
+    clusterComplianceEnabled: false
     # Infra assessment (control plane components)
     infraAssessmentScannerEnabled: true
 
@@ -56,7 +58,7 @@ trivy-operator:
         memory: 256Mi
       limits:
         cpu: 500m
-        memory: 1Gi
+        memory: 512Mi
 
   # Prometheus metrics
   serviceMonitor:
