@@ -28,10 +28,6 @@ kube-prometheus-stack:
       podMonitorSelectorNilUsesHelmValues: false
       ruleSelectorNilUsesHelmValues: false
 
-  # AlertManager Configuration
-  alertmanager:
-    fullnameOverride: alertmanager
-
   # Prometheus Operator Configuration
   prometheusOperator:
     fullnameOverride: prometheus-operator
@@ -140,6 +136,7 @@ kube-prometheus-stack:
   # AlertManager Configuration (optional, can disable if not needed)
   alertmanager:
     enabled: true
+    fullnameOverride: alertmanager
     alertmanagerSpec:
       retention: 24h
       # Mount slack webhook secrets from SealedSecret
