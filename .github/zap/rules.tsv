@@ -1,0 +1,19 @@
+# ZAP scan rules configuration for OWASP Juice Shop
+# Format: ID	Action	Description
+# Actions: WARN (report but don't fail), IGNORE (skip entirely), FAIL (fail pipeline)
+# Note: Using WARN for intentional vulnerabilities so they appear in reports
+10021	WARN	# X-Content-Type-Options Header Missing
+10038	WARN	# Content Security Policy Header Not Set
+10063	WARN	# Feature Policy Header Not Set
+40014	WARN	# Cross Site Scripting (Persistent) - Juice Shop intentionally vulnerable
+40016	WARN	# Cross Site Scripting (Reflected) - Juice Shop intentionally vulnerable
+40018	WARN	# SQL Injection - Juice Shop intentionally vulnerable
+40012	WARN	# Cross Site Scripting (Reflected) - Juice Shop intentionally vulnerable
+40019	WARN	# SQL Injection (MySQL) - Juice Shop intentionally vulnerable
+90027	WARN	# Cookie Slack Detector
+10010	WARN	# Cookie No HttpOnly Flag
+10011	WARN	# Cookie Without Secure Flag
+10017	WARN	# Cross-Domain JavaScript Source File Inclusion
+10020	WARN	# X-Frame-Options Header Not Set
+10035	WARN	# Strict-Transport-Security Header Not Set
+10098	WARN	# Cross-Domain Misconfiguration
