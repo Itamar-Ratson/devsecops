@@ -92,6 +92,11 @@ ports:
   kafkaUi:
     http: 8080
 
+  # Trivy Operator
+  trivyOperator:
+    metrics: 8080
+    probes: 9090
+
   # OpenTelemetry Operator
   otelOperator:
     webhook: 9443

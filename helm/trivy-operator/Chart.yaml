@@ -1,0 +1,9 @@
+apiVersion: v2
+name: trivy-operator
+description: Trivy Operator for continuous Kubernetes security scanning
+version: 1.0.0
+appVersion: "0.31.0"
+dependencies:
+  - name: trivy-operator
+    version: "0.31.0"
+    repository: "https://aquasecurity.github.io/helm-charts/"

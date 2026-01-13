@@ -93,6 +93,13 @@ spec:
             - port: "{{ .Values.ports.argocd.metrics.repoServer }}"
             - port: "{{ .Values.ports.argocd.metrics.controller }}"
             - port: "{{ .Values.ports.argocd.metrics.applicationset }}"
+    # Allow scraping metrics from trivy-system namespace
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: trivy-system
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.trivyOperator.metrics }}"
     # Allow scraping metrics from host network (Cilium, Tetragon components on nodes)
     - toEntities:
         - host

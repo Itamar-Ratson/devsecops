@@ -1,0 +1,68 @@
+---
+# Allow Prometheus to scrape trivy-operator metrics
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: trivy-operator-allow-metrics
+  namespace: {{ .Release.Namespace }}
+spec:
+  description: "Allow Prometheus to scrape trivy-operator metrics"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: trivy-operator
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.trivyOperator.metrics }}"
+              protocol: TCP
+    # Allow health probes from kubelet
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.trivyOperator.probes }}"
+              protocol: TCP
+---
+# Allow trivy-operator to pull images and download vulnerability databases
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: trivy-operator-allow-external
+  namespace: {{ .Release.Namespace }}
+spec:
+  description: "Allow trivy-operator to access external resources (registries, vuln DBs)"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: trivy-operator
+  egress:
+    # Allow HTTPS to container registries and vulnerability databases
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# Allow scan jobs to pull images and download vulnerability databases
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: trivy-scan-jobs-allow-external
+  namespace: {{ .Release.Namespace }}
+spec:
+  description: "Allow trivy scan jobs to access external resources"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/managed-by: trivy-operator
+  egress:
+    # Allow HTTPS to container registries and vulnerability databases
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

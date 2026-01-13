@@ -1,0 +1,72 @@
+# Trivy Operator values
+# Reference: https://github.com/aquasecurity/trivy-operator/tree/main/deploy/helm
+
+trivy-operator:
+  # Operator configuration
+  operator:
+    # Scan all namespaces
+    scanJobsConcurrentLimit: 10
+    # Vulnerability scanner configuration
+    vulnerabilityScannerEnabled: true
+    # Config audit scanner
+    configAuditScannerEnabled: true
+    # RBAC assessment
+    rbacAssessmentScannerEnabled: true
+    # Exposed secret scanner
+    exposedSecretScannerEnabled: true
+    # SBOM generation
+    sbomGenerationEnabled: true
+    # Cluster compliance reports
+    clusterComplianceEnabled: true
+    # Infra assessment (control plane components)
+    infraAssessmentScannerEnabled: true
+
+  # Trivy configuration
+  trivy:
+    # Use standalone mode (no server required)
+    mode: Standalone
+    # Severity levels to report
+    severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+    # Slow mode to reduce resource usage
+    slow: true
+    # Skip unfixed vulnerabilities
+    ignoreUnfixed: false
+    # Timeout for scan jobs
+    timeout: "10m0s"
+
+  # Service account
+  serviceAccount:
+    create: true
+    name: trivy-operator
+
+  # Resources for operator
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Resources for scan jobs
+  scanJob:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+  # Prometheus metrics
+  serviceMonitor:
+    enabled: true
+    interval: 60s
+    labels:
+      release: monitoring
+
+  # Node selector (optional)
+  nodeSelector: {}
+
+  # Tolerations (optional)
+  tolerations: []
