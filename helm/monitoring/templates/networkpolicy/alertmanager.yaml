@@ -42,3 +42,11 @@ spec:
         - ports:
             - port: "{{ .Values.ports.alertmanager.http }}"
             - port: "{{ .Values.ports.alertmanager.cluster }}"
+
+    # Allow external HTTPS for webhook receivers (Slack, PagerDuty, etc.)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.gateway.https }}"
+              protocol: TCP

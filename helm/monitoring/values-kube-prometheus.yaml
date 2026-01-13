@@ -142,6 +142,9 @@ kube-prometheus-stack:
     enabled: true
     alertmanagerSpec:
       retention: 24h
+      # Mount slack webhook secrets from SealedSecret
+      secrets:
+        - alertmanager-slack-webhooks
       resources:
         requests:
           cpu: 10m
@@ -156,6 +159,77 @@ kube-prometheus-stack:
             resources:
               requests:
                 storage: 500Mi
+
+    # Alertmanager configuration (routing, inhibition, receivers)
+    config:
+      global:
+        resolve_timeout: 5m
+
+      # Inhibition rules - suppress warnings when critical is firing
+      inhibit_rules:
+        # Suppress warning when critical exists for same namespace/resource
+        - source_matchers:
+            - severity = critical
+          target_matchers:
+            - severity = warning
+          equal:
+            - namespace
+            - resource_name
+
+      # Routing tree
+      route:
+        group_by: ['alertname', 'namespace', 'severity']
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 4h
+        receiver: 'default'
+        routes:
+          # Critical alerts -> Slack #alerts-critical
+          - matchers:
+              - severity = critical
+            receiver: 'slack-critical'
+            continue: false
+          # Warning alerts -> Slack
+          - matchers:
+              - severity = warning
+            receiver: 'slack-warnings'
+            continue: false
+
+      # Receivers
+      # Webhook URLs are mounted from SealedSecret via alertmanagerSpec.secrets
+      # See seal-slack-webhooks.sh to generate encrypted values
+      receivers:
+        - name: 'default'
+          # Fallback - sends to warnings channel
+          slack_configs:
+            - api_url_file: /etc/alertmanager/secrets/alertmanager-slack-webhooks/slack-warning-webhook
+              channel: '#alerts-warning'
+              send_resolved: true
+              title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+              text: '{{ .CommonAnnotations.summary }}'
+
+        - name: 'slack-critical'
+          slack_configs:
+            - api_url_file: /etc/alertmanager/secrets/alertmanager-slack-webhooks/slack-critical-webhook
+              channel: '#alerts-critical'
+              send_resolved: true
+              title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+              text: |-
+                *Summary:* {{ .CommonAnnotations.summary }}
+                *Description:* {{ .CommonAnnotations.description }}
+                *Namespace:* {{ .CommonLabels.namespace }}
+                *Resource:* {{ .CommonLabels.resource_name }}
+
+        - name: 'slack-warnings'
+          slack_configs:
+            - api_url_file: /etc/alertmanager/secrets/alertmanager-slack-webhooks/slack-warning-webhook
+              channel: '#alerts-warning'
+              send_resolved: true
+              title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+              text: |-
+                *Summary:* {{ .CommonAnnotations.summary }}
+                *Namespace:* {{ .CommonLabels.namespace }}
+                *Resource:* {{ .CommonLabels.resource_name }}
 
   # Node Exporter (useful for cluster-level metrics)
   nodeExporter:
