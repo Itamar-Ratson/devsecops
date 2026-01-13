@@ -5,7 +5,7 @@ trivy-operator:
   # Operator configuration
   operator:
     # Scan all namespaces
-    scanJobsConcurrentLimit: 10
+    scanJobsConcurrentLimit: 3
     # Vulnerability scanner configuration
     vulnerabilityScannerEnabled: true
     # Config audit scanner
