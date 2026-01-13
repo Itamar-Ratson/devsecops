@@ -8,6 +8,7 @@ on:
       - 'docker/juice-shop/**'
       - '.github/workflows/juice-shop-security.yaml'
       - '.github/zap/**'
+      - '.github/kind-config-*.yaml'
   pull_request:
     branches: [main]
     paths:
@@ -15,6 +16,7 @@ on:
       - 'docker/juice-shop/**'
       - '.github/workflows/juice-shop-security.yaml'
       - '.github/zap/**'
+      - '.github/kind-config-*.yaml'
 
 env:
   REGISTRY: ghcr.io
@@ -341,15 +343,7 @@ jobs:
         uses: helm/kind-action@v1.12.0
         with:
           cluster_name: zap-test
-          config: |
-            kind: Cluster
-            apiVersion: kind.x-k8s.io/v1alpha4
-            nodes:
-              - role: control-plane
-                extraPortMappings:
-                  - containerPort: 30000
-                    hostPort: 3000
-                    protocol: TCP
+          config: .github/kind-config-dast.yaml
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
