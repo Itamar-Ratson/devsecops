@@ -1,0 +1,100 @@
+{{- if .Values.alerts.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: trivy-operator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: trivy-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    release: monitoring
+spec:
+  groups:
+    - name: trivy-vulnerabilities
+      rules:
+        # Alert when any workload has critical vulnerabilities
+        - alert: TrivyCriticalVulnerabilities
+          expr: |
+            sum by (namespace, resource_name, resource_kind, image_repository, image_tag) (
+              trivy_image_vulnerabilities{severity="Critical"} > 0
+            )
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Critical vulnerabilities found in {{`{{ $labels.namespace }}`}}/{{`{{ $labels.resource_name }}`}}"
+            description: "Image {{`{{ $labels.image_repository }}`}}:{{`{{ $labels.image_tag }}`}} in {{`{{ $labels.resource_kind }}`}} {{`{{ $labels.namespace }}`}}/{{`{{ $labels.resource_name }}`}} has critical vulnerabilities."
+            runbook_url: "https://aquasecurity.github.io/trivy-operator/latest/docs/vulnerability-scanning/"
+
+        # Alert when workloads have high vulnerabilities above threshold
+        - alert: TrivyHighVulnerabilitiesThreshold
+          expr: |
+            sum by (namespace, resource_name, resource_kind, image_repository, image_tag) (
+              trivy_image_vulnerabilities{severity="High"}
+            ) > {{ .Values.alerts.highVulnerabilityThreshold }}
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High vulnerability count exceeds threshold in {{`{{ $labels.namespace }}`}}/{{`{{ $labels.resource_name }}`}}"
+            description: "Image {{`{{ $labels.image_repository }}`}}:{{`{{ $labels.image_tag }}`}} in {{`{{ $labels.resource_kind }}`}} {{`{{ $labels.namespace }}`}}/{{`{{ $labels.resource_name }}`}} has more than {{ .Values.alerts.highVulnerabilityThreshold }} high severity vulnerabilities."
+
+    - name: trivy-secrets
+      rules:
+        # Alert when exposed secrets are found
+        - alert: TrivyExposedSecrets
+          expr: |
+            sum by (namespace, resource_name, resource_kind, image_repository, image_tag) (
+              trivy_image_exposedsecrets > 0
+            )
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Exposed secrets found in {{`{{ $labels.namespace }}`}}/{{`{{ $labels.resource_name }}`}}"
+            description: "Image {{`{{ $labels.image_repository }}`}}:{{`{{ $labels.image_tag }}`}} in {{`{{ $labels.resource_kind }}`}} {{`{{ $labels.namespace }}`}}/{{`{{ $labels.resource_name }}`}} has exposed secrets."
+            runbook_url: "https://aquasecurity.github.io/trivy-operator/latest/docs/vulnerability-scanning/secret-scanning/"
+
+    - name: trivy-compliance
+      rules:
+        # Alert when cluster compliance score drops below threshold
+        - alert: TrivyClusterComplianceLow
+          expr: |
+            (trivy_cluster_compliance{status="Pass"} /
+             (trivy_cluster_compliance{status="Pass"} + trivy_cluster_compliance{status="Fail"})) * 100
+            < {{ .Values.alerts.complianceThreshold }}
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Cluster compliance score below {{ .Values.alerts.complianceThreshold }}% for {{`{{ $labels.name }}`}}"
+            description: "Compliance report {{`{{ $labels.name }}`}} has fallen below the {{ .Values.alerts.complianceThreshold }}% threshold."
+
+    - name: trivy-config-audits
+      rules:
+        # Alert on critical config audit findings
+        - alert: TrivyCriticalConfigAudit
+          expr: |
+            sum by (namespace, resource_name, resource_kind) (
+              trivy_resource_configaudits{severity="Critical"} > 0
+            )
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Critical config audit finding in {{`{{ $labels.namespace }}`}}/{{`{{ $labels.resource_name }}`}}"
+            description: "{{`{{ $labels.resource_kind }}`}} {{`{{ $labels.namespace }}`}}/{{`{{ $labels.resource_name }}`}} has critical misconfigurations detected by Trivy."
+
+    - name: trivy-operator-health
+      rules:
+        # Alert when Trivy operator is down
+        - alert: TrivyOperatorDown
+          expr: |
+            absent(up{job="trivy-operator"} == 1)
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Trivy Operator is down"
+            description: "Trivy Operator has been unreachable for more than 5 minutes. Security scanning is not operational."
+{{- end }}

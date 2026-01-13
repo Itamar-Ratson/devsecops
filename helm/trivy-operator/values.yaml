@@ -80,3 +80,11 @@ trivy-operator:
       - key: node-role.kubernetes.io/master
         operator: Exists
         effect: NoSchedule
+
+# Alerting configuration
+alerts:
+  enabled: true
+  # Alert when high vulnerabilities exceed this count
+  highVulnerabilityThreshold: 10
+  # Alert when compliance score drops below this percentage
+  complianceThreshold: 80
