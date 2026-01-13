@@ -1,0 +1,22 @@
+# Kyverno CLI test file for juice-shop
+# Tests that juice-shop deployment complies with security policies
+name: juice-shop-security-tests
+policies:
+  - https://raw.githubusercontent.com/kyverno/policies/main/pod-security/restricted/disallow-privilege-escalation/disallow-privilege-escalation.yaml
+  - https://raw.githubusercontent.com/kyverno/policies/main/pod-security/restricted/require-run-as-nonroot/require-run-as-nonroot.yaml
+resources:
+  - name: juice-shop-deployment
+    file: ../../helm/juice-shop/tests/deployment-test.yaml
+results:
+  - policy: disallow-privilege-escalation
+    rule: privilege-escalation
+    resources:
+      - juice-shop-deployment
+    kind: Deployment
+    result: pass
+  - policy: require-run-as-nonroot
+    rule: run-as-non-root
+    resources:
+      - juice-shop-deployment
+    kind: Deployment
+    result: pass

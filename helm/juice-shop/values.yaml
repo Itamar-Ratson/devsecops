@@ -7,6 +7,10 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+# For pulling from private registries (e.g., GHCR)
+imagePullSecrets: []
+  # - name: ghcr-pull-secret
+
 resources:
   limits:
     memory: "512Mi"
@@ -16,3 +20,18 @@ resources:
     cpu: "100m"
 
 replicaCount: 1
+
+# Pod security context - applies to all containers
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+
+# Container security context
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false  # Juice-shop needs write access for SQLite
+  capabilities:
+    drop:
+      - ALL

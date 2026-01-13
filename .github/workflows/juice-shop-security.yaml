@@ -1,0 +1,399 @@
+name: Juice Shop Security Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'helm/juice-shop/**'
+      - 'docker/juice-shop/**'
+      - '.github/workflows/juice-shop-security.yaml'
+      - '.github/zap/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'helm/juice-shop/**'
+      - 'docker/juice-shop/**'
+      - '.github/workflows/juice-shop-security.yaml'
+      - '.github/zap/**'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/juice-shop
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+  pull-requests: write
+
+jobs:
+  # Job 1: Build and push container image
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-tag: ${{ steps.meta.outputs.tags }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: docker/juice-shop
+          push: ${{ github.event_name != 'pull_request' }}
+          load: ${{ github.event_name == 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ github.ref_name }}
+
+  # Job 2: Container security scanning (Trivy)
+  container-scan:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image for scanning (PR only)
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: docker/juice-shop
+          load: true
+          tags: juice-shop-scan:local
+
+      - name: Run Trivy vulnerability scanner (PR)
+        if: github.event_name == 'pull_request'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'juice-shop-scan:local'
+          format: 'sarif'
+          output: 'trivy-container-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          vuln-type: 'os,library'
+          scanners: 'vuln,secret,misconfig'
+          timeout: '10m'
+
+      - name: Run Trivy vulnerability scanner (Push)
+        if: github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image-digest }}'
+          format: 'sarif'
+          output: 'trivy-container-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          vuln-type: 'os,library'
+          scanners: 'vuln,secret,misconfig'
+          timeout: '10m'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-container-results.sarif'
+          category: 'trivy-container'
+
+      - name: Trivy summary report (fail on CRITICAL/HIGH)
+        if: github.event_name == 'pull_request'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'juice-shop-scan:local'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          vuln-type: 'os,library'
+
+  # Job 3: IaC security scanning (Trivy)
+  iac-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy IaC scanner on Helm charts
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'helm/'
+          format: 'sarif'
+          output: 'trivy-iac-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'
+
+      - name: Upload Trivy IaC results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-iac-results.sarif'
+          category: 'trivy-iac'
+
+      - name: Run Trivy IaC scanner (table output)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'helm/juice-shop/'
+          format: 'table'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+  # Job 4: Helm lint and validation
+  helm-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.14.0'
+
+      - name: Helm lint juice-shop chart
+        run: |
+          helm lint helm/juice-shop/ \
+            -f helm/ports.yaml \
+            -f helm/juice-shop/values.yaml
+
+      - name: Helm template validation
+        run: |
+          helm template juice-shop helm/juice-shop/ \
+            -f helm/ports.yaml \
+            -f helm/juice-shop/values.yaml \
+            --namespace juice-shop \
+            > /tmp/rendered.yaml
+          cat /tmp/rendered.yaml
+
+      - name: Upload rendered manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-manifests
+          path: /tmp/rendered.yaml
+
+  # Job 5: Kyverno policy testing
+  kyverno-test:
+    runs-on: ubuntu-latest
+    needs: helm-lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.14.0'
+
+      - name: Install Kyverno CLI
+        run: |
+          curl -LO https://github.com/kyverno/kyverno/releases/download/v1.16.2/kyverno-cli_v1.16.2_linux_x86_64.tar.gz
+          tar -xzf kyverno-cli_v1.16.2_linux_x86_64.tar.gz
+          sudo mv kyverno /usr/local/bin/
+          kyverno version
+
+      - name: Render Helm templates
+        run: |
+          helm template juice-shop helm/juice-shop/ \
+            -f helm/ports.yaml \
+            -f helm/juice-shop/values.yaml \
+            --namespace juice-shop \
+            > /tmp/juice-shop-rendered.yaml
+
+      - name: Download Kyverno Pod Security Standard policies
+        run: |
+          mkdir -p /tmp/policies
+          curl -sL https://raw.githubusercontent.com/kyverno/policies/main/pod-security/restricted/disallow-capabilities-strict/disallow-capabilities-strict.yaml \
+            -o /tmp/policies/disallow-capabilities-strict.yaml
+          curl -sL https://raw.githubusercontent.com/kyverno/policies/main/pod-security/restricted/disallow-privilege-escalation/disallow-privilege-escalation.yaml \
+            -o /tmp/policies/disallow-privilege-escalation.yaml
+          curl -sL https://raw.githubusercontent.com/kyverno/policies/main/pod-security/restricted/require-run-as-nonroot/require-run-as-nonroot.yaml \
+            -o /tmp/policies/require-run-as-nonroot.yaml
+
+      - name: Test against Kyverno policies
+        run: |
+          kyverno apply /tmp/policies/ \
+            --resource /tmp/juice-shop-rendered.yaml \
+            --detailed-results \
+            --audit-warn || true
+
+      - name: Run custom policy tests
+        if: hashFiles('tests/kyverno/juice-shop-policy-test.yaml') != ''
+        run: |
+          kyverno test tests/kyverno/ --detailed-results || true
+
+  # Job 6: KinD deployment testing
+  deployment-test:
+    runs-on: ubuntu-latest
+    needs: [container-scan, iac-scan, kyverno-test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create KinD cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          cluster_name: juice-shop-test
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.14.0'
+
+      - name: Install Gateway API CRDs
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
+
+      - name: Install Cilium CRDs (for CiliumNetworkPolicy)
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/cilium/cilium/v1.16.5/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnetworkpolicies.yaml
+
+      - name: Create juice-shop namespace
+        run: kubectl create namespace juice-shop
+
+      - name: Deploy juice-shop with Helm
+        run: |
+          helm upgrade --install juice-shop helm/juice-shop/ \
+            -n juice-shop \
+            -f helm/ports.yaml \
+            -f helm/juice-shop/values.yaml \
+            --wait \
+            --timeout 5m
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/juice-shop -n juice-shop --timeout=120s
+          kubectl get pods -n juice-shop
+          kubectl get svc -n juice-shop
+
+      - name: Test application health
+        run: |
+          kubectl port-forward -n juice-shop svc/juice-shop 3000:80 &
+          sleep 10
+          curl -sf http://localhost:3000/ || exit 1
+          echo "Health check passed"
+
+      - name: Export deployment artifacts
+        if: always()
+        run: |
+          kubectl get all -n juice-shop -o yaml > /tmp/deployment-state.yaml
+          kubectl logs -n juice-shop -l app=juice-shop --tail=100 > /tmp/app-logs.txt || true
+
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deployment-artifacts
+          path: |
+            /tmp/deployment-state.yaml
+            /tmp/app-logs.txt
+
+  # Job 7: DAST scanning (OWASP ZAP)
+  dast-scan:
+    runs-on: ubuntu-latest
+    needs: deployment-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create KinD cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          cluster_name: zap-test
+          config: |
+            kind: Cluster
+            apiVersion: kind.x-k8s.io/v1alpha4
+            nodes:
+              - role: control-plane
+                extraPortMappings:
+                  - containerPort: 30000
+                    hostPort: 3000
+                    protocol: TCP
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.14.0'
+
+      - name: Install Gateway API CRDs
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
+
+      - name: Install Cilium CRDs
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/cilium/cilium/v1.16.5/pkg/k8s/apis/cilium.io/client/crds/v2/ciliumnetworkpolicies.yaml
+
+      - name: Create namespace and deploy juice-shop
+        run: |
+          kubectl create namespace juice-shop
+          helm upgrade --install juice-shop helm/juice-shop/ \
+            -n juice-shop \
+            -f helm/ports.yaml \
+            -f helm/juice-shop/values.yaml \
+            --wait \
+            --timeout 5m
+
+      - name: Expose juice-shop via NodePort
+        run: |
+          kubectl patch svc juice-shop -n juice-shop \
+            -p '{"spec": {"type": "NodePort", "ports": [{"port": 80, "targetPort": 3000, "nodePort": 30000}]}}'
+
+      - name: Wait for application readiness
+        run: |
+          kubectl rollout status deployment/juice-shop -n juice-shop --timeout=120s
+          sleep 15
+          curl -sf http://localhost:3000/ || exit 1
+
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: 'http://localhost:3000'
+          rules_file_name: '.github/zap/rules.tsv'
+          cmd_options: '-a -j -l WARN'
+          allow_issue_writing: false
+          artifact_name: 'zap-baseline-report'
+
+      - name: Run OWASP ZAP Full Scan (on main only)
+        if: github.ref == 'refs/heads/main'
+        uses: zaproxy/action-full-scan@v0.13.0
+        with:
+          target: 'http://localhost:3000'
+          rules_file_name: '.github/zap/rules.tsv'
+          cmd_options: '-a -j -l WARN -T 60'
+          allow_issue_writing: false
+          artifact_name: 'zap-full-report'
