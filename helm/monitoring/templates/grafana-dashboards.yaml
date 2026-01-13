@@ -117,6 +117,21 @@ data:
   kyverno-dashboard.json: |-
 {{ .Files.Get "dashboards/kyverno/kyverno-dashboard.json" | indent 4 }}
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-trivy-operator
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Security"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  trivy-operator.json: |-
+{{ .Files.Get "dashboards/trivy/trivy-operator.json" | indent 4 }}
+---
 # =============================================================================
 # GitOps Dashboards (ArgoCD)
 # =============================================================================
