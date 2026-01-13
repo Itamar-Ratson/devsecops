@@ -100,6 +100,13 @@ spec:
       toPorts:
         - ports:
             - port: "{{ .Values.ports.trivyOperator.metrics }}"
+    # Allow scraping metrics from vault namespace
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: vault
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
     # Allow scraping metrics from host network (Cilium, Tetragon components on nodes)
     - toEntities:
         - host

@@ -1,0 +1,84 @@
+vault:
+  global:
+    enabled: true
+    tlsDisable: true  # Disable TLS for initial setup, enable later
+
+  injector:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "256Mi"
+        cpu: "250m"
+
+  server:
+    enabled: true
+    replicas: 1
+
+    # Resource limits
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+
+    # Storage configuration - File storage (not HA)
+    dataStorage:
+      enabled: true
+      size: 10Gi
+      storageClass: null  # Use default storage class
+      accessMode: ReadWriteOnce
+
+    # File storage configuration (single replica)
+    standalone:
+      enabled: true
+      config: |
+        ui = true
+
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+          telemetry {
+            unauthenticated_metrics_access = true
+          }
+        }
+
+        storage "file" {
+          path = "/vault/data"
+        }
+
+        telemetry {
+          prometheus_retention_time = "30s"
+          disable_hostname = true
+        }
+
+    # Service configuration
+    service:
+      enabled: true
+      type: ClusterIP
+      port: 8200
+      targetPort: 8200
+
+    # Readiness/Liveness probes
+    readinessProbe:
+      enabled: true
+      path: "/v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204"
+    livenessProbe:
+      enabled: true
+      path: "/v1/sys/health?standbyok=true"
+      initialDelaySeconds: 60
+
+  # CSI Provider (disabled for now)
+  csi:
+    enabled: false
+
+  # UI enabled
+  ui:
+    enabled: true
+    serviceType: ClusterIP

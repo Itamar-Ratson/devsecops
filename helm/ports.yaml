@@ -114,3 +114,9 @@ ports:
     repoServer: 8081
     redis: 6379
     ssh: 22
+
+  # Vault
+  vault:
+    http: 8200
+    cluster: 8201
+    injectorWebhook: 8080

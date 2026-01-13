@@ -1,0 +1,111 @@
+---
+# Vault Server Network Policy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: vault-server
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: vault
+      component: server
+
+  ingress:
+    # Allow from Vault Agent Injector
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: vault-agent-injector
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
+    # Allow from pods in any namespace that need secrets (via Agent sidecars)
+    - fromEndpoints:
+        - {}
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
+    # Allow Prometheus to scrape metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
+    # Allow from host for port-forwarding and health checks
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
+  egress:
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP
+
+    # Allow Kubernetes API access (for Kubernetes auth method)
+    - toEntities:
+        - kube-apiserver
+
+---
+# Vault Agent Injector Network Policy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: vault-agent-injector
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: vault-agent-injector
+
+  ingress:
+    # Allow from kube-apiserver for admission webhook calls
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.injectorWebhook }}"
+              protocol: TCP
+
+  egress:
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP
+
+    # Allow Kubernetes API access (for watching pods)
+    - toEntities:
+        - kube-apiserver
+
+    # Allow communication with Vault server
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: vault
+            component: server
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP

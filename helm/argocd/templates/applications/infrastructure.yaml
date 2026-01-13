@@ -184,6 +184,37 @@ spec:
     syncOptions:
       - CreateNamespace=true
 ---
+# Wave 3: Vault (Secrets Management)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    path: helm/vault
+    helm:
+      valueFiles:
+        - ../ports.yaml
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
 # Wave 3: Gateway (needs cert-manager for TLS)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
