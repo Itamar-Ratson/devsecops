@@ -215,14 +215,45 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
 ---
-# Wave 3: Gateway (needs cert-manager for TLS)
+# Wave 4: Vault Secrets Operator (needs Vault)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault-secrets-operator
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    path: helm/vault-secrets-operator
+    helm:
+      valueFiles:
+        - ../ports.yaml
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault-secrets-operator
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
+# Wave 4: Gateway (needs cert-manager for TLS)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: gateway
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "4"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

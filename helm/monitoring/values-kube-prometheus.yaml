@@ -45,7 +45,11 @@ kube-prometheus-stack:
     fullnameOverride: grafana
     enabled: true
     defaultDatasourceEnabled: false
-    adminPassword: admin
+    # Admin credentials from Vault (via VaultStaticSecret -> K8s Secret)
+    admin:
+      existingSecret: grafana-admin-credentials
+      userKey: admin-user
+      passwordKey: admin-password
     persistence:
       enabled: true
       size: 1Gi
