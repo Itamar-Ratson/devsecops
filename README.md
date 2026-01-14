@@ -36,11 +36,13 @@ The cluster uses an external Transit Vault for auto-unseal, running in Docker Co
 
 ```bash
 # Start Transit Vault (runs persistently, survives cluster recreations)
-docker-compose up -d
+docker compose up -d
 
-# Initialize Transit Vault (one-time)
-./scripts/transit-setup.sh
+# Initialize Transit Vault (one-time only)
+docker exec vault-transit sh -c 'vault secrets enable transit && vault write -f transit/keys/autounseal'
 ```
+
+Note: The setup script automatically connects Transit Vault to the KinD network.
 
 ### Create the Cluster
 

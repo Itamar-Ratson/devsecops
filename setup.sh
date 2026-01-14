@@ -21,6 +21,17 @@ command -v gh >/dev/null 2>&1 || error "gh (GitHub CLI) is required but not inst
 
 log "Starting Kubernetes cluster setup..."
 
+# Check if Transit Vault is running
+if ! docker ps --format '{{.Names}}' | grep -q vault-transit; then
+    error "Transit Vault is not running. Start it with: docker compose up -d && ./scripts/transit-setup.sh"
+fi
+
+# Connect Transit Vault to KinD network if not already connected
+if ! docker network inspect kind 2>/dev/null | grep -q vault-transit; then
+    log "Connecting Transit Vault to KinD network..."
+    docker network connect kind vault-transit 2>/dev/null || true
+fi
+
 # Delete existing cluster if it exists
 if kind get clusters 2>/dev/null | grep -q "k8s-dev"; then
     warn "Deleting existing k8s-dev cluster..."
@@ -44,6 +55,11 @@ kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-oper
 
 log "Installing cert-manager CRDs..."
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.19.2/cert-manager.crds.yaml
+
+# Add required Helm repositories
+log "Adding Helm repositories..."
+helm repo add hashicorp https://helm.releases.hashicorp.com 2>/dev/null || true
+helm repo update
 
 # Install Cilium as CNI and Gateway controller
 log "Building and installing Cilium..."
@@ -138,6 +154,24 @@ helm upgrade --install network-policies ./helm/network-policies -n kube-system \
 log "Creating monitoring namespace for Strimzi network policies..."
 kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 
+# Install Vault
+log "Building and installing Vault..."
+helm dependency build ./helm/vault
+helm upgrade --install vault ./helm/vault -n vault --create-namespace \
+  -f ./helm/ports.yaml \
+  -f ./helm/vault/values.yaml
+log "Waiting for Vault to be running..."
+kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vault -n vault --timeout=180s
+
+# Install vault-secrets-operator
+log "Building and installing vault-secrets-operator..."
+helm dependency build ./helm/vault-secrets-operator
+helm upgrade --install vault-secrets-operator ./helm/vault-secrets-operator -n vault-secrets-operator --create-namespace \
+  -f ./helm/ports.yaml \
+  -f ./helm/vault-secrets-operator/values.yaml
+log "Waiting for vault-secrets-operator..."
+kubectl wait --for=condition=Available deployment -l app.kubernetes.io/name=vault-secrets-operator -n vault-secrets-operator --timeout=120s
+
 # Install Strimzi Kafka Operator
 log "Building and installing Strimzi operator..."
 helm dependency build ./helm/strimzi-operator
@@ -176,10 +210,18 @@ helm upgrade --install kafka-ui ./helm/kafka-ui -n kafka-ui --create-namespace \
   -f ./helm/kafka-ui/values.yaml \
   -f ./helm/kafka-ui/values-kafka-ui.yaml
 
-# Install ArgoCD
+# Install ArgoCD (first without GitOps to install CRDs, then with GitOps)
 log "Building and installing ArgoCD..."
 helm dependency build ./helm/argocd
 helm upgrade --install argocd ./helm/argocd -n argocd --create-namespace \
+  -f ./helm/ports.yaml \
+  -f ./helm/argocd/values.yaml \
+  -f ./helm/argocd/values-argocd.yaml \
+  --set gitops.enabled=false
+log "Waiting for ArgoCD server..."
+kubectl wait --for=condition=Available deployment/argocd-server -n argocd --timeout=180s
+log "Enabling GitOps (Application resources)..."
+helm upgrade argocd ./helm/argocd -n argocd \
   -f ./helm/ports.yaml \
   -f ./helm/argocd/values.yaml \
   -f ./helm/argocd/values-argocd.yaml

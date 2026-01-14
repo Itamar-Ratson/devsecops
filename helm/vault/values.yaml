@@ -54,8 +54,10 @@ vault:
         }
 
         # Auto-unseal using external Transit Vault (docker-compose)
+        # NOTE: 172.18.0.4 is the Transit Vault IP on the KinD network
+        # If recreating, run: docker network connect kind vault-transit
         seal "transit" {
-          address = "http://host.docker.internal:8100"
+          address = "http://172.18.0.4:8200"
           token = "transit-root-token"
           key_name = "autounseal"
           mount_path = "transit/"
@@ -103,7 +105,7 @@ bootstrap:
       warningWebhook: ""
     argocd:
       # bcrypt hash of "admin" - generate with: htpasswd -nbBC 10 "" admin | tr -d ':\n'
-      passwordHash: "$2a$10$rRyBsGSHK6.uc8fntPwVIuLVHgsAhAX7TcdrqW/RBER7OuEBPJi2W"
+      passwordHash: "$2y$10$WGr/OdJdWQ.ejZ/6aGXtFe1SHMzAHWanlGkNMG.NKmHL.DLuOHmJG"
       serverSecretKey: ""  # Generated randomly if empty
       repoUrl: ""
       sshPrivateKey: ""

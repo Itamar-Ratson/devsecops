@@ -3,8 +3,10 @@
 # Vault to auto-unseal. It persists across cluster recreations.
 #
 # Usage:
-#   docker-compose up -d
-#   ./scripts/transit-setup.sh  # One-time setup
+#   docker compose up -d
+#   docker exec vault-transit sh -c 'vault secrets enable transit && vault write -f transit/keys/autounseal'
+#
+# Note: setup.sh automatically connects this container to the KinD network
 #
 services:
   vault-transit:

@@ -49,9 +49,10 @@ spec:
               # Check if Vault is initialized
               if vault status | grep -q "Initialized.*false"; then
                 echo "Initializing Vault..."
-                vault operator init -key-shares=1 -key-threshold=1 -format=json > /tmp/init.json
+                # With Transit auto-unseal, use recovery shares instead of key shares
+                vault operator init -recovery-shares=1 -recovery-threshold=1 -format=json > /tmp/init.json
 
-                # Extract root token and recovery key
+                # Extract root token
                 ROOT_TOKEN=$(cat /tmp/init.json | grep -o '"root_token":"[^"]*"' | cut -d'"' -f4)
 
                 # Store root token in Kubernetes secret
@@ -153,4 +154,50 @@ subjects:
   - kind: ServiceAccount
     name: {{ .Release.Name }}
     namespace: {{ .Release.Namespace }}
+---
+# Network policy for bootstrap job
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: vault-bootstrap
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: vault-bootstrap
+
+  egress:
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP
+
+    # Allow Kubernetes API access (for kubectl commands)
+    - toEntities:
+        - kube-apiserver
+
+    # Allow connection to Vault server
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: vault
+            component: server
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
+    # Allow downloading kubectl from the internet
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "80"
+              protocol: TCP
 {{- end }}

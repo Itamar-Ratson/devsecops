@@ -63,6 +63,15 @@ spec:
     - toEntities:
         - kube-apiserver
 
+    # Allow connection to external Transit Vault for auto-unseal
+    # Transit Vault runs in docker-compose on the KinD network
+    - toCIDR:
+        - 172.18.0.0/16
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
 ---
 # Vault Agent Injector Network Policy
 apiVersion: cilium.io/v2
