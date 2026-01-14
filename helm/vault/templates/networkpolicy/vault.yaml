@@ -21,9 +21,10 @@ spec:
             - port: "{{ .Values.ports.vault.http }}"
               protocol: TCP
 
-    # Allow from pods in any namespace that need secrets (via Agent sidecars)
+    # Allow from Vault Secrets Operator
     - fromEndpoints:
-        - {}
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: vault-secrets-operator
       toPorts:
         - ports:
             - port: "{{ .Values.ports.vault.http }}"
