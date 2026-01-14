@@ -32,9 +32,8 @@ spec:
         - /data
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
-      jqPathExpressions:
-        - .spec.parentRefs[].group
-        - .spec.parentRefs[].kind
+      jsonPointers:
+        - /spec/parentRefs
   syncPolicy:
     automated:
       prune: true
@@ -260,10 +259,11 @@ spec:
       kind: StatefulSet
       jqPathExpressions:
         - .spec.volumeClaimTemplates
+        - .spec.template.metadata
     - group: cilium.io
       kind: CiliumNetworkPolicy
-      jqPathExpressions:
-        - .spec.egress[].toPorts[].rules
+      jsonPointers:
+        - /spec
   syncPolicy:
     automated:
       prune: true
@@ -336,9 +336,8 @@ spec:
   ignoreDifferences:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
-      jqPathExpressions:
-        - .spec.parentRefs[].group
-        - .spec.parentRefs[].kind
+      jsonPointers:
+        - /spec/parentRefs
   syncPolicy:
     automated:
       prune: true
@@ -402,9 +401,8 @@ spec:
   ignoreDifferences:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
-      jqPathExpressions:
-        - .spec.parentRefs[].group
-        - .spec.parentRefs[].kind
+      jsonPointers:
+        - /spec/parentRefs
   syncPolicy:
     automated:
       prune: true
@@ -439,9 +437,8 @@ spec:
   ignoreDifferences:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
-      jqPathExpressions:
-        - .spec.parentRefs[].group
-        - .spec.parentRefs[].kind
+      jsonPointers:
+        - /spec/parentRefs
   syncPolicy:
     automated:
       prune: true
@@ -507,9 +504,8 @@ spec:
   ignoreDifferences:
     - group: ""
       kind: PersistentVolumeClaim
-      jqPathExpressions:
-        - .spec.volumeName
-        - .spec.volumeMode
+      jsonPointers:
+        - /spec
   syncPolicy:
     automated:
       prune: true
@@ -545,9 +541,8 @@ spec:
   ignoreDifferences:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
-      jqPathExpressions:
-        - .spec.parentRefs[].group
-        - .spec.parentRefs[].kind
+      jsonPointers:
+        - /spec/parentRefs
   syncPolicy:
     automated:
       prune: true
@@ -587,13 +582,13 @@ spec:
   ignoreDifferences:
     - group: apps
       kind: StatefulSet
-      jqPathExpressions:
-        - .spec.volumeClaimTemplates
+      jsonPointers:
+        - /spec/volumeClaimTemplates
+        - /spec/template/metadata
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
-      jqPathExpressions:
-        - .spec.parentRefs[].group
-        - .spec.parentRefs[].kind
+      jsonPointers:
+        - /spec/parentRefs
   syncPolicy:
     automated:
       prune: true
