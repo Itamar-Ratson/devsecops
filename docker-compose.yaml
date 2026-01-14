@@ -1,0 +1,26 @@
+# External Vault for Transit auto-unseal
+# This Vault instance provides the Transit secrets engine used by the in-cluster
+# Vault to auto-unseal. It persists across cluster recreations.
+#
+# Usage:
+#   docker-compose up -d
+#   ./scripts/transit-setup.sh  # One-time setup
+#
+services:
+  vault-transit:
+    image: hashicorp/vault:1.18
+    container_name: vault-transit
+    ports:
+      - "8100:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: "transit-root-token"
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    volumes:
+      - vault-transit-data:/vault/data
+    cap_add:
+      - IPC_LOCK
+    command: server -dev
+    restart: unless-stopped
+
+volumes:
+  vault-transit-data:

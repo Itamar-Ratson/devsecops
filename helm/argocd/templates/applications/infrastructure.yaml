@@ -1,5 +1,37 @@
 {{- if .Values.gitops.enabled }}
 ---
+# Wave 0: ArgoCD Self-Management
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    path: helm/argocd
+    helm:
+      valueFiles:
+        - ../ports.yaml
+        - values.yaml
+        - values-argocd.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+---
 # Wave 1: Security Scanning (Trivy Operator)
 apiVersion: argoproj.io/v1alpha1
 kind: Application

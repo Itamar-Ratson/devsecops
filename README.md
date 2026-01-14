@@ -1,14 +1,16 @@
 # Kubernetes Local Dev Setup
 
-KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Hubble + Tetragon + Kyverno + Network Policies + Monitoring (Prometheus + Grafana + Loki + Alloy + Tempo) + Kafka (Strimzi + Kafka UI) + ArgoCD (GitOps)
+KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Vault + Hubble + Tetragon + Kyverno + Network Policies + Monitoring (Prometheus + Grafana + Loki + Alloy + Tempo) + Kafka (Strimzi + Kafka UI) + ArgoCD (GitOps)
 
 ## Prerequisites
 
 - Docker
+- docker-compose
 - kubectl
 - Helm
 - KinD
 - kubeseal
+- vault CLI (optional, for Transit setup)
 
 ### Increase inotify limits (required for Hubble mTLS and monitoring stack)
 
@@ -28,6 +30,20 @@ fs.inotify.max_user_watches=16384
 
 ## Quick Setup
 
+### One-time: Start Transit Vault (for auto-unseal)
+
+The cluster uses an external Transit Vault for auto-unseal, running in Docker Compose:
+
+```bash
+# Start Transit Vault (runs persistently, survives cluster recreations)
+docker-compose up -d
+
+# Initialize Transit Vault (one-time)
+./scripts/transit-setup.sh
+```
+
+### Create the Cluster
+
 Run the automated setup script:
 
 ```bash
@@ -36,10 +52,11 @@ Run the automated setup script:
 
 The script will:
 1. Create a KinD cluster with Cilium CNI
-2. Install all infrastructure components
-3. Generate an SSH deploy key for ArgoCD (stored at `~/.ssh/argocd-deploy-key`)
-4. Create a SealedSecret with the credentials
-5. Display the public key to add to GitHub
+2. Install all infrastructure components (including Vault)
+3. Bootstrap Vault automatically (init, unseal, policies, secrets)
+4. Generate an SSH deploy key for ArgoCD (stored at `~/.ssh/argocd-deploy-key`)
+5. Create a SealedSecret with the credentials
+6. Display the public key to add to GitHub
 
 After the script completes, add the displayed SSH public key as a **deploy key** to your repository:
 1. Go to: https://github.com/YOUR-ORG/secure-k8s/settings/keys
@@ -58,13 +75,14 @@ After setup, the following services are available:
 |---------|-----|-------------|
 | Echo (test app) | https://echo.localhost | - |
 | Hubble UI | https://hubble.localhost | - |
-| Grafana | https://grafana.localhost | admin / prom-operator |
+| Grafana | https://grafana.localhost | admin / admin |
 | Kafka UI | https://kafka-ui.localhost | - |
-| ArgoCD | https://argocd.localhost | admin / (see below) |
+| ArgoCD | https://argocd.localhost | admin / admin |
+| Vault UI | https://vault.localhost | (root token in K8s secret) |
 
-Get ArgoCD admin password:
+Get Vault root token (if needed):
 ```bash
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
+kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base64 -d && echo
 ```
 
 ## GitOps with ArgoCD
@@ -73,16 +91,39 @@ Once configured, ArgoCD manages all infrastructure components via GitOps. Applic
 
 | Wave | Applications |
 |------|--------------|
-| 1 | Tetragon, Kyverno |
+| 0 | ArgoCD (self-managed) |
+| 1 | Trivy-operator, Tetragon, Kyverno |
 | 2 | Kyverno-policies, Cert-manager |
-| 3 | Sealed-secrets, Gateway |
-| 4 | Network-policies, HTTP-echo |
+| 3 | Sealed-secrets, Vault |
+| 4 | Vault-secrets-operator, Gateway, Network-policies, HTTP-echo, Juice-shop |
 | 5 | Strimzi-operator |
 | 6 | Kafka |
 | 7 | Kafka-ui |
 | 8 | Monitoring |
 
 All changes to Helm values in this repository will be automatically synced to the cluster.
+
+## Custom Secrets (Optional)
+
+Before running `./setup.sh`, you can customize the default secrets in `helm/vault/values.yaml`:
+
+```yaml
+bootstrap:
+  secrets:
+    grafana:
+      user: "admin"
+      password: "your-secure-password"
+    alertmanager:
+      criticalWebhook: "https://hooks.slack.com/services/..."
+      warningWebhook: "https://hooks.slack.com/services/..."
+    argocd:
+      passwordHash: "$2a$10$..."  # bcrypt hash
+```
+
+Generate ArgoCD password hash:
+```bash
+htpasswd -nbBC 10 "" your-password | tr -d ':\n'
+```
 
 ## Manual Setup (Reference)
 

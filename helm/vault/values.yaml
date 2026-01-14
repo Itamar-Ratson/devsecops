@@ -53,6 +53,14 @@ vault:
           path = "/vault/data"
         }
 
+        # Auto-unseal using external Transit Vault (docker-compose)
+        seal "transit" {
+          address = "http://host.docker.internal:8100"
+          token = "transit-root-token"
+          key_name = "autounseal"
+          mount_path = "transit/"
+        }
+
         telemetry {
           prometheus_retention_time = "30s"
           disable_hostname = true
@@ -82,3 +90,20 @@ vault:
   ui:
     enabled: true
     serviceType: ClusterIP
+
+# Bootstrap configuration for automated Vault setup
+bootstrap:
+  enabled: true
+  secrets:
+    grafana:
+      user: "admin"
+      password: "admin"
+    alertmanager:
+      criticalWebhook: ""
+      warningWebhook: ""
+    argocd:
+      # bcrypt hash of "admin" - generate with: htpasswd -nbBC 10 "" admin | tr -d ':\n'
+      passwordHash: "$2a$10$rRyBsGSHK6.uc8fntPwVIuLVHgsAhAX7TcdrqW/RBER7OuEBPJi2W"
+      serverSecretKey: ""  # Generated randomly if empty
+      repoUrl: ""
+      sshPrivateKey: ""

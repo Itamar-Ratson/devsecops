@@ -1,0 +1,156 @@
+{{- if .Values.bootstrap.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-bootstrap
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: vault-bootstrap
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  annotations:
+    # Run after Vault is deployed
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vault-bootstrap
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      restartPolicy: OnFailure
+      containers:
+        - name: bootstrap
+          image: hashicorp/vault:1.18
+          env:
+            - name: VAULT_ADDR
+              value: "http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc:{{ .Values.ports.vault.http }}"
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+
+              echo "=== Vault Bootstrap Script ==="
+
+              # Install kubectl (not included in vault image)
+              echo "Installing kubectl..."
+              wget -q -O /tmp/kubectl "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl"
+              chmod +x /tmp/kubectl
+              mv /tmp/kubectl /usr/local/bin/kubectl
+
+              # Wait for Vault to be running
+              echo "Waiting for Vault to be available..."
+              until vault status 2>/dev/null; do
+                echo "Vault not ready, waiting..."
+                sleep 2
+              done
+
+              # Check if Vault is initialized
+              if vault status | grep -q "Initialized.*false"; then
+                echo "Initializing Vault..."
+                vault operator init -key-shares=1 -key-threshold=1 -format=json > /tmp/init.json
+
+                # Extract root token and recovery key
+                ROOT_TOKEN=$(cat /tmp/init.json | grep -o '"root_token":"[^"]*"' | cut -d'"' -f4)
+
+                # Store root token in Kubernetes secret
+                cat <<EOSECRET | kubectl apply -f -
+              apiVersion: v1
+              kind: Secret
+              metadata:
+                name: vault-root-token
+                namespace: {{ .Release.Namespace }}
+              type: Opaque
+              stringData:
+                token: "${ROOT_TOKEN}"
+              EOSECRET
+
+                echo "Vault initialized and root token stored"
+              else
+                echo "Vault already initialized"
+                # Get root token from secret
+                ROOT_TOKEN=$(kubectl get secret vault-root-token -n {{ .Release.Namespace }} -o jsonpath='{.data.token}' | base64 -d)
+              fi
+
+              # Wait for Vault to be unsealed (auto-unseal should handle this)
+              echo "Waiting for Vault to be unsealed..."
+              until vault status 2>/dev/null | grep -q "Sealed.*false"; do
+                echo "Vault still sealed, waiting..."
+                sleep 2
+              done
+
+              echo "Vault is unsealed, proceeding with configuration..."
+
+              # Login with root token
+              vault login "$ROOT_TOKEN"
+
+              # Enable KV-v2 secrets engine
+              echo "Enabling KV-v2 secrets engine..."
+              vault secrets enable -path=secret kv-v2 2>/dev/null || echo "KV-v2 already enabled"
+
+              # Apply policies
+              echo "Applying policies..."
+              vault policy write monitoring /config/policy-monitoring.hcl
+              vault policy write argocd /config/policy-argocd.hcl
+
+              # Configure Kubernetes auth
+              echo "Configuring Kubernetes auth..."
+              vault auth enable kubernetes 2>/dev/null || echo "Kubernetes auth already enabled"
+              vault write auth/kubernetes/config \
+                kubernetes_host="https://kubernetes.default.svc:443"
+
+              # Create vault-secrets-operator role
+              echo "Creating Kubernetes auth roles..."
+              vault write auth/kubernetes/role/vault-secrets-operator \
+                bound_service_account_names="vault-secrets-operator-controller-manager,default" \
+                bound_service_account_namespaces="vault-secrets-operator,monitoring,argocd" \
+                policies="monitoring,argocd" \
+                ttl=24h
+
+              # Seed secrets
+              echo "Seeding secrets..."
+              vault kv put secret/monitoring/grafana @/config/secrets-grafana.json
+              vault kv put secret/monitoring/alertmanager @/config/secrets-alertmanager.json
+              vault kv put secret/argocd/admin @/config/secrets-argocd.json
+
+              # Only seed repo creds if SSH key is provided
+              if [ -n "{{ .Values.bootstrap.secrets.argocd.sshPrivateKey }}" ]; then
+                vault kv put secret/argocd/repo-creds @/config/secrets-argocd-repo.json
+              fi
+
+              echo "=== Vault Bootstrap Complete ==="
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: vault-bootstrap-config
+---
+# RBAC for bootstrap job to create secrets
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: vault-bootstrap
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: vault-bootstrap
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: vault-bootstrap
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Release.Name }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
