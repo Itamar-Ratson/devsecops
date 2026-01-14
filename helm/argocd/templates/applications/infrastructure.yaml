@@ -24,6 +24,17 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: argocd-secret
+      jsonPointers:
+        - /data
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jqPathExpressions:
+        - .spec.parentRefs[].group
+        - .spec.parentRefs[].kind
   syncPolicy:
     automated:
       prune: true
@@ -31,6 +42,7 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
 ---
 # Wave 1: Security Scanning (Trivy Operator)
 apiVersion: argoproj.io/v1alpha1
@@ -239,6 +251,19 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: vault
+  ignoreDifferences:
+    - group: ""
+      kind: ConfigMap
+      jqPathExpressions:
+        - .data
+    - group: apps
+      kind: StatefulSet
+      jqPathExpressions:
+        - .spec.volumeClaimTemplates
+    - group: cilium.io
+      kind: CiliumNetworkPolicy
+      jqPathExpressions:
+        - .spec.egress[].toPorts[].rules
   syncPolicy:
     automated:
       prune: true
@@ -246,6 +271,7 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
 ---
 # Wave 4: Vault Secrets Operator (needs Vault)
 apiVersion: argoproj.io/v1alpha1
@@ -270,6 +296,11 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: vault-secrets-operator
+  ignoreDifferences:
+    - group: secrets.hashicorp.com
+      kind: VaultAuth
+      jqPathExpressions:
+        - .metadata.finalizers
   syncPolicy:
     automated:
       prune: true
@@ -277,6 +308,7 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
 ---
 # Wave 4: Gateway (needs cert-manager for TLS)
 apiVersion: argoproj.io/v1alpha1
@@ -301,12 +333,19 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: gateway
+  ignoreDifferences:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jqPathExpressions:
+        - .spec.parentRefs[].group
+        - .spec.parentRefs[].kind
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 ---
 # Wave 4: Network Policies
 apiVersion: argoproj.io/v1alpha1
@@ -360,12 +399,19 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: http-echo
+  ignoreDifferences:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jqPathExpressions:
+        - .spec.parentRefs[].group
+        - .spec.parentRefs[].kind
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 ---
 # Wave 4: OWASP Juice Shop (Security Training)
 apiVersion: argoproj.io/v1alpha1
@@ -390,12 +436,19 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: juice-shop
+  ignoreDifferences:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jqPathExpressions:
+        - .spec.parentRefs[].group
+        - .spec.parentRefs[].kind
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 ---
 # Wave 5: Strimzi Operator
 apiVersion: argoproj.io/v1alpha1
@@ -451,12 +504,19 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: kafka
+  ignoreDifferences:
+    - group: ""
+      kind: PersistentVolumeClaim
+      jqPathExpressions:
+        - .spec.volumeName
+        - .spec.volumeMode
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 ---
 # Wave 7: Kafka UI (needs Kafka)
 apiVersion: argoproj.io/v1alpha1
@@ -482,12 +542,19 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: kafka-ui
+  ignoreDifferences:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jqPathExpressions:
+        - .spec.parentRefs[].group
+        - .spec.parentRefs[].kind
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 ---
 # Wave 8: Monitoring Stack (last - needs everything for full scraping)
 apiVersion: argoproj.io/v1alpha1
@@ -517,6 +584,16 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jqPathExpressions:
+        - .spec.volumeClaimTemplates
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jqPathExpressions:
+        - .spec.parentRefs[].group
+        - .spec.parentRefs[].kind
   syncPolicy:
     automated:
       prune: true
@@ -524,4 +601,5 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
 {{- end }}
