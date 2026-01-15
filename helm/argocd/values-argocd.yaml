@@ -39,7 +39,7 @@ argo-cd:
     resources:
       limits:
         cpu: "1"
-        memory: 256Mi  # Reduced from 512Mi
+        memory: 384Mi  # Increased from 256Mi - OOMKilled during chart rendering
       requests:
         cpu: 50m  # Reduced from 250m - actual usage ~13-21m
         memory: 150Mi  # Reduced from 320Mi - actual usage ~91Mi
