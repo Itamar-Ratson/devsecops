@@ -1,16 +1,64 @@
 # Kubernetes Local Dev Setup
 
-KinD + Cilium (CNI + Gateway) + Gateway API + cert-manager + Sealed Secrets + Vault + Hubble + Tetragon + Kyverno + Network Policies + Monitoring (Prometheus + Grafana + Loki + Alloy + Tempo) + Kafka (Strimzi + Kafka UI) + ArgoCD (GitOps)
+A zero-trust Kubernetes development environment with comprehensive security and observability.
+
+## Stack Overview
+
+**Infrastructure**<br>
+![KinD](https://img.shields.io/badge/KinD-326CE5?style=flat&logo=kubernetes&logoColor=white)
+![Cilium](https://img.shields.io/badge/Cilium-F8C517?style=flat&logo=cilium&logoColor=black)
+![eBPF](https://img.shields.io/badge/eBPF-FF6600?style=flat&logo=ebpf&logoColor=white)
+![Envoy](https://img.shields.io/badge/Envoy-AC6199?style=flat&logo=envoyproxy&logoColor=white)
+![WireGuard](https://img.shields.io/badge/WireGuard-88171A?style=flat&logo=wireguard&logoColor=white)
+![Gateway API](https://img.shields.io/badge/Gateway_API-326CE5?style=flat&logo=kubernetes&logoColor=white)
+![CoreDNS](https://img.shields.io/badge/CoreDNS-253746?style=flat&logo=coredns&logoColor=white)
+![cert-manager](https://img.shields.io/badge/cert--manager-0A5CBF?style=flat&logo=letsencrypt&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white)
+![Memcached](https://img.shields.io/badge/Memcached-0769AD?style=flat&logo=memcached&logoColor=white)
+
+**Security**<br>
+![Cilium Network Policies](https://img.shields.io/badge/Cilium_Network_Policies-F8C517?style=flat&logo=cilium&logoColor=black)
+![Sealed Secrets](https://img.shields.io/badge/Sealed_Secrets-326CE5?style=flat&logo=kubernetes&logoColor=white)
+![Vault](https://img.shields.io/badge/Vault-FFEC6E?style=flat&logo=vault&logoColor=black)
+![Vault Secrets Operator](https://img.shields.io/badge/Vault_Secrets_Operator-FFEC6E?style=flat&logo=vault&logoColor=black)
+![Tetragon](https://img.shields.io/badge/Tetragon-F8C517?style=flat&logo=cilium&logoColor=black)
+![Kyverno](https://img.shields.io/badge/Kyverno-FF6F00?style=flat&logo=kubernetes&logoColor=white)
+![Trivy](https://img.shields.io/badge/Trivy-1904DA?style=flat&logo=aquasecurity&logoColor=white)
+
+**Observability**<br>
+![Hubble](https://img.shields.io/badge/Hubble-F8C517?style=flat&logo=cilium&logoColor=black)
+![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=flat&logo=prometheus&logoColor=white)
+![Alertmanager](https://img.shields.io/badge/Alertmanager-E6522C?style=flat&logo=prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?style=flat&logo=grafana&logoColor=white)
+![Loki](https://img.shields.io/badge/Loki-F46800?style=flat&logo=grafana&logoColor=white)
+![Tempo](https://img.shields.io/badge/Tempo-F46800?style=flat&logo=grafana&logoColor=white)
+![Alloy](https://img.shields.io/badge/Alloy-F46800?style=flat&logo=grafana&logoColor=white)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-000000?style=flat&logo=opentelemetry&logoColor=white)
+![Kube State Metrics](https://img.shields.io/badge/Kube_State_Metrics-326CE5?style=flat&logo=kubernetes&logoColor=white)
+![Node Exporter](https://img.shields.io/badge/Node_Exporter-E6522C?style=flat&logo=prometheus&logoColor=white)
+
+**Messaging**<br>
+![Kafka](https://img.shields.io/badge/Kafka-231F20?style=flat&logo=apachekafka&logoColor=white)
+![Strimzi](https://img.shields.io/badge/Strimzi-191A1C?style=flat&logo=apachekafka&logoColor=white)
+![Kafka UI](https://img.shields.io/badge/Kafka_UI-231F20?style=flat&logo=apachekafka&logoColor=white)
+
+**GitOps**<br>
+![ArgoCD](https://img.shields.io/badge/ArgoCD-EF7B4D?style=flat&logo=argo&logoColor=white)
+
+**Demo Apps**<br>
+![HTTP Echo](https://img.shields.io/badge/HTTP_Echo-326CE5?style=flat&logo=kubernetes&logoColor=white)
+![OWASP Juice Shop](https://img.shields.io/badge/OWASP_Juice_Shop-000000?style=flat&logo=owasp&logoColor=white)
 
 ## Prerequisites
 
-- Docker
-- docker-compose
-- kubectl
-- Helm
-- KinD
-- kubeseal
-- vault CLI (optional, for Transit setup)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+![docker-compose](https://img.shields.io/badge/docker--compose-2496ED?style=flat&logo=docker&logoColor=white)
+![kubectl](https://img.shields.io/badge/kubectl-326CE5?style=flat&logo=kubernetes&logoColor=white)
+![Helm](https://img.shields.io/badge/Helm-0F1689?style=flat&logo=helm&logoColor=white)
+![KinD](https://img.shields.io/badge/KinD-326CE5?style=flat&logo=kubernetes&logoColor=white)
+![kubeseal](https://img.shields.io/badge/kubeseal-326CE5?style=flat&logo=kubernetes&logoColor=white)
+![GitHub CLI](https://img.shields.io/badge/gh-181717?style=flat&logo=github&logoColor=white)
+![Vault CLI](https://img.shields.io/badge/Vault_CLI-FFEC6E?style=flat&logo=vault&logoColor=black) *(optional, for Transit setup)*
 
 ### Increase inotify limits (required for Hubble mTLS and monitoring stack)
 
