@@ -41,7 +41,7 @@ argo-cd:
         cpu: "1"
         memory: 512Mi
       requests:
-        cpu: 250m
+        cpu: 50m  # Reduced from 250m - actual usage ~13-21m
         memory: 320Mi  # Reduced based on metrics (134Mi used, 274Mi max)
 
     metrics:

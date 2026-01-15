@@ -9,10 +9,10 @@ vault:
     resources:
       requests:
         memory: "256Mi"
-        cpu: "250m"
+        cpu: "25m"  # Reduced from 250m - actual usage ~3m
       limits:
         memory: "256Mi"
-        cpu: "250m"
+        cpu: "50m"  # Reduced from 250m - allow some burst headroom
 
   server:
     enabled: true

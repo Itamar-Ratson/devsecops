@@ -221,7 +221,7 @@ alloy:
     # Resources for Alloy container
     resources:
       requests:
-        cpu: 50m
+        cpu: 100m  # Increased from 50m - actual usage ~75m (was under-provisioned)
         memory: 256Mi
       limits:
         cpu: 300m

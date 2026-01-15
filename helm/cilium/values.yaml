@@ -7,6 +7,14 @@ cilium:
     enabled: true
   socketLB:
     hostNamespaceOnly: true
+  # Cilium agent resources - based on actual usage of 104m/38m per node
+  resources:
+    requests:
+      cpu: 150m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
   operator:
     replicas: 1
     prometheus:
