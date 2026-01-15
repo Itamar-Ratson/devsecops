@@ -21,6 +21,15 @@ spec:
             - port: "{{ .Values.ports.vault.http }}"
               protocol: TCP
 
+    # Allow from Vault Bootstrap job
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: vault-bootstrap
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
     # Allow from Vault Secrets Operator
     - fromEndpoints:
         - matchLabels:
