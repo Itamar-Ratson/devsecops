@@ -1,43 +1,47 @@
+# Tetragon subchart values
 tetragon:
-  # Enable Kubernetes API integration for pod/namespace context enrichment
-  enabled: true
-
-  # Host network required for full process visibility
-  hostNetwork: true
-
-  # Privileged mode required for eBPF operations
-  privileged: true
-
-  # Export configuration - JSON events to stdout (collected by Alloy → Loki)
-  export:
-    mode: stdout
-    filename: tetragon.log
-    filePerm: "600"
-
-  # Enable Prometheus metrics
-  prometheus:
+  # Settings under 'tetragon:' key in the subchart
+  tetragon:
+    # Enable Kubernetes API integration for pod/namespace context enrichment
     enabled: true
-    port: 2112
-    address: ""
-    metricsLabelFilter: "namespace,workload,pod,binary"
-    serviceMonitor:
+
+    # Privileged mode required for eBPF operations
+    securityContext:
+      privileged: true
+
+    # Export configuration - JSON events to stdout (collected by Alloy → Loki)
+    export:
+      mode: stdout
+      filename: tetragon.log
+      filePerm: "600"
+
+    # Enable Prometheus metrics
+    prometheus:
       enabled: true
-      labelsOverride: {}
+      port: 2112
+      address: ""
+      metricsLabelFilter: "namespace,workload,pod,binary"
+      serviceMonitor:
+        enabled: true
+        labelsOverride: {}
 
-  # Resource limits for local development
-  resources:
-    limits:
-      cpu: 500m
-      memory: 768Mi  # Increased from 512Mi - allow headroom
-    requests:
-      cpu: 100m
-      memory: 400Mi  # Increased from 256Mi - actual usage ~290Mi
+    # Resource limits - actual usage ~290Mi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 768Mi
+      requests:
+        cpu: 100m
+        memory: 400Mi
 
-  # Enable policy filtering for namespace/pod-based policies
-  enablePolicyFilter: true
+    # Enable policy filtering for namespace/pod-based policies
+    enablePolicyFilter: true
 
-  # Enable Kubernetes API integration
-  enableK8sAPI: true
+    # Enable Kubernetes API integration
+    enableK8sAPI: true
+
+  # Root level settings for the subchart
+  hostNetwork: true
 
 tetragonOperator:
   enabled: true
