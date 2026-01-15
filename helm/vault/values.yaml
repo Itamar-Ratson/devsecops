@@ -8,10 +8,10 @@ vault:
     replicas: 1
     resources:
       requests:
-        memory: "256Mi"
+        memory: "64Mi"  # Reduced from 256Mi - actual usage ~16Mi
         cpu: "25m"  # Reduced from 250m - actual usage ~3m
       limits:
-        memory: "256Mi"
+        memory: "128Mi"  # Reduced from 256Mi - allow burst headroom
         cpu: "50m"  # Reduced from 250m - allow some burst headroom
 
   server:
@@ -21,10 +21,10 @@ vault:
     # Resource limits
     resources:
       requests:
-        memory: "256Mi"
+        memory: "128Mi"  # Reduced from 256Mi - actual usage ~49Mi
         cpu: "250m"
       limits:
-        memory: "512Mi"
+        memory: "256Mi"  # Reduced from 512Mi - allow burst headroom
         cpu: "500m"
 
     # Storage configuration - File storage (not HA)

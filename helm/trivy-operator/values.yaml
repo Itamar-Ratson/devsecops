@@ -45,7 +45,7 @@ trivy-operator:
   resources:
     requests:
       cpu: 100m
-      memory: 128Mi
+      memory: 300Mi  # Increased from 128Mi - actual usage ~230Mi
     limits:
       cpu: 500m
       memory: 512Mi

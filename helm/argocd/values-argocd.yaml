@@ -39,10 +39,10 @@ argo-cd:
     resources:
       limits:
         cpu: "1"
-        memory: 512Mi
+        memory: 256Mi  # Reduced from 512Mi
       requests:
         cpu: 50m  # Reduced from 250m - actual usage ~13-21m
-        memory: 320Mi  # Reduced based on metrics (134Mi used, 274Mi max)
+        memory: 150Mi  # Reduced from 320Mi - actual usage ~91Mi
 
     metrics:
       enabled: true
