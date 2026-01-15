@@ -8,11 +8,17 @@ metadata:
     app.kubernetes.io/name: vault-bootstrap
     app.kubernetes.io/instance: {{ .Release.Name }}
 data:
-  # Vault policies
+  # Vault policies (inlined to work with ArgoCD's Helm rendering)
   policy-monitoring.hcl: |
-{{ .Files.Get "policies/monitoring.hcl" | indent 4 }}
+    # Policy for monitoring namespace secrets
+    path "secret/data/monitoring/*" {
+      capabilities = ["read"]
+    }
   policy-argocd.hcl: |
-{{ .Files.Get "policies/argocd.hcl" | indent 4 }}
+    # Policy for argocd namespace secrets
+    path "secret/data/argocd/*" {
+      capabilities = ["read"]
+    }
 
   # Kubernetes auth role configuration
   auth-role.json: |
