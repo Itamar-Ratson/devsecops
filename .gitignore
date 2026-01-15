@@ -8,3 +8,4 @@
 !*.json
 !*.sh
 !*.tsv
+!.env.example

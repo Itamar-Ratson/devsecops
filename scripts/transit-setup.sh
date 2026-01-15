@@ -4,13 +4,25 @@
 # Only needs to be run once after starting docker-compose.
 #
 # Prerequisites:
-#   - docker-compose up -d
+#   - cp .env.example .env && set VAULT_TRANSIT_TOKEN
+#   - docker compose up -d
 #   - vault CLI installed
 #
 set -e
 
+# Load environment from .env file if present
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -f "$SCRIPT_DIR/../.env" ]]; then
+    source "$SCRIPT_DIR/../.env"
+fi
+
+if [[ -z "$VAULT_TRANSIT_TOKEN" ]]; then
+    echo "Error: VAULT_TRANSIT_TOKEN not set. Copy .env.example to .env and set the token."
+    exit 1
+fi
+
 export VAULT_ADDR="http://localhost:8100"
-export VAULT_TOKEN="transit-root-token"
+export VAULT_TOKEN="$VAULT_TRANSIT_TOKEN"
 
 echo "Waiting for Transit Vault to be ready..."
 until vault status >/dev/null 2>&1; do

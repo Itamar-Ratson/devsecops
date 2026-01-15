@@ -21,6 +21,26 @@ command -v gh >/dev/null 2>&1 || error "gh (GitHub CLI) is required but not inst
 
 log "Starting Kubernetes cluster setup..."
 
+# Load environment variables from .env file
+if [[ -f ".env" ]]; then
+    log "Loading environment from .env file..."
+    source .env
+else
+    error ".env file not found. Copy .env.example to .env and set VAULT_TRANSIT_TOKEN"
+fi
+
+# Validate required environment variables
+MISSING_VARS=""
+[[ -z "$VAULT_TRANSIT_TOKEN" ]] && MISSING_VARS="$MISSING_VARS VAULT_TRANSIT_TOKEN"
+[[ -z "$GRAFANA_ADMIN_USER" ]] && MISSING_VARS="$MISSING_VARS GRAFANA_ADMIN_USER"
+[[ -z "$GRAFANA_ADMIN_PASSWORD" ]] && MISSING_VARS="$MISSING_VARS GRAFANA_ADMIN_PASSWORD"
+[[ -z "$ARGOCD_ADMIN_PASSWORD_HASH" ]] && MISSING_VARS="$MISSING_VARS ARGOCD_ADMIN_PASSWORD_HASH"
+[[ -z "$ARGOCD_SERVER_SECRET_KEY" ]] && MISSING_VARS="$MISSING_VARS ARGOCD_SERVER_SECRET_KEY"
+
+if [[ -n "$MISSING_VARS" ]]; then
+    error "Missing required environment variables in .env:$MISSING_VARS"
+fi
+
 # Check if Transit Vault is running
 if ! docker ps --format '{{.Names}}' | grep -q vault-transit; then
     error "Transit Vault is not running. Start it with: docker compose up -d && ./scripts/transit-setup.sh"
@@ -159,7 +179,12 @@ log "Building and installing Vault..."
 helm dependency build ./helm/vault
 helm upgrade --install vault ./helm/vault -n vault --create-namespace \
   -f ./helm/ports.yaml \
-  -f ./helm/vault/values.yaml
+  -f ./helm/vault/values.yaml \
+  --set server.seal.transit.token="$VAULT_TRANSIT_TOKEN" \
+  --set bootstrap.secrets.grafana.user="$GRAFANA_ADMIN_USER" \
+  --set bootstrap.secrets.grafana.password="$GRAFANA_ADMIN_PASSWORD" \
+  --set bootstrap.secrets.argocd.passwordHash="$ARGOCD_ADMIN_PASSWORD_HASH" \
+  --set bootstrap.secrets.argocd.serverSecretKey="$ARGOCD_SERVER_SECRET_KEY"
 log "Waiting for Vault to be running..."
 kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=vault -n vault --timeout=180s
 

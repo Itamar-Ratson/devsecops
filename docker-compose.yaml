@@ -3,8 +3,9 @@
 # Vault to auto-unseal. It persists across cluster recreations.
 #
 # Usage:
+#   cp .env.example .env && edit .env with secure token
 #   docker compose up -d
-#   docker exec vault-transit sh -c 'vault secrets enable transit && vault write -f transit/keys/autounseal'
+#   ./scripts/transit-setup.sh
 #
 # Note: setup.sh automatically connects this container to the KinD network
 #
@@ -15,7 +16,7 @@ services:
     ports:
       - "8100:8200"
     environment:
-      VAULT_DEV_ROOT_TOKEN_ID: "transit-root-token"
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_TRANSIT_TOKEN:?Set VAULT_TRANSIT_TOKEN in .env file}
       VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
     volumes:
       - vault-transit-data:/vault/data

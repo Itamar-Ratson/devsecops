@@ -18,6 +18,13 @@ vault:
     enabled: true
     replicas: 1
 
+    # Inject transit token from Kubernetes Secret
+    # VAULT_TRANSIT_SEAL_TOKEN is automatically used by Vault for transit seal
+    extraSecretEnvironmentVars:
+      - envName: VAULT_TRANSIT_SEAL_TOKEN
+        secretName: vault-transit-token
+        secretKey: VAULT_TRANSIT_SEAL_TOKEN
+
     # Resource limits
     resources:
       requests:
@@ -56,9 +63,9 @@ vault:
         # Auto-unseal using external Transit Vault (docker-compose)
         # NOTE: 172.18.0.4 is the Transit Vault IP on the KinD network
         # If recreating, run: docker network connect kind vault-transit
+        # Token injected via VAULT_TRANSIT_TOKEN env var from K8s Secret
         seal "transit" {
           address = "http://172.18.0.4:8200"
-          token = "transit-root-token"
           key_name = "autounseal"
           mount_path = "transit/"
         }
@@ -93,19 +100,28 @@ vault:
     enabled: true
     serviceType: ClusterIP
 
+# Transit seal configuration
+# Override token at deploy time: --set server.seal.transit.token=$VAULT_TRANSIT_TOKEN
+server:
+  seal:
+    transit:
+      enabled: true
+      token: ""  # REQUIRED: Set via --set or values override, never commit actual token
+
 # Bootstrap configuration for automated Vault setup
+# All secrets should be passed via --set at deploy time, never committed
 bootstrap:
   enabled: true
   secrets:
     grafana:
-      user: "admin"
-      password: "admin"
+      user: ""      # REQUIRED: Set via --set bootstrap.secrets.grafana.user
+      password: ""  # REQUIRED: Set via --set bootstrap.secrets.grafana.password
     alertmanager:
       criticalWebhook: ""
       warningWebhook: ""
     argocd:
-      # bcrypt hash of "admin" - generate with: htpasswd -nbBC 10 "" admin | tr -d ':\n'
-      passwordHash: "$2y$10$WGr/OdJdWQ.ejZ/6aGXtFe1SHMzAHWanlGkNMG.NKmHL.DLuOHmJG"
-      serverSecretKey: ""  # Generated randomly if empty
+      # Generate hash: htpasswd -nbBC 10 "" 'your-password' | tr -d ':\n'
+      passwordHash: ""      # REQUIRED: Set via --set bootstrap.secrets.argocd.passwordHash
+      serverSecretKey: ""   # REQUIRED: Set via --set bootstrap.secrets.argocd.serverSecretKey
       repoUrl: ""
       sshPrivateKey: ""
