@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: vault-bootstrap
     app.kubernetes.io/instance: {{ .Release.Name }}
 data:
-  # Vault policies (inlined to work with ArgoCD's Helm rendering)
+  # Vault policies
   policy-monitoring.hcl: |
     # Policy for monitoring namespace secrets
     path "secret/data/monitoring/*" {
@@ -20,39 +20,6 @@ data:
       capabilities = ["read"]
     }
 
-  # Kubernetes auth role configuration
-  auth-role.json: |
-    {
-      "bound_service_account_names": ["vault-secrets-operator-controller-manager", "default"],
-      "bound_service_account_namespaces": ["vault-secrets-operator", "monitoring", "argocd"],
-      "policies": ["monitoring", "argocd"],
-      "ttl": "24h"
-    }
-
-  # Secrets to seed into Vault
-  secrets-grafana.json: |
-    {
-      "admin-user": "{{ .Values.bootstrap.secrets.grafana.user }}",
-      "admin-password": "{{ .Values.bootstrap.secrets.grafana.password }}"
-    }
-
-  secrets-alertmanager.json: |
-    {
-      "slack-critical-webhook": "{{ .Values.bootstrap.secrets.alertmanager.criticalWebhook }}",
-      "slack-warning-webhook": "{{ .Values.bootstrap.secrets.alertmanager.warningWebhook }}"
-    }
-
-  secrets-argocd.json: |
-    {
-      "admin.password": "{{ .Values.bootstrap.secrets.argocd.passwordHash }}",
-      "admin.passwordMtime": "{{ now | date "2006-01-02T15:04:05Z" }}",
-      "server.secretkey": "{{ .Values.bootstrap.secrets.argocd.serverSecretKey | default (randAlphaNum 32 | b64enc) }}"
-    }
-
-  secrets-argocd-repo.json: |
-    {
-      "type": "git",
-      "url": "{{ .Values.bootstrap.secrets.argocd.repoUrl }}",
-      "sshPrivateKey": "{{ .Values.bootstrap.secrets.argocd.sshPrivateKey }}"
-    }
+  # Note: Actual secrets are read from vault-bootstrap-secrets Secret
+  # which is created by setup.sh before ArgoCD deploys Vault
 {{- end }}

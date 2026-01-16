@@ -43,7 +43,12 @@ spec:
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
 ---
-# Wave 1: Security Scanning (Trivy Operator)
+# Wave 1: Independent Infrastructure (no dependencies)
+# - Security: Tetragon, Kyverno, Trivy
+# - Certificates: cert-manager
+# - Secrets: Sealed-secrets
+# - Messaging: Strimzi operator
+# - Network: Network-policies
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -74,7 +79,6 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
 ---
-# Wave 1: Security Observability
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -105,7 +109,6 @@ spec:
     syncOptions:
       - CreateNamespace=false
 ---
-# Wave 1: Policy Management
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -137,7 +140,126 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
 ---
-# Wave 2: Kyverno Policies (needs Kyverno first)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    path: helm/cert-manager
+    helm:
+      valueFiles:
+        - ../ports.yaml
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sealed-secrets
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    path: helm/sealed-secrets
+    helm:
+      valueFiles:
+        - ../ports.yaml
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sealed-secrets
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: strimzi-operator
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    path: helm/strimzi-operator
+    helm:
+      valueFiles:
+        - ../ports.yaml
+        - values.yaml
+        - values-strimzi.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: strimzi-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: network-policies
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    path: helm/network-policies
+    helm:
+      valueFiles:
+        - ../ports.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+---
+# Wave 2: First-level dependencies
+# - Kyverno-policies (needs Kyverno)
+# - Vault (independent, but good to have security policies first)
+# - Kafka (needs Strimzi)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -167,74 +289,13 @@ spec:
     syncOptions:
       - CreateNamespace=false
 ---
-# Wave 2: Certificate Management
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: cert-manager
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  project: default
-  source:
-    repoURL: {{ .Values.gitops.repoURL }}
-    targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/cert-manager
-    helm:
-      valueFiles:
-        - ../ports.yaml
-        - values.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: cert-manager
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
----
-# Wave 3: Sealed Secrets
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: sealed-secrets
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "3"
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  project: default
-  source:
-    repoURL: {{ .Values.gitops.repoURL }}
-    targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/sealed-secrets
-    helm:
-      valueFiles:
-        - ../ports.yaml
-        - values.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: sealed-secrets
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
----
-# Wave 3: Vault (Secrets Management)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: vault
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "2"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -273,14 +334,52 @@ spec:
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
 ---
-# Wave 4: Vault Secrets Operator (needs Vault)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kafka
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    path: helm/kafka
+    helm:
+      valueFiles:
+        - ../ports.yaml
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kafka
+  ignoreDifferences:
+    - group: ""
+      kind: PersistentVolumeClaim
+      jsonPointers:
+        - /spec
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+---
+# Wave 3: Second-level dependencies
+# - VSO (needs Vault + bootstrap PostSync)
+# - Gateway (needs cert-manager)
+# - Kafka-UI (needs Kafka)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: vault-secrets-operator
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "3"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -310,14 +409,13 @@ spec:
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
 ---
-# Wave 4: Gateway (needs cert-manager for TLS)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: gateway
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "3"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -346,14 +444,13 @@ spec:
       - CreateNamespace=true
       - RespectIgnoreDifferences=true
 ---
-# Wave 4: Network Policies
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: network-policies
+  name: kafka-ui
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "3"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -361,21 +458,29 @@ spec:
   source:
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/network-policies
+    path: helm/kafka-ui
     helm:
       valueFiles:
         - ../ports.yaml
+        - values.yaml
+        - values-kafka-ui.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: kube-system
+    namespace: kafka-ui
+  ignoreDifferences:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jsonPointers:
+        - /spec/parentRefs
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=false
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
 ---
-# Wave 4: Demo App
+# Wave 4: Applications (need Gateway for HTTPRoutes)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -411,7 +516,6 @@ spec:
       - CreateNamespace=true
       - RespectIgnoreDifferences=true
 ---
-# Wave 4: OWASP Juice Shop (Security Training)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -447,118 +551,14 @@ spec:
       - CreateNamespace=true
       - RespectIgnoreDifferences=true
 ---
-# Wave 5: Strimzi Operator
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: strimzi-operator
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "5"
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  project: default
-  source:
-    repoURL: {{ .Values.gitops.repoURL }}
-    targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/strimzi-operator
-    helm:
-      valueFiles:
-        - ../ports.yaml
-        - values.yaml
-        - values-strimzi.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: strimzi-system
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
----
-# Wave 6: Kafka Cluster (needs Strimzi Operator)
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: kafka
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "6"
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  project: default
-  source:
-    repoURL: {{ .Values.gitops.repoURL }}
-    targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/kafka
-    helm:
-      valueFiles:
-        - ../ports.yaml
-        - values.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: kafka
-  ignoreDifferences:
-    - group: ""
-      kind: PersistentVolumeClaim
-      jsonPointers:
-        - /spec
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-      - RespectIgnoreDifferences=true
----
-# Wave 7: Kafka UI (needs Kafka)
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: kafka-ui
-  namespace: {{ .Release.Namespace }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "7"
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  project: default
-  source:
-    repoURL: {{ .Values.gitops.repoURL }}
-    targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/kafka-ui
-    helm:
-      valueFiles:
-        - ../ports.yaml
-        - values.yaml
-        - values-kafka-ui.yaml
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: kafka-ui
-  ignoreDifferences:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      jsonPointers:
-        - /spec/parentRefs
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
-      - RespectIgnoreDifferences=true
----
-# Wave 8: Monitoring Stack (last - needs everything for full scraping)
+# Wave 5: Monitoring (last - needs everything for full metrics scraping)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: monitoring
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "8"
+    argocd.argoproj.io/sync-wave: "5"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

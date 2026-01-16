@@ -116,26 +116,46 @@ spec:
                 policies="monitoring,argocd" \
                 ttl=24h
 
-              # Seed secrets
-              echo "Seeding secrets..."
-              vault kv put secret/monitoring/grafana @/config/secrets-grafana.json
-              vault kv put secret/monitoring/alertmanager @/config/secrets-alertmanager.json
-              vault kv put secret/argocd/admin @/config/secrets-argocd.json
+              # Seed secrets from the pre-created Secret (created by setup.sh)
+              echo "Seeding secrets from vault-bootstrap-secrets..."
 
-              # Only seed repo creds if SSH key is provided
-              if [ -n "{{ .Values.bootstrap.secrets.argocd.sshPrivateKey }}" ]; then
-                vault kv put secret/argocd/repo-creds @/config/secrets-argocd-repo.json
-              fi
+              # Read secrets from mounted Secret
+              GRAFANA_USER=$(cat /secrets/grafana-user)
+              GRAFANA_PASSWORD=$(cat /secrets/grafana-password)
+              ARGOCD_PASSWORD_HASH=$(cat /secrets/argocd-password-hash)
+              ARGOCD_SECRET_KEY=$(cat /secrets/argocd-server-secret-key)
+
+              # Seed Grafana secrets
+              vault kv put secret/monitoring/grafana \
+                admin-user="$GRAFANA_USER" \
+                admin-password="$GRAFANA_PASSWORD"
+
+              # Seed Alertmanager secrets (empty webhooks for now)
+              vault kv put secret/monitoring/alertmanager \
+                slack-critical-webhook="" \
+                slack-warning-webhook=""
+
+              # Seed ArgoCD secrets
+              vault kv put secret/argocd/admin \
+                "admin.password=$ARGOCD_PASSWORD_HASH" \
+                "admin.passwordMtime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                "server.secretkey=$ARGOCD_SECRET_KEY"
 
               echo "=== Vault Bootstrap Complete ==="
           volumeMounts:
             - name: config
               mountPath: /config
               readOnly: true
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
       volumes:
         - name: config
           configMap:
             name: vault-bootstrap-config
+        - name: secrets
+          secret:
+            secretName: vault-bootstrap-secrets
 ---
 # RBAC for bootstrap job to create secrets
 apiVersion: rbac.authorization.k8s.io/v1

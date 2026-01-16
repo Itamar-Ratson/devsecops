@@ -79,19 +79,14 @@ fs.inotify.max_user_watches=16384
 
 ## Quick Setup
 
-### One-time: Start Transit Vault (for auto-unseal)
+### Prerequisites: Environment File
 
-The cluster uses an external Transit Vault for auto-unseal, running in Docker Compose:
+Copy the example environment file and set your secrets:
 
 ```bash
-# Start Transit Vault (runs persistently, survives cluster recreations)
-docker compose up -d
-
-# Initialize Transit Vault (one-time only)
-docker exec vault-transit sh -c 'vault secrets enable transit && vault write -f transit/keys/autounseal'
+cp .env.example .env
+# Edit .env with your values (VAULT_TRANSIT_TOKEN, GRAFANA_ADMIN_PASSWORD, etc.)
 ```
-
-Note: The setup script automatically connects Transit Vault to the KinD network.
 
 ### Create the Cluster
 
@@ -101,13 +96,26 @@ Run the automated setup script:
 ./setup.sh
 ```
 
-The script will:
-1. Create a KinD cluster with Cilium CNI
-2. Install all infrastructure components (including Vault)
-3. Bootstrap Vault automatically (init, unseal, policies, secrets)
-4. Generate an SSH deploy key for ArgoCD (stored at `~/.ssh/argocd-deploy-key`)
-5. Create a SealedSecret with the credentials
-6. Display the public key to add to GitHub
+The script bootstraps the minimal infrastructure, then **ArgoCD deploys everything else via GitOps**:
+
+**What setup.sh does:**
+1. **Clean slate**: Deletes existing cluster and Transit Vault (including volumes)
+2. **Transit Vault**: Starts fresh Transit Vault with static IP (172.18.0.100)
+3. **KinD cluster**: Creates cluster with Cilium CNI
+4. **Sealed-Secrets**: For encrypting ArgoCD repo credentials
+5. **ArgoCD**: GitOps controller that deploys all other infrastructure
+
+**What ArgoCD deploys (via sync waves):**
+| Wave | Components |
+|------|------------|
+| 0 | ArgoCD (self-managed) |
+| 1 | Tetragon, Kyverno, Trivy, cert-manager, Sealed-secrets, Strimzi, Network-policies |
+| 2 | Kyverno-policies, Vault, Kafka |
+| 3 | Vault-secrets-operator, Gateway, Kafka-UI |
+| 4 | http-echo, juice-shop |
+| 5 | Monitoring |
+
+**Note**: Each run of `setup.sh` starts completely fresh - no manual cleanup needed.
 
 After the script completes, add the displayed SSH public key as a **deploy key** to your repository:
 1. Go to: https://github.com/YOUR-ORG/secure-k8s/settings/keys
@@ -138,21 +146,23 @@ kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base6
 
 ## GitOps with ArgoCD
 
-Once configured, ArgoCD manages all infrastructure components via GitOps. Applications are defined in `helm/argocd/templates/applications/infrastructure.yaml` with sync waves:
+ArgoCD manages all infrastructure components via GitOps. Applications are defined in `helm/argocd/templates/applications/infrastructure.yaml` with optimized sync waves:
 
-| Wave | Applications |
-|------|--------------|
-| 0 | ArgoCD (self-managed) |
-| 1 | Trivy-operator, Tetragon, Kyverno |
-| 2 | Kyverno-policies, Cert-manager |
-| 3 | Sealed-secrets, Vault |
-| 4 | Vault-secrets-operator, Gateway, Network-policies, HTTP-echo, Juice-shop |
-| 5 | Strimzi-operator |
-| 6 | Kafka |
-| 7 | Kafka-ui |
-| 8 | Monitoring |
+| Wave | Applications | Purpose |
+|------|--------------|---------|
+| 0 | ArgoCD | Self-managed GitOps controller |
+| 1 | Tetragon, Kyverno, Trivy, cert-manager, Sealed-secrets, Strimzi, Network-policies | Independent infrastructure (no dependencies) |
+| 2 | Kyverno-policies, Vault, Kafka | First-level dependencies |
+| 3 | Vault-secrets-operator, Gateway, Kafka-UI | Second-level dependencies |
+| 4 | http-echo, juice-shop | Applications (need Gateway) |
+| 5 | Monitoring | Last (scrapes all components) |
 
 All changes to Helm values in this repository will be automatically synced to the cluster.
+
+Monitor deployment progress:
+```bash
+kubectl get applications -n argocd
+```
 
 ## Custom Secrets (Optional)
 
@@ -176,7 +186,38 @@ Generate ArgoCD password hash:
 htpasswd -nbBC 10 "" your-password | tr -d ':\n'
 ```
 
+## Troubleshooting
+
+### Clean Slate Reset
+
+If something goes wrong, always start fresh:
+
+```bash
+# Full reset - removes cluster, Transit Vault, and all volumes
+kind delete cluster --name k8s-dev
+docker compose down -v
+./setup.sh
+```
+
+### Verify Network Policies
+
+Before testing connectivity, check network policies:
+
+```bash
+# List all network policies
+kubectl get ciliumnetworkpolicies -A
+
+# Watch traffic in real-time
+hubble observe --namespace vault
+
+# Test connectivity from a pod
+kubectl exec -n vault deploy/vault -- wget -qO- http://target-service
+```
+
 ## Manual Setup (Reference)
+
+> **Note**: The `setup.sh` script is the recommended way to set up the cluster.
+> These manual steps are for reference only.
 
 <details>
 <summary>Click to expand manual setup commands</summary>

@@ -61,11 +61,10 @@ vault:
         }
 
         # Auto-unseal using external Transit Vault (docker-compose)
-        # NOTE: 172.18.0.4 is the Transit Vault IP on the KinD network
-        # If recreating, run: docker network connect kind vault-transit
-        # Token injected via VAULT_TRANSIT_TOKEN env var from K8s Secret
+        # Transit Vault is assigned static IP 172.18.0.100 on the kind network
+        # Token is injected via VAULT_TOKEN env var from K8s Secret
         seal "transit" {
-          address = "http://172.18.0.4:8200"
+          address = "http://172.18.0.100:8200"
           key_name = "autounseal"
           mount_path = "transit/"
         }
@@ -100,28 +99,7 @@ vault:
     enabled: true
     serviceType: ClusterIP
 
-# Transit seal configuration
-# Override token at deploy time: --set server.seal.transit.token=$VAULT_TRANSIT_TOKEN
-server:
-  seal:
-    transit:
-      enabled: true
-      token: ""  # REQUIRED: Set via --set or values override, never commit actual token
-
 # Bootstrap configuration for automated Vault setup
-# All secrets should be passed via --set at deploy time, never committed
+# Secrets are read from vault-bootstrap-secrets Secret created by setup.sh
 bootstrap:
   enabled: true
-  secrets:
-    grafana:
-      user: ""      # REQUIRED: Set via --set bootstrap.secrets.grafana.user
-      password: ""  # REQUIRED: Set via --set bootstrap.secrets.grafana.password
-    alertmanager:
-      criticalWebhook: ""
-      warningWebhook: ""
-    argocd:
-      # Generate hash: htpasswd -nbBC 10 "" 'your-password' | tr -d ':\n'
-      passwordHash: ""      # REQUIRED: Set via --set bootstrap.secrets.argocd.passwordHash
-      serverSecretKey: ""   # REQUIRED: Set via --set bootstrap.secrets.argocd.serverSecretKey
-      repoUrl: ""
-      sshPrivateKey: ""
