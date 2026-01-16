@@ -134,9 +134,9 @@ After setup, the following services are available:
 |---------|-----|-------------|
 | Echo (test app) | https://echo.localhost | - |
 | Hubble UI | https://hubble.localhost | - |
-| Grafana | https://grafana.localhost | admin / admin |
+| Grafana | https://grafana.localhost | (from .env: GRAFANA_ADMIN_USER/PASSWORD) |
 | Kafka UI | https://kafka-ui.localhost | - |
-| ArgoCD | https://argocd.localhost | admin / admin |
+| ArgoCD | https://argocd.localhost | admin / (shown in setup.sh output) |
 | Vault UI | https://vault.localhost | (root token in K8s secret) |
 
 Get Vault root token (if needed):
