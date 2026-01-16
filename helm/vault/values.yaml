@@ -19,11 +19,11 @@ vault:
     replicas: 1
 
     # Inject transit token from Kubernetes Secret
-    # VAULT_TRANSIT_SEAL_TOKEN is automatically used by Vault for transit seal
+    # VAULT_TOKEN is automatically used by Vault for transit seal auth
     extraSecretEnvironmentVars:
-      - envName: VAULT_TRANSIT_SEAL_TOKEN
+      - envName: VAULT_TOKEN
         secretName: vault-transit-token
-        secretKey: VAULT_TRANSIT_SEAL_TOKEN
+        secretKey: VAULT_TOKEN
 
     # Resource limits
     resources:

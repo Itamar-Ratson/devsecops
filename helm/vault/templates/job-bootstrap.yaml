@@ -39,10 +39,17 @@ spec:
               chmod +x /tmp/kubectl
               mv /tmp/kubectl /usr/local/bin/kubectl
 
-              # Wait for Vault to be running
+              # Wait for Vault to be responding (even if sealed/uninitialized)
+              # Exit codes: 0=unsealed, 1=error, 2=sealed (includes uninitialized)
               echo "Waiting for Vault to be available..."
-              until vault status 2>/dev/null; do
-                echo "Vault not ready, waiting..."
+              while true; do
+                vault status >/dev/null 2>&1
+                rc=$?
+                if [ $rc -eq 0 ] || [ $rc -eq 2 ]; then
+                  echo "Vault is responding (exit code $rc)"
+                  break
+                fi
+                echo "Vault not ready (exit code $rc), waiting..."
                 sleep 2
               done
 
