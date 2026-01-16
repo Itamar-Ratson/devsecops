@@ -38,18 +38,27 @@ spec:
               wget -q -O /tmp/kubectl "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl"
               chmod +x /tmp/kubectl
               mv /tmp/kubectl /usr/local/bin/kubectl
+              echo "kubectl installed"
 
               # Wait for Vault to be responding (even if sealed/uninitialized)
               # Exit codes: 0=unsealed, 1=error, 2=sealed (includes uninitialized)
               echo "Waiting for Vault to be available..."
+              MAX_RETRIES=60
+              RETRY_COUNT=0
               while true; do
-                vault status >/dev/null 2>&1
+                # Use timeout to prevent hanging on vault status
+                timeout 5 vault status >/dev/null 2>&1
                 rc=$?
                 if [ $rc -eq 0 ] || [ $rc -eq 2 ]; then
                   echo "Vault is responding (exit code $rc)"
                   break
                 fi
-                echo "Vault not ready (exit code $rc), waiting..."
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+                  echo "ERROR: Vault did not become available after $MAX_RETRIES attempts"
+                  exit 1
+                fi
+                echo "Vault not ready (exit code $rc), waiting... (attempt $RETRY_COUNT/$MAX_RETRIES)"
                 sleep 2
               done
 
