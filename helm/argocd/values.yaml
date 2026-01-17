@@ -12,5 +12,3 @@ vaultSecrets:
 gitops:
   repoURL: "git@github.com:Itamar-Ratson/devsecops.git"
   targetRevision: HEAD
-  # Enable to have ArgoCD manage the infrastructure components
-  enabled: true

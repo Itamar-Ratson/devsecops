@@ -1,0 +1,44 @@
+# Wave 2: Messaging - Kafka cluster (depends on Strimzi)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kafka
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    path: helm/kafka
+    helm:
+      valueFiles:
+        - ../ports.yaml
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kafka
+  ignoreDifferences:
+    - group: ""
+      kind: PersistentVolumeClaim
+      jsonPointers:
+        - /spec
+    # Ignore Strimzi-managed resources (created dynamically by operator)
+    - group: kafka.strimzi.io
+      kind: "*"
+      jsonPointers:
+        - /status
+    - group: core.strimzi.io
+      kind: "*"
+      jsonPointers:
+        - /status
+  syncPolicy:
+    automated:
+      prune: false  # Disable pruning - Strimzi manages resources dynamically
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
