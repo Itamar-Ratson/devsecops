@@ -93,6 +93,30 @@ After setup, add the SSH key shown in output as a [deploy key](https://github.co
 | ArgoCD | https://argocd.localhost | .env: ARGOCD_ADMIN_PASSWORD_HASH |
 | Vault UI | https://vault.localhost | `kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" \| base64 -d` |
 
+## Alerting Setup
+
+AlertManager routes alerts to Slack and PagerDuty based on severity:
+
+| Severity | Slack Channel | PagerDuty |
+|----------|---------------|-----------|
+| critical | #alerts-critical | Yes |
+| warning | #alerts-warning | No |
+
+### Configuration
+
+Add to `.env` before running `setup.sh`:
+
+```bash
+# Slack webhooks (https://api.slack.com/apps > Incoming Webhooks)
+SLACK_CRITICAL_WEBHOOK=https://hooks.slack.com/services/xxx/yyy/zzz
+SLACK_WARNING_WEBHOOK=https://hooks.slack.com/services/xxx/yyy/zzz
+
+# PagerDuty (Services > Your Service > Integrations > Events API v2)
+PAGERDUTY_ROUTING_KEY=your-integration-key
+```
+
+All three are optional - leave empty to disable that integration.
+
 ## Troubleshooting
 
 ```bash
