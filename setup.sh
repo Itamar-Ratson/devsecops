@@ -188,8 +188,10 @@ grep GRAFANA_ADMIN_USER .env | cut -d'=' -f2- > "$SECRETS_DIR/grafana-user"
 grep GRAFANA_ADMIN_PASSWORD .env | cut -d'=' -f2- > "$SECRETS_DIR/grafana-password"
 grep ARGOCD_ADMIN_PASSWORD_HASH .env | cut -d'=' -f2- > "$SECRETS_DIR/argocd-password-hash"
 grep ARGOCD_SERVER_SECRET_KEY .env | cut -d'=' -f2- > "$SECRETS_DIR/argocd-server-secret-key"
-# PagerDuty routing key (optional - defaults to empty)
+# Alertmanager secrets (optional - defaults to empty)
 grep PAGERDUTY_ROUTING_KEY .env | cut -d'=' -f2- > "$SECRETS_DIR/pagerduty-routing-key" 2>/dev/null || echo -n "" > "$SECRETS_DIR/pagerduty-routing-key"
+grep SLACK_CRITICAL_WEBHOOK .env | cut -d'=' -f2- > "$SECRETS_DIR/slack-critical-webhook" 2>/dev/null || echo -n "" > "$SECRETS_DIR/slack-critical-webhook"
+grep SLACK_WARNING_WEBHOOK .env | cut -d'=' -f2- > "$SECRETS_DIR/slack-warning-webhook" 2>/dev/null || echo -n "" > "$SECRETS_DIR/slack-warning-webhook"
 kubectl create secret generic vault-bootstrap-secrets \
     --namespace vault \
     --from-file="$SECRETS_DIR/grafana-user" \
@@ -197,6 +199,8 @@ kubectl create secret generic vault-bootstrap-secrets \
     --from-file="$SECRETS_DIR/argocd-password-hash" \
     --from-file="$SECRETS_DIR/argocd-server-secret-key" \
     --from-file="$SECRETS_DIR/pagerduty-routing-key" \
+    --from-file="$SECRETS_DIR/slack-critical-webhook" \
+    --from-file="$SECRETS_DIR/slack-warning-webhook" \
     --dry-run=client -o yaml | kubectl apply -f -
 rm -rf "$SECRETS_DIR"
 
