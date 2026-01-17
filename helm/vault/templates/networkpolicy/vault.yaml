@@ -73,9 +73,9 @@ spec:
         - kube-apiserver
 
     # Allow connection to external Transit Vault for auto-unseal
-    # Transit Vault runs in docker-compose on the KinD network
+    # Transit Vault runs in docker-compose on the KinD network (172.16.0.0/12 covers Docker's default ranges)
     - toCIDR:
-        - 172.18.0.0/16
+        - 172.16.0.0/12
       toPorts:
         - ports:
             - port: "{{ .Values.ports.vault.http }}"
