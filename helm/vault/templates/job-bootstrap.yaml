@@ -68,9 +68,11 @@ spec:
                 echo "Initializing Vault..."
                 # With Transit auto-unseal, use recovery shares instead of key shares
                 vault operator init -recovery-shares=1 -recovery-threshold=1 -format=json > /tmp/init.json
+                cat /tmp/init.json
 
-                # Extract root token
-                ROOT_TOKEN=$(cat /tmp/init.json | grep -o '"root_token":"[^"]*"' | cut -d'"' -f4)
+                # Extract root token using sed (more reliable than grep for JSON)
+                ROOT_TOKEN=$(sed -n 's/.*"root_token": *"\([^"]*\)".*/\1/p' /tmp/init.json)
+                echo "Extracted root token: ${ROOT_TOKEN:0:10}..."
 
                 # Store root token in Kubernetes secret
                 cat <<EOSECRET | kubectl apply -f -
