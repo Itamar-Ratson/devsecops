@@ -10,8 +10,8 @@ vaultSecrets:
 
 # GitOps repository configuration
 gitops:
-  # Set to your git repo URL (SSH or HTTPS)
-  repoURL: git@github.com:Itamar-Ratson/secure-k8s.git
+  # Auto-detected from git remote by setup.sh, override with --set gitops.repoURL=...
+  repoURL: ""
   targetRevision: HEAD
   # Enable to have ArgoCD manage the infrastructure components
   enabled: true

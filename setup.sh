@@ -31,6 +31,7 @@ fi
 
 # Validate required environment variables
 MISSING_VARS=""
+[[ -z "$GIT_REPO_URL" ]] && MISSING_VARS="$MISSING_VARS GIT_REPO_URL"
 [[ -z "$VAULT_TRANSIT_TOKEN" ]] && MISSING_VARS="$MISSING_VARS VAULT_TRANSIT_TOKEN"
 [[ -z "$GRAFANA_ADMIN_USER" ]] && MISSING_VARS="$MISSING_VARS GRAFANA_ADMIN_USER"
 [[ -z "$GRAFANA_ADMIN_PASSWORD" ]] && MISSING_VARS="$MISSING_VARS GRAFANA_ADMIN_PASSWORD"
@@ -40,6 +41,8 @@ MISSING_VARS=""
 if [[ -n "$MISSING_VARS" ]]; then
     error "Missing required environment variables in .env:$MISSING_VARS"
 fi
+
+log "Git repo: ${GIT_REPO_URL}"
 
 # ============================================================================
 # CLEAN SLATE: Delete everything for a fresh start
@@ -153,7 +156,7 @@ kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 kubectl create secret generic argocd-repo-creds \
     --namespace argocd \
     --from-literal=type=git \
-    --from-literal=url=git@github.com:Itamar-Ratson \
+    --from-literal=url="${GIT_REPO_URL}" \
     --from-file=sshPrivateKey="${ARGOCD_SSH_KEY_PATH}" \
     --dry-run=client -o yaml | \
     kubectl label --local -f - argocd.argoproj.io/secret-type=repo-creds -o yaml | \
@@ -217,6 +220,7 @@ helm upgrade --install argocd ./helm/argocd -n argocd --create-namespace \
   -f ./helm/ports.yaml \
   -f ./helm/argocd/values.yaml \
   -f ./helm/argocd/values-argocd.yaml \
+  --set gitops.repoURL="${GIT_REPO_URL}" \
   --set gitops.enabled=false \
   --set vaultSecrets.enabled=false
 log "Waiting for ArgoCD server..."
@@ -229,6 +233,7 @@ helm upgrade argocd ./helm/argocd -n argocd \
   -f ./helm/ports.yaml \
   -f ./helm/argocd/values.yaml \
   -f ./helm/argocd/values-argocd.yaml \
+  --set gitops.repoURL="${GIT_REPO_URL}" \
   --set vaultSecrets.enabled=false
 
 # Get ArgoCD admin password
