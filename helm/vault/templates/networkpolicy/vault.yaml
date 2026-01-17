@@ -57,6 +57,14 @@ spec:
             - port: "{{ .Values.ports.vault.http }}"
               protocol: TCP
 
+    # Allow from Gateway for UI access
+    - fromEntities:
+        - ingress
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
   egress:
     # Allow DNS resolution
     - toEndpoints:

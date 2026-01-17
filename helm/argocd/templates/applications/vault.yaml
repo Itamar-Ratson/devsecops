@@ -35,6 +35,10 @@ spec:
       kind: CiliumNetworkPolicy
       jsonPointers:
         - /spec
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jsonPointers:
+        - /spec/parentRefs
   syncPolicy:
     automated:
       prune: true

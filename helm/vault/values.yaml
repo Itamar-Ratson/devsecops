@@ -1,3 +1,8 @@
+# Gateway configuration for HTTPRoute
+gateway:
+  name: main-gateway
+  namespace: gateway
+
 vault:
   global:
     enabled: true
