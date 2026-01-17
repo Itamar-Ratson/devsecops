@@ -189,6 +189,11 @@ kube-prometheus-stack:
           - matchers:
               - severity = critical
             receiver: 'slack-critical'
+            continue: true
+          # Critical alerts -> PagerDuty (receives due to continue: true above)
+          - matchers:
+              - severity = critical
+            receiver: 'pagerduty-critical'
             continue: false
           # Warning alerts -> Slack
           - matchers:
@@ -231,6 +236,17 @@ kube-prometheus-stack:
                 *Summary:* {{ .CommonAnnotations.summary }}
                 *Namespace:* {{ .CommonLabels.namespace }}
                 *Resource:* {{ .CommonLabels.resource_name }}
+
+        - name: 'pagerduty-critical'
+          pagerduty_configs:
+            - routing_key_file: /etc/alertmanager/secrets/alertmanager-slack-webhooks/pagerduty-routing-key
+              severity: '{{ if eq .Status "firing" }}critical{{ else }}info{{ end }}'
+              send_resolved: true
+              description: '{{ .CommonAnnotations.summary }}'
+              details:
+                alertname: '{{ .CommonLabels.alertname }}'
+                namespace: '{{ .CommonLabels.namespace }}'
+                description: '{{ .CommonAnnotations.description }}'
 
   # Node Exporter (useful for cluster-level metrics)
   nodeExporter:

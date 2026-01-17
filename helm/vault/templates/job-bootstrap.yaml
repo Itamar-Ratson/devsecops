@@ -136,16 +136,18 @@ spec:
               GRAFANA_PASSWORD=$(cat /secrets/grafana-password)
               ARGOCD_PASSWORD_HASH=$(cat /secrets/argocd-password-hash)
               ARGOCD_SECRET_KEY=$(cat /secrets/argocd-server-secret-key)
+              PAGERDUTY_ROUTING_KEY=$(cat /secrets/pagerduty-routing-key)
 
               # Seed Grafana secrets
               vault kv put secret/monitoring/grafana \
                 admin-user="$GRAFANA_USER" \
                 admin-password="$GRAFANA_PASSWORD"
 
-              # Seed Alertmanager secrets (empty webhooks for now)
+              # Seed Alertmanager secrets (Slack webhooks empty, PagerDuty from .env)
               vault kv put secret/monitoring/alertmanager \
                 slack-critical-webhook="" \
-                slack-warning-webhook=""
+                slack-warning-webhook="" \
+                pagerduty-routing-key="$PAGERDUTY_ROUTING_KEY"
 
               # Seed ArgoCD secrets
               vault kv put secret/argocd/admin \
