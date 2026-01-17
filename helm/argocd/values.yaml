@@ -10,8 +10,7 @@ vaultSecrets:
 
 # GitOps repository configuration
 gitops:
-  # Auto-detected from git remote by setup.sh, override with --set gitops.repoURL=...
-  repoURL: ""
+  repoURL: "git@github.com:Itamar-Ratson/devsecops.git"
   targetRevision: HEAD
   # Enable to have ArgoCD manage the infrastructure components
   enabled: true
