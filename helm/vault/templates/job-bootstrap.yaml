@@ -46,9 +46,10 @@ spec:
               MAX_RETRIES=60
               RETRY_COUNT=0
               while true; do
-                # Use timeout to prevent hanging on vault status
-                timeout 5 vault status >/dev/null 2>&1
+                set +e  # Temporarily disable exit on error for status check
+                vault status >/dev/null 2>&1
                 rc=$?
+                set -e
                 if [ $rc -eq 0 ] || [ $rc -eq 2 ]; then
                   echo "Vault is responding (exit code $rc)"
                   break
