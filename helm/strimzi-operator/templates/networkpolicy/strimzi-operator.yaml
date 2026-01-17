@@ -31,6 +31,16 @@ spec:
               protocol: TCP
 
   egress:
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP
+
     # Allow Kubernetes API access (for CRD management, watching Kafka CRs)
     - toEntities:
         - kube-apiserver

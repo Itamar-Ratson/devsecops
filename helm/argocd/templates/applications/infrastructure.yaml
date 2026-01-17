@@ -361,9 +361,18 @@ spec:
       kind: PersistentVolumeClaim
       jsonPointers:
         - /spec
+    # Ignore Strimzi-managed resources (created dynamically by operator)
+    - group: kafka.strimzi.io
+      kind: "*"
+      jsonPointers:
+        - /status
+    - group: core.strimzi.io
+      kind: "*"
+      jsonPointers:
+        - /status
   syncPolicy:
     automated:
-      prune: true
+      prune: false  # Disable pruning - Strimzi manages resources dynamically
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
