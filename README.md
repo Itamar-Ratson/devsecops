@@ -80,7 +80,7 @@ cp .env.example .env   # Configure secrets (see .env.example for details)
 | 4 | http-echo, juice-shop |
 | 5 | Monitoring |
 
-After setup, add the SSH key shown in output as a [deploy key](https://github.com/YOUR-ORG/secure-k8s/settings/keys) (read-only).
+After setup, add the SSH key shown in output as a [deploy key](https://github.com/YOUR-ORG/devsecops/settings/keys) (read-only).
 
 ## Access URLs
 
