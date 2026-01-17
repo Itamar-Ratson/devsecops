@@ -133,10 +133,11 @@ After setup, the following services are available:
 | Service | URL | Credentials |
 |---------|-----|-------------|
 | Echo (test app) | https://echo.localhost | - |
+| Juice Shop (vulnerable app) | https://juice-shop.localhost | - |
 | Hubble UI | https://hubble.localhost | - |
 | Grafana | https://grafana.localhost | (from .env: GRAFANA_ADMIN_USER/PASSWORD) |
 | Kafka UI | https://kafka-ui.localhost | - |
-| ArgoCD | https://argocd.localhost | admin / (shown in setup.sh output) |
+| ArgoCD | https://argocd.localhost | admin / (from .env: ARGOCD_ADMIN_PASSWORD_HASH) |
 | Vault UI | https://vault.localhost | (root token in K8s secret) |
 
 Get Vault root token (if needed):
@@ -164,26 +165,39 @@ Monitor deployment progress:
 kubectl get applications -n argocd
 ```
 
-## Custom Secrets (Optional)
+## Custom Secrets
 
-Before running `./setup.sh`, you can customize the default secrets in `helm/vault/values.yaml`:
+Before running `./setup.sh`, configure your secrets in the `.env` file:
 
-```yaml
-bootstrap:
-  secrets:
-    grafana:
-      user: "admin"
-      password: "your-secure-password"
-    alertmanager:
-      criticalWebhook: "https://hooks.slack.com/services/..."
-      warningWebhook: "https://hooks.slack.com/services/..."
-    argocd:
-      passwordHash: "$2a$10$..."  # bcrypt hash
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your values:
+
+```bash
+# Transit Vault token (used for auto-unseal)
+VAULT_TRANSIT_TOKEN=your-secure-token
+
+# Grafana admin credentials
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=your-secure-password
+
+# ArgoCD admin password (bcrypt hash)
+ARGOCD_ADMIN_PASSWORD_HASH=$2y$10$...
+
+# ArgoCD server secret key (for session signing)
+ARGOCD_SERVER_SECRET_KEY=your-random-secret-key
 ```
 
 Generate ArgoCD password hash:
 ```bash
 htpasswd -nbBC 10 "" your-password | tr -d ':\n'
+```
+
+Generate a random secret key:
+```bash
+openssl rand -base64 32
 ```
 
 ## Troubleshooting
