@@ -23,7 +23,10 @@ fi
 # Stop and remove Transit Vault container and volumes
 if docker ps -a --format '{{.Names}}' | grep -q vault-transit; then
     log "Removing Transit Vault container and volumes..."
-    docker compose down -v
+    docker stop vault-transit 2>/dev/null || true
+    docker rm vault-transit 2>/dev/null || true
+    # Remove any vault-transit-data volumes (name varies by directory)
+    docker volume ls --format '{{.Name}}' | grep vault-transit-data | xargs -r docker volume rm 2>/dev/null || true
 else
     warn "No Transit Vault container found"
 fi
