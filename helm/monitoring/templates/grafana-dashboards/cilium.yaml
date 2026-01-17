@@ -1,0 +1,45 @@
+# Cilium Dashboards
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-cilium-metrics
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Cilium"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  cilium-metrics.json: |-
+{{ .Files.Get "dashboards/cilium/cilium-metrics.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-cilium-operator
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Cilium"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  cilium-operator.json: |-
+{{ .Files.Get "dashboards/cilium/cilium-operator.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-hubble-metrics
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Cilium"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  hubble-metrics.json: |-
+{{ .Files.Get "dashboards/cilium/hubble-metrics.json" | indent 4 }}

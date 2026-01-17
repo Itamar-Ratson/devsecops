@@ -1,0 +1,15 @@
+# Tracing Dashboards (Tempo)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-tempo
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Tracing"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  opentelemetry-tempo.json: |-
+{{ .Files.Get "dashboards/tempo/opentelemetry-tempo.json" | indent 4 }}

@@ -1,0 +1,120 @@
+# Kubernetes Dashboards (dotdc/grafana-dashboards-kubernetes)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-k8s-views-global
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Kubernetes"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  k8s-views-global.json: |-
+{{ .Files.Get "dashboards/kubernetes/k8s-views-global.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-k8s-views-namespaces
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Kubernetes"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  k8s-views-namespaces.json: |-
+{{ .Files.Get "dashboards/kubernetes/k8s-views-namespaces.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-k8s-views-nodes
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Kubernetes"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  k8s-views-nodes.json: |-
+{{ .Files.Get "dashboards/kubernetes/k8s-views-nodes.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-k8s-views-pods
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Kubernetes"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  k8s-views-pods.json: |-
+{{ .Files.Get "dashboards/kubernetes/k8s-views-pods.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-k8s-system-api-server
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Kubernetes"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  k8s-system-api-server.json: |-
+{{ .Files.Get "dashboards/kubernetes/k8s-system-api-server.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-k8s-system-coredns
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Kubernetes"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  k8s-system-coredns.json: |-
+{{ .Files.Get "dashboards/kubernetes/k8s-system-coredns.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-k8s-addons-prometheus
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Kubernetes"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  k8s-addons-prometheus.json: |-
+{{ .Files.Get "dashboards/kubernetes/k8s-addons-prometheus.json" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-oom-restarts
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "Kubernetes"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  oom-restarts.json: |-
+{{ .Files.Get "dashboards/kubernetes/oom-restarts.json" | indent 4 }}

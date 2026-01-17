@@ -1,0 +1,15 @@
+# GitOps Dashboards (ArgoCD)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-argocd
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    grafana_folder: "GitOps"
+  labels:
+    grafana_dashboard: "1"
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  argocd-dashboard.json: |-
+{{ .Files.Get "dashboards/argocd/argocd-dashboard.json" | indent 4 }}
