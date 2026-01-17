@@ -9,3 +9,9 @@
 !*.sh
 !*.tsv
 !.env.example
+
+# Ignore hidden directories (except .github)
+.*
+!.github
+!.gitignore
+!.env.example
