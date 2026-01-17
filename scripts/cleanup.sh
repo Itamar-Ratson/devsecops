@@ -10,6 +10,14 @@ NC='\033[0m' # No Color
 log() { echo -e "${GREEN}[INFO]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 
+# Parse flags
+SKIP_SSH_KEY_PROMPT=false
+for arg in "$@"; do
+    case $arg in
+        --skip-ssh-prompt) SKIP_SSH_KEY_PROMPT=true ;;
+    esac
+done
+
 log "Cleaning up all resources..."
 
 # Delete KinD cluster
@@ -20,20 +28,30 @@ else
     warn "No KinD cluster 'k8s-dev' found"
 fi
 
-# Stop and remove Transit Vault container and volumes
+# Stop and remove Transit Vault container, volumes, and network via docker compose
 if docker ps -a --format '{{.Names}}' | grep -q vault-transit; then
-    log "Removing Transit Vault container and volumes..."
-    docker stop vault-transit 2>/dev/null || true
-    docker rm vault-transit 2>/dev/null || true
-    # Remove any vault-transit-data volumes (name varies by directory)
-    docker volume ls --format '{{.Name}}' | grep vault-transit-data | xargs -r docker volume rm 2>/dev/null || true
+    log "Removing Transit Vault container, volumes, and network..."
+    docker compose down -v 2>/dev/null || {
+        # Fallback if docker compose fails (e.g., no compose file in cwd)
+        docker stop vault-transit 2>/dev/null || true
+        docker rm vault-transit 2>/dev/null || true
+        docker volume ls --format '{{.Name}}' | grep vault-transit-data | xargs -r docker volume rm 2>/dev/null || true
+    }
 else
     warn "No Transit Vault container found"
+    # Still try to clean up orphaned volumes and network
+    docker volume ls --format '{{.Name}}' | grep vault-transit-data | xargs -r docker volume rm 2>/dev/null || true
+fi
+
+# Remove docker-compose network if it exists
+if docker network ls --format '{{.Name}}' | grep -q "devsecops_default"; then
+    log "Removing 'devsecops_default' docker network..."
+    docker network rm devsecops_default 2>/dev/null || warn "Could not remove 'devsecops_default' network"
 fi
 
 # Remove ArgoCD SSH deploy key (optional - keeps the key for reuse)
 ARGOCD_SSH_KEY_PATH="${HOME}/.ssh/argocd-deploy-key"
-if [ -f "${ARGOCD_SSH_KEY_PATH}" ]; then
+if [ -f "${ARGOCD_SSH_KEY_PATH}" ] && [ "$SKIP_SSH_KEY_PROMPT" = false ]; then
     read -p "Remove ArgoCD SSH deploy key (${ARGOCD_SSH_KEY_PATH})? [y/N] " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then

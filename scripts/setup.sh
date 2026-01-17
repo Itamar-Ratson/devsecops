@@ -47,19 +47,8 @@ log "Git repo: ${GIT_REPO_URL}"
 # ============================================================================
 # CLEAN SLATE: Delete everything for a fresh start
 # ============================================================================
-log "Ensuring clean environment..."
-
-# Delete existing KinD cluster if it exists
-if kind get clusters 2>/dev/null | grep -q "k8s-dev"; then
-    warn "Deleting existing k8s-dev cluster..."
-    kind delete cluster --name k8s-dev
-fi
-
-# Stop and remove Transit Vault with volumes for clean state
-if docker ps -a --format '{{.Names}}' | grep -q vault-transit; then
-    warn "Removing Transit Vault container and volumes for clean state..."
-    docker compose down -v
-fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"${SCRIPT_DIR}/cleanup.sh" --skip-ssh-prompt
 
 # Start fresh Transit Vault
 log "Starting Transit Vault..."
@@ -85,8 +74,9 @@ log "Creating Kind cluster..."
 kind create cluster --config kind-config.yaml
 
 # Connect Transit Vault to KinD network with static IP
-# KinD uses 172.18.0.0/16 subnet by default, we use .100 to avoid conflicts
-TRANSIT_VAULT_IP="172.18.0.100"
+# KinD uses different subnets depending on existing Docker networks, detect dynamically
+KIND_SUBNET=$(docker network inspect kind --format '{{range .IPAM.Config}}{{.Subnet}} {{end}}' | tr ' ' '\n' | grep "^172\." | head -1)
+TRANSIT_VAULT_IP="$(echo "$KIND_SUBNET" | cut -d'.' -f1-3).100"
 log "Connecting Transit Vault to KinD network with static IP ${TRANSIT_VAULT_IP}..."
 docker network connect --ip "$TRANSIT_VAULT_IP" kind vault-transit 2>/dev/null || {
     # If already connected, disconnect and reconnect with static IP
