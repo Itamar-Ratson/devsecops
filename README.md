@@ -118,6 +118,38 @@ PAGERDUTY_ROUTING_KEY=your-integration-key
 
 All three are optional - leave empty to disable that integration.
 
+## GitOps Workflow
+
+**All infrastructure changes go through Git, not direct deployment.**
+
+### How to Make Changes
+
+1. **Edit the Helm chart** - Modify files in `helm/<component>/values.yaml` or `templates/`
+2. **Commit and push** - `git add . && git commit -m "message" && git push`
+3. **ArgoCD syncs automatically** - Or trigger manual sync in ArgoCD UI
+4. **Monitor sync status** - `kubectl get applications -n argocd`
+
+### What NOT to Do
+
+```bash
+# WRONG - bypasses GitOps
+helm upgrade --install vault helm/vault/ -n vault ...
+kubectl apply -f some-manifest.yaml
+
+# RIGHT - let ArgoCD handle it
+vim helm/vault/values.yaml  # make changes
+git add . && git commit -m "update vault config" && git push
+# ArgoCD syncs automatically
+```
+
+### Bootstrap vs GitOps-Managed
+
+| Component | Deployed By | How to Change |
+|-----------|-------------|---------------|
+| Cilium, Sealed-Secrets | setup.sh | Edit chart, re-run setup.sh |
+| ArgoCD | setup.sh (bootstrap) | Edit chart, commit, ArgoCD self-manages |
+| Everything else (Waves 1-5) | ArgoCD | Edit chart, commit, ArgoCD syncs |
+
 ## Troubleshooting
 
 ```bash
