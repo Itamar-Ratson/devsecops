@@ -13,8 +13,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: {{ .Values.gitops.repoURL }}
-    targetRevision: {{ .Values.gitops.targetRevision }}
+    repoURL: "{{ .Values.gitops.repoURL }}"
+    targetRevision: "{{ .Values.gitops.targetRevision }}"
     path: helm/argocd
     helm:
       valueFiles:
