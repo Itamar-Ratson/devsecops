@@ -1,7 +1,6 @@
 *
 !**/
 !.gitignore
-.claude/
 !Chart.lock
 !README.md
 !Dockerfile
