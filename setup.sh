@@ -182,14 +182,17 @@ EOF
 
 # Create Secret with bootstrap secrets for Vault
 # These will be used by the bootstrap job to seed Vault with initial secrets
-# Note: Using kubectl create instead of heredoc to avoid shell expansion of $ in bcrypt hash
+# Note: Write hash to temp file to avoid shell expansion of $ in bcrypt hash
+HASH_FILE=$(mktemp)
+grep ARGOCD_ADMIN_PASSWORD_HASH .env | cut -d'=' -f2- > "$HASH_FILE"
 kubectl create secret generic vault-bootstrap-secrets \
     --namespace vault \
     --from-literal=grafana-user="$GRAFANA_ADMIN_USER" \
     --from-literal=grafana-password="$GRAFANA_ADMIN_PASSWORD" \
-    --from-literal=argocd-password-hash="$ARGOCD_ADMIN_PASSWORD_HASH" \
+    --from-file=argocd-password-hash="$HASH_FILE" \
     --from-literal=argocd-server-secret-key="$ARGOCD_SERVER_SECRET_KEY" \
     --dry-run=client -o yaml | kubectl apply -f -
+rm -f "$HASH_FILE"
 
 log "Vault prerequisites created - ArgoCD will deploy Vault in Wave 2"
 
