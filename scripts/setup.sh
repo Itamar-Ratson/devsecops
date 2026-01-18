@@ -218,29 +218,24 @@ log "Vault prerequisites created - ArgoCD will deploy Vault in Wave 2"
 # ============================================================================
 # Install ArgoCD (GitOps controller)
 # ============================================================================
+log "Installing ArgoCD CRDs..."
+kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.14.2/manifests/crds/application-crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.14.2/manifests/crds/appproject-crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.14.2/manifests/crds/applicationset-crd.yaml
+
 log "Building and installing ArgoCD..."
 helm dependency build ./helm/argocd
 
-# Initial install: disable gitops and vaultSecrets (VSO CRDs don't exist yet)
+# Single install with GitOps enabled (CRDs already installed above)
+# vaultSecrets disabled until VSO is deployed by ArgoCD
 helm upgrade --install argocd ./helm/argocd -n argocd --create-namespace \
   -f ./helm/ports.yaml \
   -f ./helm/argocd/values.yaml \
   -f ./helm/argocd/values-argocd.yaml \
   --set gitops.repoURL="${GIT_REPO_URL}" \
-  --set gitops.enabled=false \
   --set vaultSecrets.enabled=false
 log "Waiting for ArgoCD server..."
 kubectl wait --for=condition=Available deployment/argocd-server -n argocd --timeout=180s
-
-# Enable GitOps - ArgoCD will deploy all infrastructure via sync waves
-# vaultSecrets stays disabled until VSO is deployed by ArgoCD
-log "Enabling GitOps (ArgoCD will deploy all infrastructure)..."
-helm upgrade argocd ./helm/argocd -n argocd \
-  -f ./helm/ports.yaml \
-  -f ./helm/argocd/values.yaml \
-  -f ./helm/argocd/values-argocd.yaml \
-  --set gitops.repoURL="${GIT_REPO_URL}" \
-  --set vaultSecrets.enabled=false
 
 # Get ArgoCD admin password
 log "Retrieving ArgoCD admin password..."
