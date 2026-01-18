@@ -157,24 +157,27 @@ argo-cd:
       # ArgoCD server URL (used for OIDC callbacks)
       url: https://argocd.localhost
 
-      # Dex configuration for Keycloak OIDC
-      dex.config: |
-        connectors:
-          - type: oidc
-            id: keycloak
-            name: Keycloak
-            config:
-              issuer: https://keycloak.localhost/realms/devsecops
-              clientID: argocd
-              clientSecretEnv: DEX_KEYCLOAK_CLIENT_SECRET
-              insecureSkipEmailVerified: true
-              insecureEnableGroups: true
-              scopes:
-                - openid
-                - profile
-                - email
-                - groups
-              getUserInfo: true
+      # Note: Dex configuration is commented out because Dex is disabled.
+      # To enable SSO, set dex.enabled=true and uncomment dex.config below.
+      # The argocd-oidc-secret must exist (created by VSO from Vault).
+      #
+      # dex.config: |
+      #   connectors:
+      #     - type: oidc
+      #       id: keycloak
+      #       name: Keycloak
+      #       config:
+      #         issuer: https://keycloak.localhost/realms/devsecops
+      #         clientID: argocd
+      #         clientSecretEnv: DEX_KEYCLOAK_CLIENT_SECRET
+      #         insecureSkipEmailVerified: true
+      #         insecureEnableGroups: true
+      #         scopes:
+      #           - openid
+      #           - profile
+      #           - email
+      #           - groups
+      #         getUserInfo: true
 
     rbac:
       policy.csv: |

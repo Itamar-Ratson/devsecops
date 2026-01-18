@@ -114,6 +114,7 @@ spec:
               vault policy write monitoring /config/policy-monitoring.hcl
               vault policy write argocd /config/policy-argocd.hcl
               vault policy write keycloak /config/policy-keycloak.hcl
+              vault policy write oidc-user /config/policy-oidc-user.hcl
 
               # Configure Kubernetes auth
               echo "Configuring Kubernetes auth..."
@@ -214,7 +215,7 @@ spec:
                     allowed_redirect_uris="https://vault.localhost/ui/vault/auth/oidc/oidc/callback" \
                     user_claim="preferred_username" \
                     groups_claim="groups" \
-                    policies="default"
+                    policies="default,oidc-user"
                   echo "OIDC auth method configured with external URL"
                 else
                   echo "WARNING: Gateway TLS secret not found, skipping OIDC config"

@@ -24,6 +24,35 @@ data:
     path "secret/data/keycloak/*" {
       capabilities = ["read"]
     }
+  policy-oidc-user.hcl: |
+    # Policy for OIDC authenticated users (Keycloak SSO)
+    # Allow users to view their own token info
+    path "auth/token/lookup-self" {
+      capabilities = ["read"]
+    }
+    # Allow users to renew their own token
+    path "auth/token/renew-self" {
+      capabilities = ["update"]
+    }
+    # Allow listing secrets engines (needed for UI navigation)
+    path "sys/mounts" {
+      capabilities = ["read"]
+    }
+    # Allow reading mount info for UI
+    path "sys/internal/ui/mounts/*" {
+      capabilities = ["read"]
+    }
+    # Allow reading own capabilities
+    path "sys/capabilities-self" {
+      capabilities = ["update"]
+    }
+    # Allow reading KV secrets (read-only for regular users)
+    path "secret/data/*" {
+      capabilities = ["read", "list"]
+    }
+    path "secret/metadata/*" {
+      capabilities = ["read", "list"]
+    }
 
   # Note: Actual secrets are read from vault-bootstrap-secrets Secret
   # which is created by setup.sh before ArgoCD deploys Vault
