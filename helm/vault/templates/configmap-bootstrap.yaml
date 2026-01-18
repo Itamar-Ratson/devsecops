@@ -19,6 +19,11 @@ data:
     path "secret/data/argocd/*" {
       capabilities = ["read"]
     }
+  policy-keycloak.hcl: |
+    # Policy for keycloak namespace secrets
+    path "secret/data/keycloak/*" {
+      capabilities = ["read"]
+    }
 
   # Note: Actual secrets are read from vault-bootstrap-secrets Secret
   # which is created by setup.sh before ArgoCD deploys Vault

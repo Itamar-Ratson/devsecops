@@ -76,9 +76,20 @@ spec:
             - port: "{{ .Values.ports.tempo.http }}"
               protocol: TCP
     # Allow downloading dashboards from grafana.com (for init container)
+    # and OAuth with Keycloak (external URL)
     - toEntities:
         - world
       toPorts:
         - ports:
             - port: "{{ .Values.ports.gateway.https }}"
+              protocol: TCP
+
+    # Allow communication with Keycloak for OAuth
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: keycloak
+            app.kubernetes.io/name: keycloakx
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
               protocol: TCP

@@ -1,0 +1,79 @@
+---
+# Keycloak network policy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: keycloak
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: keycloakx
+
+  ingress:
+    # Allow from Gateway (Cilium Envoy) for UI/API access
+    - fromEntities:
+        - ingress
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
+    # Allow from host for port-forwarding
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
+    # Allow from ArgoCD Dex for OIDC
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+            app.kubernetes.io/name: argocd-dex-server
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
+    # Allow from Grafana for OAuth
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: grafana
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
+    # Allow from Vault for OIDC
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: vault
+            app.kubernetes.io/name: vault
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
+    # Allow Prometheus to scrape metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
+  egress:
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP

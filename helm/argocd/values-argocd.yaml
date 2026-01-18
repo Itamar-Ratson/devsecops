@@ -101,9 +101,27 @@ argo-cd:
   notifications:
     enabled: false
 
-  # Dex - disable external OIDC (use built-in auth)
+  # Dex - OIDC provider for Keycloak SSO
   dex:
-    enabled: false
+    enabled: true
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 25m
+        memory: 64Mi
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: false
+    # Inject OIDC client secret from Vault-synced secret
+    env:
+      - name: DEX_KEYCLOAK_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: argocd-oidc-secret
+            key: argocd-client-secret
 
   # CRDs - install via Helm
   crds:
@@ -132,3 +150,34 @@ argo-cd:
     params:
       server.enable.gzip: true
       application.instanceLabelKey: argocd.argoproj.io/instance
+
+    cm:
+      # Dex configuration for Keycloak OIDC
+      dex.config: |
+        connectors:
+          - type: oidc
+            id: keycloak
+            name: Keycloak
+            config:
+              issuer: https://keycloak.localhost/realms/devsecops
+              clientID: argocd
+              clientSecretEnv: DEX_KEYCLOAK_CLIENT_SECRET
+              insecureSkipEmailVerified: true
+              insecureEnableGroups: true
+              scopes:
+                - openid
+                - profile
+                - email
+                - groups
+              getUserInfo: true
+
+    rbac:
+      policy.csv: |
+        # Admins group has full admin access
+        g, admins, role:admin
+        # Developers group has admin access (can manage apps)
+        g, developers, role:admin
+        # Viewers group has read-only access
+        g, viewers, role:readonly
+      policy.default: role:readonly
+      scopes: "[groups]"

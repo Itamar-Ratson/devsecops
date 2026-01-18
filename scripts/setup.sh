@@ -37,6 +37,11 @@ MISSING_VARS=""
 [[ -z "$GRAFANA_ADMIN_PASSWORD" ]] && MISSING_VARS="$MISSING_VARS GRAFANA_ADMIN_PASSWORD"
 [[ -z "$ARGOCD_ADMIN_PASSWORD_HASH" ]] && MISSING_VARS="$MISSING_VARS ARGOCD_ADMIN_PASSWORD_HASH"
 [[ -z "$ARGOCD_SERVER_SECRET_KEY" ]] && MISSING_VARS="$MISSING_VARS ARGOCD_SERVER_SECRET_KEY"
+[[ -z "$KEYCLOAK_ADMIN_USER" ]] && MISSING_VARS="$MISSING_VARS KEYCLOAK_ADMIN_USER"
+[[ -z "$KEYCLOAK_ADMIN_PASSWORD" ]] && MISSING_VARS="$MISSING_VARS KEYCLOAK_ADMIN_PASSWORD"
+[[ -z "$ARGOCD_OIDC_CLIENT_SECRET" ]] && MISSING_VARS="$MISSING_VARS ARGOCD_OIDC_CLIENT_SECRET"
+[[ -z "$GRAFANA_OIDC_CLIENT_SECRET" ]] && MISSING_VARS="$MISSING_VARS GRAFANA_OIDC_CLIENT_SECRET"
+[[ -z "$VAULT_OIDC_CLIENT_SECRET" ]] && MISSING_VARS="$MISSING_VARS VAULT_OIDC_CLIENT_SECRET"
 
 if [[ -n "$MISSING_VARS" ]]; then
     error "Missing required environment variables in .env:$MISSING_VARS"
@@ -185,6 +190,12 @@ grep ARGOCD_SERVER_SECRET_KEY .env | cut -d'=' -f2- > "$SECRETS_DIR/argocd-serve
 grep PAGERDUTY_ROUTING_KEY .env | cut -d'=' -f2- > "$SECRETS_DIR/pagerduty-routing-key" 2>/dev/null || echo -n "" > "$SECRETS_DIR/pagerduty-routing-key"
 grep SLACK_CRITICAL_WEBHOOK .env | cut -d'=' -f2- > "$SECRETS_DIR/slack-critical-webhook" 2>/dev/null || echo -n "" > "$SECRETS_DIR/slack-critical-webhook"
 grep SLACK_WARNING_WEBHOOK .env | cut -d'=' -f2- > "$SECRETS_DIR/slack-warning-webhook" 2>/dev/null || echo -n "" > "$SECRETS_DIR/slack-warning-webhook"
+# Keycloak secrets
+grep KEYCLOAK_ADMIN_USER .env | cut -d'=' -f2- > "$SECRETS_DIR/keycloak-admin-user"
+grep KEYCLOAK_ADMIN_PASSWORD .env | cut -d'=' -f2- > "$SECRETS_DIR/keycloak-admin-password"
+grep ARGOCD_OIDC_CLIENT_SECRET .env | cut -d'=' -f2- > "$SECRETS_DIR/argocd-oidc-client-secret"
+grep GRAFANA_OIDC_CLIENT_SECRET .env | cut -d'=' -f2- > "$SECRETS_DIR/grafana-oidc-client-secret"
+grep VAULT_OIDC_CLIENT_SECRET .env | cut -d'=' -f2- > "$SECRETS_DIR/vault-oidc-client-secret"
 kubectl create secret generic vault-bootstrap-secrets \
     --namespace vault \
     --from-file="$SECRETS_DIR/grafana-user" \
@@ -194,6 +205,11 @@ kubectl create secret generic vault-bootstrap-secrets \
     --from-file="$SECRETS_DIR/pagerduty-routing-key" \
     --from-file="$SECRETS_DIR/slack-critical-webhook" \
     --from-file="$SECRETS_DIR/slack-warning-webhook" \
+    --from-file="$SECRETS_DIR/keycloak-admin-user" \
+    --from-file="$SECRETS_DIR/keycloak-admin-password" \
+    --from-file="$SECRETS_DIR/argocd-oidc-client-secret" \
+    --from-file="$SECRETS_DIR/grafana-oidc-client-secret" \
+    --from-file="$SECRETS_DIR/vault-oidc-client-secret" \
     --dry-run=client -o yaml | kubectl apply -f -
 rm -rf "$SECRETS_DIR"
 
@@ -243,7 +259,7 @@ echo ""
 echo "ArgoCD is now deploying all infrastructure via GitOps sync waves:"
 echo "  Wave 0: ArgoCD (self-managed)"
 echo "  Wave 1: Tetragon, Kyverno, Trivy, cert-manager, Sealed-secrets, Strimzi, Network-policies"
-echo "  Wave 2: Kyverno-policies, Vault, Kafka"
+echo "  Wave 2: Kyverno-policies, Vault, Kafka, Keycloak"
 echo "  Wave 3: Vault-secrets-operator, Gateway, Kafka-UI"
 echo "  Wave 4: http-echo, juice-shop"
 echo "  Wave 5: Monitoring"

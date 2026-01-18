@@ -113,6 +113,7 @@ spec:
               echo "Applying policies..."
               vault policy write monitoring /config/policy-monitoring.hcl
               vault policy write argocd /config/policy-argocd.hcl
+              vault policy write keycloak /config/policy-keycloak.hcl
 
               # Configure Kubernetes auth
               echo "Configuring Kubernetes auth..."
@@ -124,8 +125,8 @@ spec:
               echo "Creating Kubernetes auth roles..."
               vault write auth/kubernetes/role/vault-secrets-operator \
                 bound_service_account_names="vault-secrets-operator-controller-manager,default" \
-                bound_service_account_namespaces="vault-secrets-operator,monitoring,argocd" \
-                policies="monitoring,argocd" \
+                bound_service_account_namespaces="vault-secrets-operator,monitoring,argocd,keycloak,vault" \
+                policies="monitoring,argocd,keycloak" \
                 ttl=24h
 
               # Seed secrets from the pre-created Secret (created by setup.sh)
@@ -156,6 +157,39 @@ spec:
                 "admin.password=$ARGOCD_PASSWORD_HASH" \
                 "admin.passwordMtime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
                 "server.secretkey=$ARGOCD_SECRET_KEY"
+
+              # Read Keycloak secrets from mounted Secret
+              KEYCLOAK_ADMIN_USER=$(cat /secrets/keycloak-admin-user)
+              KEYCLOAK_ADMIN_PASSWORD=$(cat /secrets/keycloak-admin-password)
+              ARGOCD_OIDC_CLIENT_SECRET=$(cat /secrets/argocd-oidc-client-secret)
+              GRAFANA_OIDC_CLIENT_SECRET=$(cat /secrets/grafana-oidc-client-secret)
+              VAULT_OIDC_CLIENT_SECRET=$(cat /secrets/vault-oidc-client-secret)
+
+              # Seed Keycloak admin secrets
+              vault kv put secret/keycloak/admin \
+                admin-user="$KEYCLOAK_ADMIN_USER" \
+                admin-password="$KEYCLOAK_ADMIN_PASSWORD"
+
+              # Seed OIDC client secrets
+              vault kv put secret/keycloak/oidc-clients \
+                argocd-client-secret="$ARGOCD_OIDC_CLIENT_SECRET" \
+                grafana-client-secret="$GRAFANA_OIDC_CLIENT_SECRET" \
+                vault-client-secret="$VAULT_OIDC_CLIENT_SECRET"
+
+              # Configure OIDC auth method for Vault UI login
+              echo "Configuring OIDC auth method..."
+              vault auth enable oidc 2>/dev/null || echo "OIDC auth already enabled"
+              vault write auth/oidc/config \
+                oidc_discovery_url="https://keycloak.localhost/realms/devsecops" \
+                oidc_client_id="vault" \
+                oidc_client_secret="$VAULT_OIDC_CLIENT_SECRET" \
+                default_role="default"
+              vault write auth/oidc/role/default \
+                bound_audiences="vault" \
+                allowed_redirect_uris="https://vault.localhost/ui/vault/auth/oidc/oidc/callback" \
+                user_claim="preferred_username" \
+                groups_claim="groups" \
+                policies="default"
 
               echo "=== Vault Bootstrap Complete ==="
           volumeMounts:

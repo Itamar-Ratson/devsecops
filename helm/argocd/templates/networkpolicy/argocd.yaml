@@ -300,3 +300,74 @@ spec:
         - ports:
             - port: "{{ .Values.ports.argocd.repoServer }}"
               protocol: TCP
+
+---
+# ArgoCD Dex Server Network Policy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argocd-dex-server
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-dex-server
+
+  ingress:
+    # Allow from ArgoCD server (for SSO callback)
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: argocd-server
+      toPorts:
+        - ports:
+            - port: "5556"
+              protocol: TCP
+            - port: "5557"
+              protocol: TCP
+
+    # Allow from Gateway (Cilium Envoy) for OIDC callback
+    - fromEntities:
+        - ingress
+      toPorts:
+        - ports:
+            - port: "5556"
+              protocol: TCP
+
+    # Allow Prometheus to scrape metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "5558"
+              protocol: TCP
+
+  egress:
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP
+
+    # Allow communication with Keycloak for OIDC
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: keycloak
+            app.kubernetes.io/name: keycloakx
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
+    # Allow external Keycloak access (in case using external URL via Gateway)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.gateway.https }}"
+              protocol: TCP

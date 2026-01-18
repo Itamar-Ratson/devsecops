@@ -110,3 +110,8 @@ vault:
 # Secrets are read from vault-bootstrap-secrets Secret created by setup.sh
 bootstrap:
   enabled: true
+
+# Vault Secrets - sync secrets from Vault to Kubernetes
+# Used for OIDC client secret for Vault UI login reconfiguration
+vaultSecrets:
+  enabled: true

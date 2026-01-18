@@ -1,0 +1,9 @@
+# Gateway configuration for HTTPRoute
+gateway:
+  name: main-gateway
+  namespace: gateway
+
+# Vault Secrets - sync secrets from Vault to Kubernetes
+# Requires Vault Secrets Operator to be installed
+vaultSecrets:
+  enabled: true

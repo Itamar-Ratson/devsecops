@@ -1,0 +1,104 @@
+keycloakx:
+  # Use Quarkus-based Keycloak (keycloakx)
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: "24.0"
+    pullPolicy: IfNotPresent
+
+  # Single replica for dev environment
+  replicas: 1
+
+  # Resource limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  # Use embedded H2 database for dev (no PostgreSQL dependency)
+  # Data persisted via PVC
+  database:
+    vendor: h2
+
+  # Keycloak command configuration
+  command:
+    - "/opt/keycloak/bin/kc.sh"
+    - "start"
+    - "--http-enabled=true"
+    - "--http-port=8080"
+    - "--hostname-strict=false"
+    - "--proxy=edge"
+    - "--import-realm"
+
+  # Enable health and metrics endpoints
+  extraEnv: |
+    - name: KC_HEALTH_ENABLED
+      value: "true"
+    - name: KC_METRICS_ENABLED
+      value: "true"
+    - name: KEYCLOAK_ADMIN
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-admin-credentials
+          key: admin-user
+    - name: KEYCLOAK_ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-admin-credentials
+          key: admin-password
+
+  # Mount realm configuration for import
+  extraVolumes: |
+    - name: realm-config
+      configMap:
+        name: keycloak-realm-config
+
+  extraVolumeMounts: |
+    - name: realm-config
+      mountPath: /opt/keycloak/data/import
+      readOnly: true
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    httpPort: 8080
+
+  # HTTP service (no TLS - terminated at Gateway)
+  http:
+    relativePath: "/"
+
+  # Disable ingress (we use Gateway API HTTPRoute)
+  ingress:
+    enabled: false
+
+  # Startup probe (Keycloak can be slow to start)
+  startupProbe: |
+    httpGet:
+      path: /health/started
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    timeoutSeconds: 1
+    failureThreshold: 60
+
+  # Liveness probe
+  livenessProbe: |
+    httpGet:
+      path: /health/live
+      port: http
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # Readiness probe
+  readinessProbe: |
+    httpGet:
+      path: /health/ready
+      port: http
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3

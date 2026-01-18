@@ -1,0 +1,41 @@
+# Wave 2: Identity - Keycloak OIDC/SSO Provider
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keycloak
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    path: helm/keycloak
+    helm:
+      valueFiles:
+        - ../ports.yaml
+        - values.yaml
+        - values-keycloak.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keycloak
+  ignoreDifferences:
+    - group: cilium.io
+      kind: CiliumNetworkPolicy
+      jsonPointers:
+        - /spec
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jsonPointers:
+        - /spec/parentRefs
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true

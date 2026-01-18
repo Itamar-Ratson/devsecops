@@ -120,3 +120,9 @@ ports:
     http: 8200
     cluster: 8201
     injectorWebhook: 8080
+
+  # Keycloak
+  keycloak:
+    http: 8080
+    https: 8443
+    management: 9000

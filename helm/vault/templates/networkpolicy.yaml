@@ -1,0 +1,103 @@
+---
+# Vault Server Network Policy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: vault-server
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: vault
+      component: server
+
+  ingress:
+    # Allow from Gateway (Cilium Envoy) for UI access
+    - fromEntities:
+        - ingress
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
+    # Allow from host for port-forwarding
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
+    # Allow from Vault Agent Injector
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: vault-agent-injector
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
+    # Allow from Vault Secrets Operator
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: vault-secrets-operator
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
+    # Allow from Vault bootstrap job
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: vault-bootstrap
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
+    # Allow Prometheus to scrape metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
+  egress:
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP
+
+    # Allow Transit Vault access (for auto-unseal)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.vault.http }}"
+              protocol: TCP
+
+    # Allow Keycloak access for OIDC (external URL via Gateway)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.gateway.https }}"
+              protocol: TCP
+
+    # Allow Keycloak access for OIDC (internal cluster URL)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: keycloak
+            app.kubernetes.io/name: keycloakx
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
