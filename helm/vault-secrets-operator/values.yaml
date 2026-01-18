@@ -8,6 +8,7 @@ vault-secrets-operator:
   # Default auth method configuration
   defaultAuthMethod:
     enabled: true
+    namespace: "vault-secrets-operator"
     method: kubernetes
     mount: kubernetes
     kubernetes:
