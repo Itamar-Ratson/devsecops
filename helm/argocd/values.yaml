@@ -3,10 +3,11 @@ gateway:
   name: main-gateway
   namespace: gateway
 
-# Vault Secrets - disabled by default (ArgoCD is Wave 0, before VSO Wave 3)
-# Enable after VSO is deployed and CRDs exist
+# Vault Secrets - enables VaultStaticSecret for OIDC client secret
+# Note: This works because ArgoCD self-manages after initial bootstrap,
+# and by the time it syncs itself, VSO (Wave 3) is already deployed
 vaultSecrets:
-  enabled: false
+  enabled: true
 
 # GitOps repository configuration
 # enabled: false during initial bootstrap (CRDs don't exist yet)
