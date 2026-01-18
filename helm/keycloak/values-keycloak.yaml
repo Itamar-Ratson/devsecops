@@ -17,10 +17,9 @@ keycloakx:
       cpu: "1"
       memory: 1Gi
 
-  # Use embedded H2 database for dev (no PostgreSQL dependency)
-  # Data persisted via PVC
+  # Use embedded dev-file database for dev (no PostgreSQL dependency)
   database:
-    vendor: h2
+    vendor: dev-file
 
   # Keycloak command configuration
   command:
