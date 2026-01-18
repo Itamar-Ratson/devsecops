@@ -168,6 +168,7 @@ argo-cd:
               clientSecretEnv: DEX_KEYCLOAK_CLIENT_SECRET
               insecureSkipEmailVerified: true
               insecureEnableGroups: true
+              insecureSkipVerify: true
               scopes:
                 - openid
                 - profile
