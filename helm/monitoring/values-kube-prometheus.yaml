@@ -78,13 +78,13 @@ kube-prometheus-stack:
         client_id: grafana
         # client_secret is injected via envFromSecret as GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET
         scopes: openid profile email groups
+        # auth_url uses external URL (browser redirect)
         auth_url: https://keycloak.localhost/realms/devsecops/protocol/openid-connect/auth
-        token_url: https://keycloak.localhost/realms/devsecops/protocol/openid-connect/token
-        api_url: https://keycloak.localhost/realms/devsecops/protocol/openid-connect/userinfo
+        # token_url and api_url use internal URL (server-to-server)
+        token_url: http://keycloak-keycloakx-http.keycloak.svc:8080/realms/devsecops/protocol/openid-connect/token
+        api_url: http://keycloak-keycloakx-http.keycloak.svc:8080/realms/devsecops/protocol/openid-connect/userinfo
         # Map Keycloak groups to Grafana roles
         role_attribute_path: "contains(groups[*], 'admins') && 'Admin' || contains(groups[*], 'developers') && 'Editor' || 'Viewer'"
-        # Skip TLS verification for dev (self-signed certs)
-        tls_skip_verify_insecure: true
 
     # Sidecar configuration
     sidecar:
