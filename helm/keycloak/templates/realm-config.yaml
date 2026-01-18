@@ -47,6 +47,7 @@ data:
           "name": "ArgoCD",
           "enabled": true,
           "clientAuthenticatorType": "client-secret",
+          "secret": "${ARGOCD_CLIENT_SECRET}",
           "redirectUris": [
             "https://argocd.localhost/auth/callback",
             "https://argocd.localhost/api/dex/callback"
@@ -81,6 +82,7 @@ data:
           "name": "Grafana",
           "enabled": true,
           "clientAuthenticatorType": "client-secret",
+          "secret": "${GRAFANA_CLIENT_SECRET}",
           "redirectUris": [
             "https://grafana.localhost/login/generic_oauth"
           ],
@@ -114,6 +116,7 @@ data:
           "name": "Vault",
           "enabled": true,
           "clientAuthenticatorType": "client-secret",
+          "secret": "${VAULT_CLIENT_SECRET}",
           "redirectUris": [
             "https://vault.localhost/ui/vault/auth/oidc/oidc/callback"
           ],

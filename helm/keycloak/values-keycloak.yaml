@@ -48,6 +48,22 @@ keycloakx:
         secretKeyRef:
           name: keycloak-admin-credentials
           key: admin-password
+    # OIDC client secrets for realm import (env var substitution)
+    - name: ARGOCD_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-oidc-clients
+          key: argocd-client-secret
+    - name: GRAFANA_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-oidc-clients
+          key: grafana-client-secret
+    - name: VAULT_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-oidc-clients
+          key: vault-client-secret
 
   # Mount realm configuration for import
   extraVolumes: |
