@@ -32,12 +32,8 @@ keycloakx:
     - "--proxy=edge"
     - "--import-realm"
 
-  # Enable health and metrics endpoints
+  # Admin credentials and OIDC secrets for realm import
   extraEnv: |
-    - name: KC_HEALTH_ENABLED
-      value: "true"
-    - name: KC_METRICS_ENABLED
-      value: "true"
     - name: KEYCLOAK_ADMIN
       valueFrom:
         secretKeyRef:
