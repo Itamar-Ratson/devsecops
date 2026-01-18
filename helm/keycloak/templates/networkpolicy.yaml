@@ -57,6 +57,16 @@ spec:
             - port: "{{ .Values.ports.keycloak.http }}"
               protocol: TCP
 
+    # Allow from Vault bootstrap job for OIDC discovery
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: vault
+            app.kubernetes.io/name: vault-bootstrap
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
         - matchLabels:
