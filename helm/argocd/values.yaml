@@ -5,8 +5,9 @@ gateway:
 
 # Vault Secrets - sync secrets from Vault to Kubernetes
 # Requires Vault Secrets Operator to be installed
+# Default false - enable after VSO is deployed and healthy
 vaultSecrets:
-  enabled: true
+  enabled: false
 
 # GitOps repository configuration
 # enabled: false during initial bootstrap (CRDs don't exist yet)
