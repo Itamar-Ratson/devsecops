@@ -14,11 +14,12 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![cert-manager](https://img.shields.io/badge/cert--manager-0A5CBF?style=flat&logo=letsencrypt&logoColor=white)
 ![Transit Vault](https://img.shields.io/badge/Transit_Vault-FFEC6E?style=flat&logo=vault&logoColor=black)
 
-**Security**<br>
+**Security & Identity**<br>
 ![Cilium Network Policies](https://img.shields.io/badge/Cilium_Network_Policies-F8C517?style=flat&logo=cilium&logoColor=black)
 ![Sealed Secrets](https://img.shields.io/badge/Sealed_Secrets-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![Vault](https://img.shields.io/badge/Vault-FFEC6E?style=flat&logo=vault&logoColor=black)
 ![Vault Secrets Operator](https://img.shields.io/badge/Vault_Secrets_Operator-FFEC6E?style=flat&logo=vault&logoColor=black)
+![Keycloak](https://img.shields.io/badge/Keycloak-4D4D4D?style=flat&logo=keycloak&logoColor=white)
 ![Tetragon](https://img.shields.io/badge/Tetragon-F8C517?style=flat&logo=cilium&logoColor=black)
 ![Kyverno](https://img.shields.io/badge/Kyverno-FF6F00?style=flat&logo=kubernetes&logoColor=white)
 ![Trivy](https://img.shields.io/badge/Trivy-1904DA?style=flat&logo=aquasecurity&logoColor=white)
@@ -75,7 +76,7 @@ cp .env.example .env   # Configure secrets (see .env.example for details)
 |------|------------|
 | 0 | ArgoCD (self-managed) |
 | 1 | Tetragon, Kyverno, Trivy, cert-manager, Sealed-secrets, Strimzi, Network-policies |
-| 2 | Kyverno-policies, Vault, Kafka |
+| 2 | Kyverno-policies, Vault, Kafka, Keycloak |
 | 3 | Vault-secrets-operator, Gateway, Kafka-UI |
 | 4 | http-echo, juice-shop |
 | 5 | Monitoring |
@@ -89,10 +90,16 @@ After setup, add the SSH key shown in output as a [deploy key](https://github.co
 | Echo | https://echo.localhost | - |
 | Juice Shop | https://juice-shop.localhost | - |
 | Hubble UI | https://hubble.localhost | - |
-| Grafana | https://grafana.localhost | .env: GRAFANA_ADMIN_* |
+| Grafana | https://grafana.localhost | SSO via Keycloak or .env: GRAFANA_ADMIN_* |
 | Kafka UI | https://kafka-ui.localhost | - |
-| ArgoCD | https://argocd.localhost | .env: ARGOCD_ADMIN_PASSWORD_HASH |
-| Vault UI | https://vault.localhost | `kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" \| base64 -d` |
+| ArgoCD | https://argocd.localhost | SSO via Keycloak or admin/.env: ARGOCD_ADMIN_PASSWORD_HASH |
+| Vault UI | https://vault.localhost | SSO via Keycloak (OIDC) or root token below |
+| Keycloak | https://keycloak.localhost | .env: KEYCLOAK_ADMIN_* |
+
+**Vault root token:**
+```bash
+kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base64 -d
+```
 
 ## Alerting Setup
 
@@ -117,6 +124,31 @@ PAGERDUTY_ROUTING_KEY=your-integration-key
 ```
 
 All three are optional - leave empty to disable that integration.
+
+## SSO with Keycloak
+
+Keycloak provides centralized SSO for ArgoCD, Grafana, and Vault. Add to `.env`:
+
+```bash
+# Keycloak admin
+KEYCLOAK_ADMIN_USER=admin
+KEYCLOAK_ADMIN_PASSWORD=admin
+
+# OIDC secrets (generate each with: openssl rand -hex 32)
+ARGOCD_OIDC_CLIENT_SECRET=<generated>
+GRAFANA_OIDC_CLIENT_SECRET=<generated>
+VAULT_OIDC_CLIENT_SECRET=<generated>
+```
+
+Secrets flow automatically: `.env` → Vault → Keycloak realm import. No manual configuration needed.
+
+**User Management:** Create users at https://keycloak.localhost (`devsecops` realm) and assign to groups:
+
+| Group | ArgoCD | Grafana | Vault |
+|-------|--------|---------|-------|
+| admins | admin | Admin | default |
+| developers | admin | Editor | default |
+| viewers | readonly | Viewer | default |
 
 ## GitOps Workflow
 
