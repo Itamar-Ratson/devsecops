@@ -154,6 +154,9 @@ argo-cd:
       application.instanceLabelKey: argocd.argoproj.io/instance
 
     cm:
+      # ArgoCD server URL (used for OIDC callbacks)
+      url: https://argocd.localhost
+
       # Dex configuration for Keycloak OIDC
       dex.config: |
         connectors:
