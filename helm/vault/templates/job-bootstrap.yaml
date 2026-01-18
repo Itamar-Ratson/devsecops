@@ -177,19 +177,39 @@ spec:
                 vault-client-secret="$VAULT_OIDC_CLIENT_SECRET"
 
               # Configure OIDC auth method for Vault UI login
+              # Note: Uses internal Keycloak URL for discovery, external URL for redirect
               echo "Configuring OIDC auth method..."
               vault auth enable oidc 2>/dev/null || echo "OIDC auth already enabled"
-              vault write auth/oidc/config \
-                oidc_discovery_url="https://keycloak.localhost/realms/devsecops" \
-                oidc_client_id="vault" \
-                oidc_client_secret="$VAULT_OIDC_CLIENT_SECRET" \
-                default_role="default"
-              vault write auth/oidc/role/default \
-                bound_audiences="vault" \
-                allowed_redirect_uris="https://vault.localhost/ui/vault/auth/oidc/oidc/callback" \
-                user_claim="preferred_username" \
-                groups_claim="groups" \
-                policies="default"
+
+              # Wait for Keycloak to be ready
+              echo "Waiting for Keycloak OIDC discovery..."
+              OIDC_RETRIES=30
+              OIDC_COUNT=0
+              KEYCLOAK_INTERNAL_URL="http://keycloak-keycloakx-http.keycloak.svc:{{ .Values.ports.keycloak.http }}/realms/devsecops"
+              while ! wget -q --spider "$KEYCLOAK_INTERNAL_URL/.well-known/openid-configuration" 2>/dev/null; do
+                OIDC_COUNT=$((OIDC_COUNT + 1))
+                if [ $OIDC_COUNT -ge $OIDC_RETRIES ]; then
+                  echo "WARNING: Keycloak not ready after $OIDC_RETRIES attempts, skipping OIDC config"
+                  break
+                fi
+                echo "Keycloak not ready, waiting... (attempt $OIDC_COUNT/$OIDC_RETRIES)"
+                sleep 5
+              done
+
+              if [ $OIDC_COUNT -lt $OIDC_RETRIES ]; then
+                vault write auth/oidc/config \
+                  oidc_discovery_url="$KEYCLOAK_INTERNAL_URL" \
+                  oidc_client_id="vault" \
+                  oidc_client_secret="$VAULT_OIDC_CLIENT_SECRET" \
+                  default_role="default"
+                vault write auth/oidc/role/default \
+                  bound_audiences="vault" \
+                  allowed_redirect_uris="https://vault.localhost/ui/vault/auth/oidc/oidc/callback" \
+                  user_claim="preferred_username" \
+                  groups_claim="groups" \
+                  policies="default"
+                echo "OIDC auth method configured"
+              fi
 
               echo "=== Vault Bootstrap Complete ==="
           volumeMounts:
@@ -276,5 +296,15 @@ spec:
             - port: "443"
               protocol: TCP
             - port: "80"
+              protocol: TCP
+
+    # Allow connection to Keycloak for OIDC discovery
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: keycloak
+            app.kubernetes.io/name: keycloakx
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
               protocol: TCP
 {{- end }}
