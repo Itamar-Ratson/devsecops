@@ -102,8 +102,10 @@ argo-cd:
     enabled: false
 
   # Dex - OIDC provider for Keycloak SSO
+  # Disabled until vaultSecrets.enabled=true (VSO creates the OIDC secret)
+  # Enable both vaultSecrets and dex together after initial bootstrap
   dex:
-    enabled: true
+    enabled: false
     resources:
       limits:
         cpu: 100m
