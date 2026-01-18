@@ -9,6 +9,9 @@ vaultSecrets:
   enabled: true
 
 # GitOps repository configuration
+# enabled: false during initial bootstrap (CRDs don't exist yet)
+# enabled: true after ArgoCD is running (second helm upgrade)
 gitops:
+  enabled: true
   repoURL: "git@github.com:Itamar-Ratson/devsecops.git"
   targetRevision: HEAD

@@ -1,4 +1,5 @@
 # Wave 3: Kafka UI (depends on Kafka)
+{{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -34,3 +35,4 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - RespectIgnoreDifferences=true
+{{- end }}

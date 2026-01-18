@@ -1,4 +1,5 @@
 # Wave 2: Identity - Keycloak OIDC/SSO Provider
+{{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -39,3 +40,4 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
+{{- end }}
