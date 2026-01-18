@@ -27,8 +27,10 @@ keycloakx:
     - "start"
     - "--http-enabled=true"
     - "--http-port=8080"
+    - "--hostname=keycloak.localhost"
     - "--hostname-strict=false"
-    - "--proxy=edge"
+    - "--proxy-headers=xforwarded"
+    - "--http-relative-path=/"
     - "--import-realm"
     - "--cache=local"  # Disable clustering for single-replica dev environment
 
