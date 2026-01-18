@@ -12,12 +12,15 @@ spec:
       app.kubernetes.io/instance: kyverno
 
   ingress:
-    # Allow webhook ingress from kube-apiserver, host, and remote-node
+    # Allow webhook ingress from kube-apiserver, host, remote-node, and cluster
     # Required for admission webhook validation/mutation calls
+    # Note: 'cluster' entity added for KinD compatibility where kube-apiserver
+    # may not be recognized as the dedicated entity
     - fromEntities:
         - kube-apiserver
         - host
         - remote-node
+        - cluster
       toPorts:
         - ports:
             - port: "{{ .Values.ports.kyverno.webhook }}"
