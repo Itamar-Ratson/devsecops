@@ -221,26 +221,24 @@ log "Vault prerequisites created - ArgoCD will deploy Vault in Wave 2"
 log "Building and installing ArgoCD..."
 helm dependency build ./helm/argocd
 
-# Initial install: disable gitops and vaultSecrets (VSO CRDs don't exist yet)
+# Initial install: disable gitops (Application CRDs don't exist yet)
 helm upgrade --install argocd ./helm/argocd -n argocd --create-namespace \
   -f ./helm/ports.yaml \
   -f ./helm/argocd/values.yaml \
   -f ./helm/argocd/values-argocd.yaml \
   --set gitops.repoURL="${GIT_REPO_URL}" \
-  --set gitops.enabled=false \
-  --set vaultSecrets.enabled=false
+  --set gitops.enabled=false
 log "Waiting for ArgoCD server..."
 kubectl wait --for=condition=Available deployment/argocd-server -n argocd --timeout=180s
 
 # Enable GitOps - ArgoCD will deploy all infrastructure via sync waves
-# vaultSecrets stays disabled until VSO is deployed by ArgoCD
+# VaultStaticSecret resources use sync-wave annotations to deploy after VSO
 log "Enabling GitOps (ArgoCD will deploy all infrastructure)..."
 helm upgrade argocd ./helm/argocd -n argocd \
   -f ./helm/ports.yaml \
   -f ./helm/argocd/values.yaml \
   -f ./helm/argocd/values-argocd.yaml \
-  --set gitops.repoURL="${GIT_REPO_URL}" \
-  --set vaultSecrets.enabled=false
+  --set gitops.repoURL="${GIT_REPO_URL}"
 
 # Get ArgoCD admin password
 log "Retrieving ArgoCD admin password..."
@@ -260,8 +258,8 @@ echo "ArgoCD is now deploying all infrastructure via GitOps sync waves:"
 echo "  Wave 0: ArgoCD (self-managed)"
 echo "  Wave 1: Tetragon, Kyverno, Trivy, cert-manager, Sealed-secrets, Strimzi, Network-policies"
 echo "  Wave 2: Kyverno-policies, Vault, Kafka"
-echo "  Wave 3: Vault-secrets-operator, Gateway, Kafka-UI, Keycloak"
-echo "  Wave 4: http-echo, juice-shop"
+echo "  Wave 3: Vault-secrets-operator, Gateway, Kafka-UI"
+echo "  Wave 4: http-echo, juice-shop, Keycloak"
 echo "  Wave 5: Monitoring"
 echo ""
 echo "Monitor progress:"

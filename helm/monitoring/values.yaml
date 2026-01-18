@@ -3,11 +3,6 @@ gateway:
   name: main-gateway
   namespace: gateway
 
-# Vault Secrets - sync secrets from Vault to Kubernetes
-# Requires Vault Secrets Operator to be installed
-vaultSecrets:
-  enabled: true
-
 # Alertmanager Slack Secrets (SealedSecret) - DEPRECATED, use vaultSecrets instead
 # Set enabled: true and provide encrypted webhook URLs
 # Generate encrypted values with: ./seal-slack-webhooks.sh <critical-url> <warning-url>

@@ -3,9 +3,8 @@ gateway:
   name: main-gateway
   namespace: gateway
 
-# Vault Secrets - sync secrets from Vault to Kubernetes
-# Requires Vault Secrets Operator to be installed
-# Default false - enable after VSO is deployed and healthy
+# Vault Secrets - disabled by default (ArgoCD is Wave 0, before VSO Wave 3)
+# Enable after VSO is deployed and CRDs exist
 vaultSecrets:
   enabled: false
 

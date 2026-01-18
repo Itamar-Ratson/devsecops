@@ -111,7 +111,8 @@ vault:
 bootstrap:
   enabled: true
 
-# Vault Secrets - sync secrets from Vault to Kubernetes
-# Used for OIDC client secret for Vault UI login reconfiguration
+# Vault Secrets - disabled by default (Vault is Wave 2, before VSO Wave 3)
+# Enable after VSO is deployed and CRDs exist
 vaultSecrets:
-  enabled: true
+  enabled: false
+
