@@ -177,15 +177,16 @@ spec:
                 vault-client-secret="$VAULT_OIDC_CLIENT_SECRET"
 
               # Configure OIDC auth method for Vault UI login
-              # Note: Uses internal Keycloak URL for discovery, external URL for redirect
+              # Uses external Keycloak URL with Gateway CA certificate
               echo "Configuring OIDC auth method..."
               vault auth enable oidc 2>/dev/null || echo "OIDC auth already enabled"
 
-              # Wait for Keycloak to be ready
+              # Wait for Keycloak to be ready (use internal URL for health check)
               echo "Waiting for Keycloak OIDC discovery..."
               OIDC_RETRIES=30
               OIDC_COUNT=0
               KEYCLOAK_INTERNAL_URL="http://keycloak-keycloakx-http.keycloak.svc:{{ .Values.ports.keycloak.http }}/realms/devsecops"
+              KEYCLOAK_EXTERNAL_URL="https://keycloak.localhost/realms/devsecops"
               while ! wget -q --spider "$KEYCLOAK_INTERNAL_URL/.well-known/openid-configuration" 2>/dev/null; do
                 OIDC_COUNT=$((OIDC_COUNT + 1))
                 if [ $OIDC_COUNT -ge $OIDC_RETRIES ]; then
@@ -197,18 +198,27 @@ spec:
               done
 
               if [ $OIDC_COUNT -lt $OIDC_RETRIES ]; then
-                vault write auth/oidc/config \
-                  oidc_discovery_url="$KEYCLOAK_INTERNAL_URL" \
-                  oidc_client_id="vault" \
-                  oidc_client_secret="$VAULT_OIDC_CLIENT_SECRET" \
-                  default_role="default"
-                vault write auth/oidc/role/default \
-                  bound_audiences="vault" \
-                  allowed_redirect_uris="https://vault.localhost/ui/vault/auth/oidc/oidc/callback" \
-                  user_claim="preferred_username" \
-                  groups_claim="groups" \
-                  policies="default"
-                echo "OIDC auth method configured"
+                # Fetch Gateway CA certificate for TLS verification
+                echo "Fetching Gateway TLS certificate..."
+                GATEWAY_CA_CERT=$(kubectl get secret gateway-tls -n gateway -o jsonpath='{.data.tls\.crt}' | base64 -d)
+
+                if [ -n "$GATEWAY_CA_CERT" ]; then
+                  vault write auth/oidc/config \
+                    oidc_discovery_url="$KEYCLOAK_EXTERNAL_URL" \
+                    oidc_client_id="vault" \
+                    oidc_client_secret="$VAULT_OIDC_CLIENT_SECRET" \
+                    oidc_discovery_ca_pem="$GATEWAY_CA_CERT" \
+                    default_role="default"
+                  vault write auth/oidc/role/default \
+                    bound_audiences="vault" \
+                    allowed_redirect_uris="https://vault.localhost/ui/vault/auth/oidc/oidc/callback" \
+                    user_claim="preferred_username" \
+                    groups_claim="groups" \
+                    policies="default"
+                  echo "OIDC auth method configured with external URL"
+                else
+                  echo "WARNING: Gateway TLS secret not found, skipping OIDC config"
+                fi
               fi
 
               echo "=== Vault Bootstrap Complete ==="
@@ -247,6 +257,32 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: vault-bootstrap
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Release.Name }}
+    namespace: {{ .Release.Namespace }}
+---
+# Role in gateway namespace to read gateway-tls secret
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: vault-bootstrap-gateway-reader
+  namespace: gateway
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["gateway-tls"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: vault-bootstrap-gateway-reader
+  namespace: gateway
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: vault-bootstrap-gateway-reader
 subjects:
   - kind: ServiceAccount
     name: {{ .Release.Name }}

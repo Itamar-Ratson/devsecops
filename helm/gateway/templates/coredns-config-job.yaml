@@ -1,0 +1,149 @@
+{{- if .Values.coredns.enabled }}
+# Job to configure CoreDNS with *.localhost rewrite rules
+# This enables internal pods to resolve *.localhost to the Gateway
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: coredns-localhost-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: coredns-config
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: coredns-config
+    spec:
+      serviceAccountName: coredns-config
+      restartPolicy: OnFailure
+      containers:
+        - name: configure-coredns
+          image: bitnami/kubectl:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              echo "Configuring CoreDNS with *.localhost rewrite rules..."
+
+              # Get the Gateway service name
+              GATEWAY_SVC="{{ .Values.coredns.gatewayService }}.{{ .Release.Namespace }}.svc.cluster.local"
+              echo "Gateway service: $GATEWAY_SVC"
+
+              # Create the new CoreDNS configuration with rewrite rules
+              cat <<'COREFILE' > /tmp/Corefile
+              .:53 {
+                  errors
+                  health {
+                     lameduck 5s
+                  }
+                  ready
+                  rewrite name keycloak.localhost GATEWAY_SVC_PLACEHOLDER
+                  rewrite name grafana.localhost GATEWAY_SVC_PLACEHOLDER
+                  rewrite name vault.localhost GATEWAY_SVC_PLACEHOLDER
+                  rewrite name argocd.localhost GATEWAY_SVC_PLACEHOLDER
+                  rewrite name hubble.localhost GATEWAY_SVC_PLACEHOLDER
+                  kubernetes cluster.local in-addr.arpa ip6.arpa {
+                     pods insecure
+                     fallthrough in-addr.arpa ip6.arpa
+                     ttl 30
+                  }
+                  prometheus :9153
+                  forward . /etc/resolv.conf {
+                     max_concurrent 1000
+                  }
+                  cache 30
+                  loop
+                  reload
+                  loadbalance
+              }
+              COREFILE
+
+              # Replace placeholder with actual gateway service
+              sed -i "s|GATEWAY_SVC_PLACEHOLDER|$GATEWAY_SVC|g" /tmp/Corefile
+
+              echo "New CoreDNS configuration:"
+              cat /tmp/Corefile
+
+              # Update the CoreDNS ConfigMap
+              kubectl create configmap coredns \
+                --namespace kube-system \
+                --from-file=Corefile=/tmp/Corefile \
+                --dry-run=client -o yaml | kubectl apply -f -
+
+              echo "Restarting CoreDNS..."
+              kubectl rollout restart deployment coredns -n kube-system
+              kubectl rollout status deployment coredns -n kube-system --timeout=60s
+
+              echo "CoreDNS configuration complete!"
+---
+# ServiceAccount for the CoreDNS config job
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: coredns-config
+  namespace: {{ .Release.Namespace }}
+---
+# ClusterRole to manage CoreDNS ConfigMap
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: coredns-config
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["coredns"]
+    verbs: ["get", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: ["coredns"]
+    verbs: ["get", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["list", "watch"]
+---
+# ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: coredns-config
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: coredns-config
+subjects:
+  - kind: ServiceAccount
+    name: coredns-config
+    namespace: {{ .Release.Namespace }}
+---
+# Network policy for the job
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coredns-config
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: coredns-config
+  egress:
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+    # Allow Kubernetes API access
+    - toEntities:
+        - kube-apiserver
+{{- end }}
