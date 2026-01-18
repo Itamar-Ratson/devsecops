@@ -30,6 +30,7 @@ keycloakx:
     - "--hostname-strict=false"
     - "--proxy=edge"
     - "--import-realm"
+    - "--cache=local"  # Disable clustering for single-replica dev environment
 
   # Admin credentials and OIDC secrets for realm import
   extraEnv: |
