@@ -169,6 +169,7 @@ argo-cd:
               insecureSkipEmailVerified: true
               insecureEnableGroups: true
               insecureSkipVerify: true
+              basicAuthUnsupported: true
               scopes:
                 - openid
                 - profile
