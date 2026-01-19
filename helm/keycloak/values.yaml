@@ -2,3 +2,9 @@
 gateway:
   name: main-gateway
   namespace: gateway
+
+# Vault Secrets - enables VaultStaticSecret for syncing secrets from Vault
+# Disabled by default: setup.sh creates secrets directly during bootstrap
+# Enable after VSO is deployed if you want Vault-managed secrets
+vaultSecrets:
+  enabled: false

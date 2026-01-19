@@ -3,6 +3,12 @@ gateway:
   name: main-gateway
   namespace: gateway
 
+# Vault Secrets - enables VaultStaticSecret for syncing secrets from Vault
+# Disabled by default: setup.sh creates secrets directly during bootstrap
+# Enable after VSO is deployed if you want Vault-managed secrets
+vaultSecrets:
+  enabled: false
+
 # Alertmanager Slack Secrets (SealedSecret) - DEPRECATED, use vaultSecrets instead
 # Set enabled: true and provide encrypted webhook URLs
 # Generate encrypted values with: ./seal-slack-webhooks.sh <critical-url> <warning-url>

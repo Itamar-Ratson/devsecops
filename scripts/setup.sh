@@ -216,6 +216,61 @@ rm -rf "$SECRETS_DIR"
 log "Vault prerequisites created - ArgoCD will deploy Vault in Wave 2"
 
 # ============================================================================
+# Create Keycloak secrets (needed before ArgoCD deploys Keycloak)
+# ============================================================================
+log "Creating Keycloak namespace and secrets..."
+kubectl create namespace keycloak --dry-run=client -o yaml | kubectl apply -f -
+
+# Create Keycloak admin credentials secret
+kubectl create secret generic keycloak-admin-credentials \
+    --namespace keycloak \
+    --from-literal=admin-user="${KEYCLOAK_ADMIN_USER}" \
+    --from-literal=admin-password="${KEYCLOAK_ADMIN_PASSWORD}" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+# Create Keycloak OIDC clients secret
+kubectl create secret generic keycloak-oidc-clients \
+    --namespace keycloak \
+    --from-literal=argocd-client-secret="${ARGOCD_OIDC_CLIENT_SECRET}" \
+    --from-literal=grafana-client-secret="${GRAFANA_OIDC_CLIENT_SECRET}" \
+    --from-literal=vault-client-secret="${VAULT_OIDC_CLIENT_SECRET}" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+log "Keycloak secrets created"
+
+# ============================================================================
+# Create Monitoring secrets (needed before ArgoCD deploys Monitoring)
+# ============================================================================
+log "Creating Monitoring namespace and secrets..."
+kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+
+# Create Grafana admin credentials secret
+kubectl create secret generic grafana-admin-credentials \
+    --namespace monitoring \
+    --from-literal=admin-user="${GRAFANA_ADMIN_USER}" \
+    --from-literal=admin-password="${GRAFANA_ADMIN_PASSWORD}" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+# Create Grafana OIDC secret
+kubectl create secret generic grafana-oidc-secret \
+    --namespace monitoring \
+    --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET="${GRAFANA_OIDC_CLIENT_SECRET}" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+# Create Alertmanager webhooks secret (optional - empty if not configured)
+PAGERDUTY_KEY=$(grep PAGERDUTY_ROUTING_KEY .env 2>/dev/null | cut -d'=' -f2- || echo "")
+SLACK_CRITICAL=$(grep SLACK_CRITICAL_WEBHOOK .env 2>/dev/null | cut -d'=' -f2- || echo "")
+SLACK_WARNING=$(grep SLACK_WARNING_WEBHOOK .env 2>/dev/null | cut -d'=' -f2- || echo "")
+kubectl create secret generic alertmanager-slack-webhooks \
+    --namespace monitoring \
+    --from-literal=pagerduty-routing-key="${PAGERDUTY_KEY}" \
+    --from-literal=slack-critical-webhook="${SLACK_CRITICAL}" \
+    --from-literal=slack-warning-webhook="${SLACK_WARNING}" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+log "Monitoring secrets created"
+
+# ============================================================================
 # Install ArgoCD (GitOps controller)
 # ============================================================================
 log "Building and installing ArgoCD..."
