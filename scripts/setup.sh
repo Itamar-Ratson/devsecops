@@ -215,16 +215,6 @@ rm -rf "$SECRETS_DIR"
 
 log "Vault prerequisites created - ArgoCD will deploy Vault in Wave 2"
 
-# Create ArgoCD OIDC secret for Dex (needed before VSO is deployed)
-# This will be synced by VaultStaticSecret once VSO is available
-log "Creating ArgoCD OIDC secret for Dex..."
-ARGOCD_OIDC_SECRET=$(grep ARGOCD_OIDC_CLIENT_SECRET .env | cut -d'=' -f2-)
-kubectl create secret generic argocd-oidc-secret \
-    --namespace argocd \
-    --from-literal=argocd-client-secret="${ARGOCD_OIDC_SECRET}" \
-    --from-literal=dex.keycloak.clientSecret="${ARGOCD_OIDC_SECRET}" \
-    --dry-run=client -o yaml | kubectl apply -f -
-
 # ============================================================================
 # Install ArgoCD (GitOps controller)
 # ============================================================================
@@ -242,6 +232,14 @@ helm upgrade --install argocd ./helm/argocd -n argocd --create-namespace \
   --set vaultSecrets.enabled=false
 log "Waiting for ArgoCD server..."
 kubectl wait --for=condition=Available deployment/argocd-server -n argocd --timeout=180s
+
+# Patch argocd-secret with OIDC client secret for direct Keycloak integration
+# ArgoCD's direct OIDC (without Dex) expects secrets in argocd-secret
+log "Patching argocd-secret with OIDC client secret..."
+ARGOCD_OIDC_SECRET=$(grep ARGOCD_OIDC_CLIENT_SECRET .env | cut -d'=' -f2-)
+kubectl patch secret argocd-secret -n argocd --type='json' -p="[
+  {\"op\": \"add\", \"path\": \"/data/oidc.keycloak.clientSecret\", \"value\": \"$(echo -n "${ARGOCD_OIDC_SECRET}" | base64 -w0)\"}
+]"
 
 # Enable GitOps - ArgoCD will deploy all infrastructure via sync waves
 # VaultStaticSecrets are still disabled - they'll be created when ArgoCD syncs itself from git after VSO is deployed

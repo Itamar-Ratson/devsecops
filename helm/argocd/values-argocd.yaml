@@ -101,28 +101,9 @@ argo-cd:
   notifications:
     enabled: false
 
-  # Dex - OIDC provider for Keycloak SSO
-  # Works because ArgoCD self-manages after bootstrap, and VSO is available by then
+  # Dex - disabled, using direct OIDC instead
   dex:
-    enabled: true
-    resources:
-      limits:
-        cpu: 100m
-        memory: 128Mi
-      requests:
-        cpu: 25m
-        memory: 64Mi
-    metrics:
-      enabled: true
-      serviceMonitor:
-        enabled: false
-    # Inject OIDC client secret from Vault-synced secret
-    env:
-      - name: DEX_KEYCLOAK_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: argocd-oidc-secret
-            key: argocd-client-secret
+    enabled: false
 
   # CRDs - install via Helm
   crds:
@@ -156,26 +137,17 @@ argo-cd:
       # ArgoCD server URL (used for OIDC callbacks)
       url: https://argocd.localhost
 
-      # Dex configuration for Keycloak OIDC
-      dex.config: |
-        connectors:
-          - type: oidc
-            id: keycloak
-            name: Keycloak
-            config:
-              issuer: https://keycloak.localhost/realms/devsecops
-              clientID: argocd
-              clientSecretEnv: DEX_KEYCLOAK_CLIENT_SECRET
-              insecureSkipEmailVerified: true
-              insecureEnableGroups: true
-              insecureSkipVerify: true
-              basicAuthUnsupported: true
-              scopes:
-                - openid
-                - profile
-                - email
-                - groups
-              getUserInfo: true
+      # Skip TLS verification for OIDC provider (self-signed certs in dev)
+      oidc.tls.insecure.skip.verify: "true"
+
+      # Direct OIDC configuration for Keycloak (no Dex)
+      oidc.config: |
+        name: Keycloak
+        issuer: https://keycloak.localhost/realms/devsecops
+        clientID: argocd
+        clientSecret: $oidc.keycloak.clientSecret
+        requestedScopes: ["openid", "profile", "email", "groups"]
+        requestedIDTokenClaims: {"groups": {"essential": true}}
 
     rbac:
       policy.csv: |
