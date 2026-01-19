@@ -27,7 +27,17 @@ spec:
             - port: "{{ .Values.ports.keycloak.http }}"
               protocol: TCP
 
-    # Allow from ArgoCD Dex for OIDC
+    # Allow from ArgoCD Server for direct OIDC (without Dex)
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+            app.kubernetes.io/name: argocd-server
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
+    # Allow from ArgoCD Dex for OIDC (if using Dex)
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: argocd

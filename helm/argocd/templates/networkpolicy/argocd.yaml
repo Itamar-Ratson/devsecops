@@ -70,6 +70,24 @@ spec:
             - port: "{{ .Values.ports.argocd.redis }}"
               protocol: TCP
 
+    # Allow communication with Keycloak for OIDC (direct OIDC without Dex)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: keycloak
+            app.kubernetes.io/name: keycloakx
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
+    # Allow external Keycloak access (via Gateway for keycloak.localhost)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.gateway.https }}"
+              protocol: TCP
+
 ---
 # ArgoCD Repo Server Network Policy
 apiVersion: cilium.io/v2
