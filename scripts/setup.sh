@@ -215,30 +215,43 @@ rm -rf "$SECRETS_DIR"
 
 log "Vault prerequisites created - ArgoCD will deploy Vault in Wave 2"
 
+# Create ArgoCD OIDC secret for Dex (needed before VSO is deployed)
+# This will be synced by VaultStaticSecret once VSO is available
+log "Creating ArgoCD OIDC secret for Dex..."
+ARGOCD_OIDC_SECRET=$(grep ARGOCD_OIDC_CLIENT_SECRET .env | cut -d'=' -f2-)
+kubectl create secret generic argocd-oidc-secret \
+    --namespace argocd \
+    --from-literal=argocd-client-secret="${ARGOCD_OIDC_SECRET}" \
+    --from-literal=dex.keycloak.clientSecret="${ARGOCD_OIDC_SECRET}" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
 # ============================================================================
 # Install ArgoCD (GitOps controller)
 # ============================================================================
 log "Building and installing ArgoCD..."
 helm dependency build ./helm/argocd
 
-# Initial install: disable gitops (Application CRDs don't exist yet)
+# Initial install: disable gitops and vaultSecrets (CRDs don't exist yet)
+# VaultStaticSecrets will be created when ArgoCD syncs itself after VSO is deployed
 helm upgrade --install argocd ./helm/argocd -n argocd --create-namespace \
   -f ./helm/ports.yaml \
   -f ./helm/argocd/values.yaml \
   -f ./helm/argocd/values-argocd.yaml \
   --set gitops.repoURL="${GIT_REPO_URL}" \
-  --set gitops.enabled=false
+  --set gitops.enabled=false \
+  --set vaultSecrets.enabled=false
 log "Waiting for ArgoCD server..."
 kubectl wait --for=condition=Available deployment/argocd-server -n argocd --timeout=180s
 
 # Enable GitOps - ArgoCD will deploy all infrastructure via sync waves
-# VaultStaticSecret resources use sync-wave annotations to deploy after VSO
+# VaultStaticSecrets are still disabled - they'll be created when ArgoCD syncs itself from git after VSO is deployed
 log "Enabling GitOps (ArgoCD will deploy all infrastructure)..."
 helm upgrade argocd ./helm/argocd -n argocd \
   -f ./helm/ports.yaml \
   -f ./helm/argocd/values.yaml \
   -f ./helm/argocd/values-argocd.yaml \
-  --set gitops.repoURL="${GIT_REPO_URL}"
+  --set gitops.repoURL="${GIT_REPO_URL}" \
+  --set vaultSecrets.enabled=false
 
 # Get ArgoCD admin password
 log "Retrieving ArgoCD admin password..."
