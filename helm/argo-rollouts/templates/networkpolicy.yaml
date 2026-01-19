@@ -1,0 +1,69 @@
+---
+# Allow Prometheus to scrape argo-rollouts metrics
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argo-rollouts-allow-metrics
+  namespace: {{ .Release.Namespace }}
+spec:
+  description: "Allow Prometheus to scrape argo-rollouts metrics"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: argo-rollouts
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.argoRollouts.metrics }}"
+              protocol: TCP
+    # Allow health probes from kubelet
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.argoRollouts.healthz }}"
+              protocol: TCP
+---
+# Allow argo-rollouts controller to communicate with API server
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argo-rollouts-allow-apiserver
+  namespace: {{ .Release.Namespace }}
+spec:
+  description: "Allow argo-rollouts controller to access Kubernetes API server"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: argo-rollouts
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.apiServerSecure }}"
+              protocol: TCP
+---
+# Allow argo-rollouts dashboard ingress from gateway
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argo-rollouts-dashboard-allow-gateway
+  namespace: {{ .Release.Namespace }}
+spec:
+  description: "Allow traffic from gateway to argo-rollouts dashboard"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: argo-rollouts
+      app.kubernetes.io/component: rollouts-dashboard
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: {{ .Values.gateway.namespace }}
+            io.cilium.k8s.policy.serviceaccount: cilium-gateway-main-gateway
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.argoRollouts.dashboard }}"
+              protocol: TCP

@@ -1,0 +1,38 @@
+# Terraform variables example
+# Copy this file to terraform.tfvars and fill in your values
+
+# Git repository URL (SSH format for ArgoCD)
+git_repo_url = "git@github.com:YOUR-ORG/devsecops.git"
+
+# Vault Transit token for auto-unseal
+vault_transit_token = "your-vault-transit-token"
+
+# ArgoCD admin password (bcrypt hash)
+# Generate with: htpasswd -nbBC 10 "" 'your-password' | tr -d ':\n' | sed 's/$2y/$2a/'
+argocd_admin_password_hash = "$2a$10$..."
+
+# ArgoCD server secret key
+# Generate with: openssl rand -hex 32
+argocd_server_secret_key = "your-server-secret-key"
+
+# Grafana credentials
+grafana_admin_user     = "admin"
+grafana_admin_password = "your-grafana-password"
+
+# Keycloak credentials
+keycloak_admin_user     = "admin"
+keycloak_admin_password = "your-keycloak-password"
+
+# OIDC client secrets for Keycloak integration
+# Generate each with: openssl rand -hex 32
+argocd_oidc_client_secret  = "your-argocd-oidc-secret"
+grafana_oidc_client_secret = "your-grafana-oidc-secret"
+vault_oidc_client_secret   = "your-vault-oidc-secret"
+
+# Optional: Alerting integrations (leave empty to disable)
+pagerduty_routing_key  = ""
+slack_critical_webhook = ""
+slack_warning_webhook  = ""
+
+# SSH key path for ArgoCD deploy key
+ssh_key_path = "~/.ssh/argocd-deploy-key"

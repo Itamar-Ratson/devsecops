@@ -1,0 +1,64 @@
+# Cilium Cluster Mesh Configuration
+# Enable this file when connecting multiple clusters
+#
+# Usage:
+#   helm upgrade cilium ./helm/cilium -n kube-system \
+#     -f ./helm/ports.yaml \
+#     -f ./helm/cilium/values.yaml \
+#     -f ./helm/cilium/values-clustermesh.yaml \
+#     --set cilium.cluster.name=cluster1 \
+#     --set cilium.cluster.id=1
+
+cilium:
+  # Cluster identification (unique per cluster)
+  cluster:
+    name: cluster1  # Override per cluster: cluster1, cluster2, etc.
+    id: 1           # Override per cluster: 1, 2, etc. (1-255)
+
+  # Enable Cluster Mesh
+  clustermesh:
+    useAPIServer: true
+
+    apiserver:
+      replicas: 1
+
+      resources:
+        requests:
+          cpu: 100m
+          memory: 64Mi
+        limits:
+          cpu: 1000m
+          memory: 512Mi
+
+      # Service type for cross-cluster connectivity
+      # For KinD clusters on the same Docker network, use ClusterIP
+      # For production, use LoadBalancer or NodePort
+      service:
+        type: NodePort
+        nodePort: 32379
+
+      tls:
+        auto:
+          enabled: true
+          method: helm
+
+      metrics:
+        enabled: true
+        serviceMonitor:
+          enabled: true
+
+    # Peer clusters configuration
+    # Add entries for each cluster you want to connect
+    # config:
+    #   enabled: true
+    #   domain: mesh.cilium.io
+    #   clusters:
+    #     - name: cluster2
+    #       address: cluster2-clustermesh-apiserver.kube-system.svc:2379
+    #       tls:
+    #         caCert: ... # CA certificate
+    #         cert: ...   # Client certificate
+    #         key: ...    # Client key
+
+  # Enable global services for cross-cluster load balancing
+  # Annotate services with io.cilium/global-service: "true"

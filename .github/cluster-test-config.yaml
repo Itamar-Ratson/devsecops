@@ -1,0 +1,58 @@
+# Cluster Integration Test Configuration
+# =======================================
+# Edit this file from GitHub mobile to control which tests run.
+# Changes to this file trigger the workflow automatically.
+#
+# Quick toggles - set to false to skip specific tests:
+
+version: 1
+
+# Master switch - set to false to skip all tests
+enabled: true
+
+# Individual test toggles
+tests:
+  # Core infrastructure verification
+  argocd-sync: true           # Wait for all ArgoCD applications to sync
+  network-policies: true      # Verify Cilium network policies are applied
+
+  # New tools (Phase 1)
+  argo-rollouts: true         # Test Argo Rollouts controller deployment
+  argo-workflows: true        # Test Argo Workflows with sample workflow
+
+  # Existing application deployments
+  juice-shop: true            # Test Juice Shop application
+  http-echo: true             # Test HTTP Echo application
+
+  # Security tools
+  tetragon: true              # Verify Tetragon eBPF security
+  kyverno: true               # Verify Kyverno policy engine
+  trivy: true                 # Verify Trivy security scanner
+
+  # Observability stack
+  monitoring: true            # Test Prometheus/Grafana/Loki stack
+
+  # Identity and secrets
+  vault: true                 # Test Vault secret management
+  keycloak: true              # Test Keycloak SSO
+
+  # Messaging
+  kafka: true                 # Test Kafka cluster
+
+  # Advanced features (disabled by default - enable when ready)
+  cluster-mesh: false         # Multi-cluster mesh tests (requires cilium CLI)
+  terraform-bootstrap: false  # Use Terraform instead of setup.sh for bootstrap
+
+# Workflow settings
+settings:
+  # Maximum workflow duration in minutes
+  timeout_minutes: 90
+
+  # Stop on first test failure (false = run all tests)
+  fail_fast: false
+
+  # Retry failed tests (0 = no retry)
+  retry_count: 1
+
+  # Wait for ArgoCD sync timeout in minutes
+  argocd_sync_timeout: 30

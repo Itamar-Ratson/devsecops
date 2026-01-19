@@ -126,3 +126,14 @@ ports:
     http: 8080
     https: 8443
     management: 9000
+
+  # Argo Rollouts
+  argoRollouts:
+    metrics: 8090
+    healthz: 8080
+    dashboard: 3100
+
+  # Argo Workflows
+  argoWorkflows:
+    server: 2746
+    metrics: 9090

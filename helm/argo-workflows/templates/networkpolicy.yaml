@@ -1,0 +1,97 @@
+---
+# Allow Prometheus to scrape argo-workflows metrics
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argo-workflows-allow-metrics
+  namespace: {{ .Release.Namespace }}
+spec:
+  description: "Allow Prometheus to scrape argo-workflows metrics"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: argo-workflows-workflow-controller
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.argoWorkflows.metrics }}"
+              protocol: TCP
+    # Allow health probes from kubelet
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+# Allow argo-workflows controller to communicate with API server
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argo-workflows-allow-apiserver
+  namespace: {{ .Release.Namespace }}
+spec:
+  description: "Allow argo-workflows to access Kubernetes API server"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: argo-workflows
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.apiServerSecure }}"
+              protocol: TCP
+---
+# Allow argo-workflows server ingress from gateway
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argo-workflows-server-allow-gateway
+  namespace: {{ .Release.Namespace }}
+spec:
+  description: "Allow traffic from gateway to argo-workflows server"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: argo-workflows-server
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: {{ .Values.gateway.namespace }}
+            io.cilium.k8s.policy.serviceaccount: cilium-gateway-main-gateway
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.argoWorkflows.server }}"
+              protocol: TCP
+---
+# Allow workflow pods to run and communicate
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argo-workflows-pods-allow-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  description: "Allow workflow pods to access external resources"
+  endpointSelector:
+    matchLabels:
+      workflows.argoproj.io/workflow: ""
+  egress:
+    # Allow DNS
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP
+    # Allow HTTPS to external resources
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

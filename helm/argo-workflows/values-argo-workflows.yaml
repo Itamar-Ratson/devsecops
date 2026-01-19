@@ -1,0 +1,59 @@
+argo-workflows:
+  # Workflow controller
+  controller:
+    replicas: 1
+
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+    metricsConfig:
+      enabled: true
+
+    serviceMonitor:
+      enabled: false  # We create our own ServiceMonitor if needed
+
+    workflowNamespaces:
+      - argo-workflows
+
+  # Argo Server (UI + API)
+  server:
+    replicas: 1
+
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+    # Run in insecure mode (TLS terminated at gateway)
+    extraArgs:
+      - --auth-mode=server
+
+    serviceType: ClusterIP
+    servicePort: 2746
+
+  # Install CRDs
+  crds:
+    install: true
+    keep: true
+
+  # Executor configuration
+  executor:
+    resources:
+      limits:
+        cpu: 100m
+        memory: 64Mi
+      requests:
+        cpu: 10m
+        memory: 32Mi
+
+  # Disable components not needed for basic setup
+  useStaticCredentials: true
+  artifactRepository: {}
