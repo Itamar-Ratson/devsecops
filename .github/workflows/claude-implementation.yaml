@@ -1,0 +1,294 @@
+name: Claude Code Implementation Loop
+
+on:
+  schedule:
+    # Run every 5 hours
+    - cron: '0 */5 * * *'
+  workflow_dispatch:
+    inputs:
+      task_filter:
+        description: 'Run only specific task (leave empty for all enabled)'
+        required: false
+        default: ''
+        type: string
+      max_iterations:
+        description: 'Maximum iterations per task'
+        required: false
+        default: '20'
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - '.github/claude-implementation-config.yaml'
+      - '.github/workflows/claude-implementation.yaml'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # Job 1: Read configuration and determine which tasks to run
+  read-config:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.config.outputs.enabled }}
+      tasks_json: ${{ steps.config.outputs.tasks_json }}
+      timeout_minutes: ${{ steps.config.outputs.timeout_minutes }}
+      max_iterations: ${{ steps.config.outputs.max_iterations }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse configuration
+        id: config
+        run: |
+          # Install yq for YAML parsing
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+          CONFIG_FILE=".github/claude-implementation-config.yaml"
+
+          # Read master enabled flag
+          ENABLED=$(yq '.enabled' "$CONFIG_FILE")
+          echo "enabled=$ENABLED" >> $GITHUB_OUTPUT
+
+          # Read settings
+          TIMEOUT=$(yq '.settings.task_timeout_minutes // 120' "$CONFIG_FILE")
+          echo "timeout_minutes=$TIMEOUT" >> $GITHUB_OUTPUT
+
+          MAX_ITER="${{ inputs.max_iterations }}"
+          if [ -z "$MAX_ITER" ]; then
+            MAX_ITER=$(yq '.settings.max_iterations // 20' "$CONFIG_FILE")
+          fi
+          echo "max_iterations=$MAX_ITER" >> $GITHUB_OUTPUT
+
+          # Build JSON array of enabled tasks with their prompts
+          if [ -n "${{ inputs.task_filter }}" ]; then
+            TASKS_JSON=$(yq -o=json ".tasks | map(select(.enabled == true and .name == \"${{ inputs.task_filter }}\"))" "$CONFIG_FILE")
+          else
+            TASKS_JSON=$(yq -o=json '.tasks | map(select(.enabled == true))' "$CONFIG_FILE")
+          fi
+
+          # Escape for GitHub output (use delimiter for multiline)
+          echo "tasks_json<<EOF" >> $GITHUB_OUTPUT
+          echo "$TASKS_JSON" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Log configuration
+          echo "## Implementation Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- Enabled: $ENABLED" >> $GITHUB_STEP_SUMMARY
+          echo "- Timeout per task: ${TIMEOUT}m" >> $GITHUB_STEP_SUMMARY
+          echo "- Max iterations: $MAX_ITER" >> $GITHUB_STEP_SUMMARY
+          echo "- Tasks:" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          echo "$TASKS_JSON" | jq . >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  # Job 2: Run Claude Code implementation loop for each task
+  implement-tasks:
+    needs: read-config
+    if: needs.read-config.outputs.enabled == 'true' && needs.read-config.outputs.tasks_json != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 240  # 4 hours max for all tasks
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "Claude Code Bot"
+          git config --global user.email "claude-code-bot@users.noreply.github.com"
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code
+        run: |
+          npm install -g @anthropic-ai/claude-code
+
+      - name: Install dependencies
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/download/v4.40.5/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Run implementation loop
+        id: implement
+        run: |
+          set +e  # Don't exit on error
+
+          MAX_ITERATIONS=${{ needs.read-config.outputs.max_iterations }}
+          TASKS_JSON='${{ needs.read-config.outputs.tasks_json }}'
+
+          # Parse tasks into array
+          TASK_COUNT=$(echo "$TASKS_JSON" | jq 'length')
+          echo "Found $TASK_COUNT tasks to implement"
+
+          COMPLETED_TASKS=0
+          FAILED_TASKS=0
+
+          mkdir -p logs
+
+          for i in $(seq 0 $((TASK_COUNT - 1))); do
+            TASK_NAME=$(echo "$TASKS_JSON" | jq -r ".[$i].name")
+            TASK_PROMPT=$(echo "$TASKS_JSON" | jq -r ".[$i].prompt")
+
+            echo ""
+            echo "=========================================="
+            echo "Task: $TASK_NAME"
+            echo "=========================================="
+
+            # Create iteration state file
+            echo "0" > "logs/${TASK_NAME}.iteration"
+            TASK_COMPLETED=false
+
+            # Implementation loop - run Claude repeatedly until DONE or max iterations
+            for iter in $(seq 1 $MAX_ITERATIONS); do
+              echo "$iter" > "logs/${TASK_NAME}.iteration"
+              echo ""
+              echo "--- Iteration $iter of $MAX_ITERATIONS ---"
+
+              # Build the prompt with context about iteration
+              FULL_PROMPT="You are implementing a task in a GitHub Actions workflow.
+
+          TASK: $TASK_NAME
+
+          ITERATION: $iter of $MAX_ITERATIONS
+
+          INSTRUCTIONS:
+          $TASK_PROMPT
+
+          IMPORTANT RULES:
+          1. You are running in --print mode in GitHub Actions
+          2. Make changes to files as needed to complete the task
+          3. When the task is fully complete, output exactly: <promise>DONE</promise>
+          4. If the task is NOT complete, describe what still needs to be done
+          5. You have full filesystem access - use it to implement the solution
+          6. Check your work before claiming completion
+
+          Begin implementation:"
+
+              # Run Claude Code
+              echo "$FULL_PROMPT" | claude --dangerously-skip-permissions \
+                --print \
+                --output-format text \
+                2>&1 | tee "logs/${TASK_NAME}.iter${iter}.log"
+
+              CLAUDE_EXIT=$?
+
+              # Check for completion
+              if grep -q "<promise>DONE</promise>" "logs/${TASK_NAME}.iter${iter}.log"; then
+                echo ""
+                echo "Task $TASK_NAME completed at iteration $iter!"
+                TASK_COMPLETED=true
+                COMPLETED_TASKS=$((COMPLETED_TASKS + 1))
+
+                # Commit the changes
+                git add -A
+                if ! git diff --staged --quiet; then
+                  git commit -m "feat($TASK_NAME): implementation by Claude Code
+
+          Completed in $iter iteration(s)
+          Workflow run: ${{ github.run_id }}"
+                fi
+                break
+              fi
+
+              # Check for errors
+              if [ $CLAUDE_EXIT -ne 0 ]; then
+                echo "Claude Code exited with error: $CLAUDE_EXIT"
+                # Continue to next iteration anyway
+              fi
+
+              # Pull any changes (in case of concurrent runs)
+              git pull --rebase || true
+            done
+
+            if [ "$TASK_COMPLETED" = "false" ]; then
+              echo ""
+              echo "Task $TASK_NAME did not complete within $MAX_ITERATIONS iterations"
+              FAILED_TASKS=$((FAILED_TASKS + 1))
+
+              # Create branch for incomplete work
+              BRANCH="claude/${TASK_NAME}-$(date +%Y%m%d-%H%M%S)"
+              git checkout -b "$BRANCH"
+              git add -A
+              if ! git diff --staged --quiet; then
+                git commit -m "wip($TASK_NAME): partial implementation by Claude Code
+
+          Status: incomplete after $MAX_ITERATIONS iterations
+          Workflow run: ${{ github.run_id }}"
+                git push -u origin "$BRANCH"
+
+                # Create PR
+                gh pr create \
+                  --title "WIP: $TASK_NAME (needs review)" \
+                  --body "## Task: $TASK_NAME
+
+          This task did not complete within $MAX_ITERATIONS iterations.
+
+          ### Logs
+          See workflow artifacts for detailed logs.
+
+          ### Next steps
+          - Review the changes
+          - Either complete manually or re-run with more iterations
+
+          ---
+          Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" || true
+              fi
+              git checkout main
+            fi
+          done
+
+          # Push all completed work
+          git push || true
+
+          echo ""
+          echo "=========================================="
+          echo "Summary: $COMPLETED_TASKS completed, $FAILED_TASKS incomplete"
+          echo "=========================================="
+
+          echo "completed=$COMPLETED_TASKS" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED_TASKS" >> $GITHUB_OUTPUT
+
+          # Summary
+          echo "## Implementation Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Completed tasks: $COMPLETED_TASKS" >> $GITHUB_STEP_SUMMARY
+          echo "- Incomplete tasks: $FAILED_TASKS" >> $GITHUB_STEP_SUMMARY
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-implementation-logs
+          path: logs/
+          retention-days: 14
+
+  # Job 3: Generate summary report
+  summary:
+    needs: [read-config, implement-tasks]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## Claude Code Implementation Workflow" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Config | ${{ needs.read-config.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Implementation | ${{ needs.implement-tasks.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Trigger: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Completed: ${{ needs.implement-tasks.outputs.completed || '0' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Incomplete: ${{ needs.implement-tasks.outputs.failed || '0' }}" >> $GITHUB_STEP_SUMMARY

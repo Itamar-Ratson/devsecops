@@ -1,0 +1,114 @@
+# Claude Code Implementation Tasks
+# =================================
+# Edit this file from GitHub mobile to control what Claude Code implements.
+# Changes to this file trigger the workflow automatically.
+#
+# Each task runs Claude Code in a ralph-loop until it outputs <promise>DONE</promise>
+# or reaches the iteration limit.
+
+version: 1
+
+# Master switch - set to false to disable all tasks
+enabled: true
+
+# Implementation tasks
+# Each task has:
+#   - name: unique identifier (used in commits and logs)
+#   - enabled: true/false to enable/disable
+#   - prompt: the instruction given to Claude Code
+#   - completion_criteria: what "DONE" means (for documentation)
+tasks:
+  - name: argo-rollouts
+    enabled: false
+    prompt: |
+      Implement Argo Rollouts for this Kubernetes platform.
+
+      Requirements:
+      1. Create helm/argo-rollouts chart with proper values
+      2. Add ArgoCD Application for GitOps deployment
+      3. Add CiliumNetworkPolicy for secure communication
+      4. Add ports to helm/ports.yaml
+      5. Create a sample Rollout resource in helm/http-echo to demonstrate canary deployments
+
+      The implementation is DONE when:
+      - The helm chart exists and validates
+      - ArgoCD Application is configured in helm/argocd
+      - Network policies allow controller communication
+      - A sample canary rollout is configured for http-echo
+
+      Output <promise>DONE</promise> only when all requirements are met.
+    completion_criteria: "Argo Rollouts deployed via ArgoCD with working canary example"
+
+  - name: argo-workflows
+    enabled: false
+    prompt: |
+      Implement Argo Workflows for this Kubernetes platform.
+
+      Requirements:
+      1. Create helm/argo-workflows chart with proper values
+      2. Add ArgoCD Application for GitOps deployment
+      3. Add CiliumNetworkPolicy for secure communication
+      4. Add ports to helm/ports.yaml
+      5. Create sample workflow templates for common CI/CD tasks
+
+      The implementation is DONE when:
+      - The helm chart exists and validates
+      - ArgoCD Application is configured
+      - Network policies are in place
+      - Sample workflows are provided
+
+      Output <promise>DONE</promise> only when all requirements are met.
+    completion_criteria: "Argo Workflows deployed via ArgoCD with sample templates"
+
+  - name: cluster-mesh
+    enabled: false
+    prompt: |
+      Configure Cilium Cluster Mesh for multi-cluster connectivity.
+
+      Requirements:
+      1. Update helm/cilium values to enable Cluster Mesh
+      2. Create documentation for adding additional clusters
+      3. Add Hubble relay cross-cluster observability
+      4. Create network policies for cross-cluster communication
+
+      The implementation is DONE when:
+      - Cilium is configured with clustermesh enabled
+      - Documentation exists for multi-cluster setup
+      - Cross-cluster network policies are defined
+
+      Output <promise>DONE</promise> only when all requirements are met.
+    completion_criteria: "Cilium Cluster Mesh configured and documented"
+
+  - name: terraform-bootstrap
+    enabled: false
+    prompt: |
+      Replace setup.sh with Terraform for infrastructure provisioning.
+
+      Requirements:
+      1. Create terraform/ directory with modular structure
+      2. Terraform module for KinD cluster creation
+      3. Terraform module for Cilium CNI installation
+      4. Terraform module for Sealed Secrets
+      5. Terraform module for ArgoCD bootstrap
+      6. Terraform module for Transit Vault (Docker)
+      7. Variables file for environment-specific configuration
+      8. Keep setup.sh as a wrapper that runs terraform
+
+      The implementation is DONE when:
+      - terraform init && terraform validate passes
+      - terraform plan shows the complete infrastructure
+      - setup.sh uses terraform apply instead of manual helm commands
+
+      Output <promise>DONE</promise> only when all requirements are met.
+    completion_criteria: "Full Terraform-based bootstrap replacing manual helm commands"
+
+# Workflow settings
+settings:
+  # Maximum duration per task in minutes
+  task_timeout_minutes: 120
+
+  # Maximum ralph-loop iterations per task (0 = unlimited)
+  max_iterations: 50
+
+  # Branch naming pattern for incomplete tasks
+  branch_pattern: "claude/{task}-{date}"

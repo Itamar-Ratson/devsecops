@@ -182,6 +182,37 @@ git add . && git commit -m "update vault config" && git push
 | ArgoCD | setup.sh (bootstrap) | Edit chart, commit, ArgoCD self-manages |
 | Everything else (Waves 1-5) | ArgoCD | Edit chart, commit, ArgoCD syncs |
 
+## Claude Code Implementation Workflow
+
+A GitHub Actions workflow runs Claude Code to automatically implement tasks. Edit tasks from your phone via the GitHub mobile app.
+
+### How It Works
+
+1. **Configure tasks** in `.github/claude-implementation-config.yaml`
+2. **Workflow runs every 5 hours** (or trigger manually)
+3. **Claude Code iterates** until task outputs `<promise>DONE</promise>`
+4. **Changes committed** directly to main (completed) or PR (incomplete)
+
+### Configuration
+
+Edit `.github/claude-implementation-config.yaml` to enable/disable tasks:
+
+```yaml
+tasks:
+  - name: argo-rollouts
+    enabled: true   # Set to true to run this task
+    prompt: |
+      Implement Argo Rollouts...
+```
+
+### GitHub Secret Required
+
+Add `ANTHROPIC_API_KEY` to repository secrets (Settings > Secrets > Actions).
+
+### Manual Trigger
+
+Run specific task: Actions > Claude Code Implementation Loop > Run workflow > task_filter: `argo-rollouts`
+
 ## Troubleshooting
 
 ```bash
