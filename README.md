@@ -182,6 +182,40 @@ git add . && git commit -m "update vault config" && git push
 | ArgoCD | setup.sh (bootstrap) | Edit chart, commit, ArgoCD self-manages |
 | Everything else (Waves 1-5) | ArgoCD | Edit chart, commit, ArgoCD syncs |
 
+## Argo Rollouts (Progressive Delivery)
+
+Canary deployments for demo applications with automated Prometheus-based promotion.
+
+**Features:**
+- Gateway API traffic splitting (20% -> 50% -> 100%)
+- Automated analysis using Envoy/Gateway metrics
+- ArgoCD UI integration for rollout visibility
+
+**Applications using Rollouts:**
+- http-echo
+- juice-shop
+
+**Triggering a Rollout:**
+Update the container image or any pod spec field. Argo Rollouts will automatically:
+1. Create canary ReplicaSet
+2. Shift 20% traffic to canary
+3. Run analysis (check success rate)
+4. Shift 50% traffic
+5. Run analysis again
+6. Promote to 100%
+
+**Manual Control:**
+```bash
+# Promote current canary immediately
+kubectl argo rollouts promote http-echo -n http-echo
+
+# Abort and rollback
+kubectl argo rollouts abort http-echo -n http-echo
+
+# Check rollout status
+kubectl argo rollouts status http-echo -n http-echo
+```
+
 ## Troubleshooting
 
 ```bash
