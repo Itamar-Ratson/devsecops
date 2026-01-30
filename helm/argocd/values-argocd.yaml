@@ -9,6 +9,15 @@ argo-cd:
   server:
     replicas: 1
 
+    # Argo Rollouts extension for UI integration
+    extensions:
+      enabled: true
+      extensionList:
+        - name: argo-rollouts
+          env:
+            - name: EXTENSION_URL
+              value: https://github.com/argoproj-labs/rollout-extension/releases/download/v0.3.6/extension.tar
+
     resources:
       limits:
         cpu: 500m
