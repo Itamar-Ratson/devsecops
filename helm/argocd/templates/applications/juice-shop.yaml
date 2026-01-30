@@ -27,6 +27,10 @@ spec:
       kind: HTTPRoute
       jsonPointers:
         - /spec/parentRefs
+    - group: argoproj.io
+      kind: Rollout
+      jsonPointers:
+        - /spec/replicas
   syncPolicy:
     automated:
       prune: true
