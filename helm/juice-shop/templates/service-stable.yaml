@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: juice-shop
+  name: juice-shop-stable
   labels:
     app: juice-shop
 spec:

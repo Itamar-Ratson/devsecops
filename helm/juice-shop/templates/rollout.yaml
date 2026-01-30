@@ -1,5 +1,5 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: juice-shop
   labels:
@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/component: web
 spec:
   replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 3
   selector:
     matchLabels:
       app: juice-shop
@@ -50,3 +51,24 @@ spec:
               port: {{ .Values.ports.juiceShop }}
             initialDelaySeconds: 5
             periodSeconds: 5
+  strategy:
+    canary:
+      canaryService: juice-shop-canary
+      stableService: juice-shop-stable
+      trafficRouting:
+        plugins:
+          argoproj-labs/gatewayAPI:
+            httpRoute: juice-shop
+            namespace: {{ .Release.Namespace }}
+      steps:
+        - setWeight: 20
+        - pause: {duration: 30s}
+        - analysis:
+            templates:
+              - templateName: juice-shop-success-rate
+        - setWeight: 50
+        - pause: {duration: 30s}
+        - analysis:
+            templates:
+              - templateName: juice-shop-success-rate
+        - setWeight: 100
