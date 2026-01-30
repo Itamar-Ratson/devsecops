@@ -15,3 +15,12 @@ spec:
         - ports:
             - port: "{{ .Values.ports.httpEcho }}"
               protocol: TCP
+    # Allow Prometheus to scrape (if app exposes metrics)
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.httpEcho }}"
+              protocol: TCP
