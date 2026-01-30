@@ -115,6 +115,10 @@ ports:
     redis: 6379
     ssh: 22
 
+  # Argo Rollouts
+  argoRollouts:
+    metrics: 8090
+
   # Vault
   vault:
     http: 8200
