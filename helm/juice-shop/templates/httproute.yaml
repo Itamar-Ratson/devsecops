@@ -16,5 +16,9 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: juice-shop
+        - name: juice-shop-stable
           port: {{ .Values.ports.httpService }}
+          weight: 100
+        - name: juice-shop-canary
+          port: {{ .Values.ports.httpService }}
+          weight: 0
