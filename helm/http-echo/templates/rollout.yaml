@@ -1,0 +1,43 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: http-echo
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: http-echo
+  template:
+    metadata:
+      labels:
+        app: http-echo
+    spec:
+      containers:
+        - name: http-echo
+          image: hashicorp/http-echo:latest
+          args:
+            - -text=hello world
+          ports:
+            - containerPort: {{ .Values.ports.httpEcho }}
+  strategy:
+    canary:
+      canaryService: http-echo-canary
+      stableService: http-echo-stable
+      trafficRouting:
+        plugins:
+          argoproj-labs/gatewayAPI:
+            httpRoute: http-echo
+            namespace: {{ .Release.Namespace }}
+      steps:
+        - setWeight: 20
+        - pause: {duration: 30s}
+        - analysis:
+            templates:
+              - templateName: http-echo-success-rate
+        - setWeight: 50
+        - pause: {duration: 30s}
+        - analysis:
+            templates:
+              - templateName: http-echo-success-rate
+        - setWeight: 100
