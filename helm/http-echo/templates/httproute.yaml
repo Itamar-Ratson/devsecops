@@ -15,5 +15,9 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: http-echo
-          port: 80
+        - name: http-echo-stable
+          port: {{ .Values.ports.httpService }}
+          weight: 100
+        - name: http-echo-canary
+          port: {{ .Values.ports.httpService }}
+          weight: 0
