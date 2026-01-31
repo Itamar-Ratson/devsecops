@@ -18,7 +18,6 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![Cilium Network Policies](https://img.shields.io/badge/Cilium_Network_Policies-F8C517?style=flat&logo=cilium&logoColor=black)
 ![Sealed Secrets](https://img.shields.io/badge/Sealed_Secrets-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![Vault](https://img.shields.io/badge/Vault-FFEC6E?style=flat&logo=vault&logoColor=black)
-![Vault Secrets Operator](https://img.shields.io/badge/Vault_Secrets_Operator-FFEC6E?style=flat&logo=vault&logoColor=black)
 ![Keycloak](https://img.shields.io/badge/Keycloak-4D4D4D?style=flat&logo=keycloak&logoColor=white)
 ![Tetragon](https://img.shields.io/badge/Tetragon-F8C517?style=flat&logo=cilium&logoColor=black)
 ![Kyverno](https://img.shields.io/badge/Kyverno-FF6F00?style=flat&logo=kubernetes&logoColor=white)
