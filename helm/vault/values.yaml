@@ -114,5 +114,5 @@ bootstrap:
 # Vault Secrets - disabled by default (Vault is Wave 2, before VSO Wave 3)
 # Enable after VSO is deployed and CRDs exist
 vaultSecrets:
-  enabled: false
+  enabled: true
 

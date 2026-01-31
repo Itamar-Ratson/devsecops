@@ -7,7 +7,7 @@ gateway:
 # Disabled by default: setup.sh creates secrets directly during bootstrap
 # Enable after VSO is deployed if you want Vault-managed secrets
 vaultSecrets:
-  enabled: false
+  enabled: true
 
 # Alertmanager Slack Secrets (SealedSecret) - DEPRECATED, use vaultSecrets instead
 # Set enabled: true and provide encrypted webhook URLs
