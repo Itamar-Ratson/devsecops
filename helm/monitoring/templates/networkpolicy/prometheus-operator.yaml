@@ -14,17 +14,22 @@ spec:
     - toEntities:
         - kube-apiserver
 ---
-# Admission webhook patch job network policy - egress only
+# Admission webhook deployment network policy
+# The webhook validates PrometheusRule resources and needs API server access
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: admission-patch
+  name: admission-webhook
   namespace: {{ .Release.Namespace }}
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: kube-prometheus-stack-admission-patch
+      app: kube-prometheus-stack-operator-webhook
+  ingress:
+    # Allow webhook calls from kube-apiserver
+    - fromEntities:
+        - kube-apiserver
   egress:
-    # Allow API server access
+    # Allow API server access for lookups
     - toEntities:
         - kube-apiserver

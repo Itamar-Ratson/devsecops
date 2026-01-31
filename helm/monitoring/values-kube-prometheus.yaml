@@ -31,12 +31,25 @@ kube-prometheus-stack:
   # Prometheus Operator Configuration
   prometheusOperator:
     fullnameOverride: prometheus-operator
-    # Fix ArgoCD sync: don't delete webhook jobs immediately after success
-    # Use BeforeHookCreation so ArgoCD can detect job completion
+    # Use deployment-based admission webhooks instead of hook jobs.
+    # Hook jobs have a race condition: they complete fast and get deleted
+    # before ArgoCD can detect completion, causing sync to hang forever.
     admissionWebhooks:
-      annotations:
-        argocd.argoproj.io/hook: PreSync
-        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+      # Disable hook-based patching (causes ArgoCD sync hangs)
+      patch:
+        enabled: false
+      # Use persistent deployment instead
+      deployment:
+        enabled: true
+        replicas: 1
+        # Resources for the admission webhook deployment
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi
 
   # Kube State Metrics
   kube-state-metrics:
