@@ -123,11 +123,11 @@ path "secret/metadata/*" {
 }
 POLICY
 
-# Create role for VSO service account
+# Create role for VSO - allow default SA from all namespaces that need secrets
 docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
   vault write auth/kubernetes/role/vso \
-    bound_service_account_names=vault-secrets-operator-controller-manager \
-    bound_service_account_namespaces=vault-secrets-operator \
+    bound_service_account_names=default \
+    bound_service_account_namespaces=vault-secrets-operator,monitoring,argocd,keycloak,vault \
     policies=vso-reader \
     ttl=1h
 
