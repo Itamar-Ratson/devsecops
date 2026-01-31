@@ -1,0 +1,14 @@
+{{- if .Values.transitVault.enabled }}
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: transit-vault-auth
+  namespace: {{ .Release.Namespace }}
+spec:
+  vaultConnectionRef: transit-vault
+  method: kubernetes
+  mount: kubernetes
+  kubernetes:
+    role: vso
+    serviceAccount: vault-secrets-operator-controller-manager
+{{- end }}

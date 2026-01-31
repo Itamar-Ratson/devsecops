@@ -70,6 +70,10 @@ log "Initializing Transit secrets engine..."
 docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit vault secrets enable transit 2>/dev/null || true
 docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit vault write -f transit/keys/autounseal 2>/dev/null || true
 
+# Enable KV v2 engine for static secrets
+log "Enabling KV v2 secrets engine on Transit Vault..."
+docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit vault secrets enable -path=secret kv-v2 2>/dev/null || true
+
 # ============================================================================
 # Create KinD cluster and connect Transit Vault
 # ============================================================================
@@ -89,6 +93,90 @@ docker network connect --ip "$TRANSIT_VAULT_IP" kind vault-transit 2>/dev/null |
     docker network connect --ip "$TRANSIT_VAULT_IP" kind vault-transit
 }
 log "Transit Vault IP on KinD network: $TRANSIT_VAULT_IP"
+
+# ============================================================================
+# Configure Transit Vault Kubernetes auth (for VSO to authenticate)
+# ============================================================================
+log "Configuring Transit Vault Kubernetes auth..."
+
+# Get KinD cluster info for Transit Vault to trust
+KUBE_HOST=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+KUBE_CA=$(kubectl config view --minify --raw -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' | base64 -d)
+
+# Enable Kubernetes auth on Transit Vault
+docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
+  vault auth enable kubernetes 2>/dev/null || true
+
+# Configure K8s auth to trust KinD cluster
+docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
+  vault write auth/kubernetes/config \
+    kubernetes_host="$KUBE_HOST" \
+    kubernetes_ca_cert="$KUBE_CA"
+
+# Create policy for VSO to read secrets
+docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
+  vault policy write vso-reader - <<'POLICY'
+path "secret/data/*" {
+  capabilities = ["read"]
+}
+path "secret/metadata/*" {
+  capabilities = ["read", "list"]
+}
+POLICY
+
+# Create role for VSO service account
+docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
+  vault write auth/kubernetes/role/vso \
+    bound_service_account_names=vault-secrets-operator-controller-manager \
+    bound_service_account_namespaces=vault-secrets-operator-system \
+    policies=vso-reader \
+    ttl=1h
+
+log "Transit Vault Kubernetes auth configured"
+
+# ============================================================================
+# Seed secrets to Transit Vault KV store
+# ============================================================================
+log "Seeding secrets to Transit Vault..."
+
+# OIDC client secrets
+docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
+  vault kv put secret/keycloak/oidc-clients \
+    argocd-client-secret="$ARGOCD_OIDC_CLIENT_SECRET" \
+    grafana-client-secret="$GRAFANA_OIDC_CLIENT_SECRET" \
+    vault-client-secret="$VAULT_OIDC_CLIENT_SECRET"
+
+# Keycloak admin credentials (keys match VaultStaticSecret templates)
+docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
+  vault kv put secret/keycloak/admin \
+    admin-user="$KEYCLOAK_ADMIN_USER" \
+    admin-password="$KEYCLOAK_ADMIN_PASSWORD"
+
+# Grafana admin credentials (keys match VaultStaticSecret templates)
+docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
+  vault kv put secret/monitoring/grafana \
+    admin-user="$GRAFANA_ADMIN_USER" \
+    admin-password="$GRAFANA_ADMIN_PASSWORD"
+
+# Alertmanager webhooks (optional - may be empty)
+PAGERDUTY_KEY=$(grep PAGERDUTY_ROUTING_KEY .env 2>/dev/null | cut -d'=' -f2- || echo "")
+SLACK_CRITICAL=$(grep SLACK_CRITICAL_WEBHOOK .env 2>/dev/null | cut -d'=' -f2- || echo "")
+SLACK_WARNING=$(grep SLACK_WARNING_WEBHOOK .env 2>/dev/null | cut -d'=' -f2- || echo "")
+docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
+  vault kv put secret/monitoring/alertmanager \
+    pagerduty-routing-key="$PAGERDUTY_KEY" \
+    slack-critical-webhook="$SLACK_CRITICAL" \
+    slack-warning-webhook="$SLACK_WARNING"
+
+# ArgoCD secrets (keys match VaultStaticSecret templates - note the dots in key names)
+ARGOCD_PASSWORD_MTIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
+  vault kv put secret/argocd/admin \
+    "admin.password=$ARGOCD_ADMIN_PASSWORD_HASH" \
+    "admin.passwordMtime=$ARGOCD_PASSWORD_MTIME" \
+    "server.secretkey=$ARGOCD_SERVER_SECRET_KEY"
+
+log "Secrets seeded to Transit Vault"
 
 # ============================================================================
 # Install CRDs (required before operators)
@@ -178,97 +266,8 @@ stringData:
   VAULT_TOKEN: "${VAULT_TRANSIT_TOKEN}"
 EOF
 
-# Create Secret with bootstrap secrets for Vault
-# These will be used by the bootstrap job to seed Vault with initial secrets
-# Note: Use temp files to avoid shell expansion of $ in passwords/hashes
-SECRETS_DIR=$(mktemp -d)
-grep GRAFANA_ADMIN_USER .env | cut -d'=' -f2- > "$SECRETS_DIR/grafana-user"
-grep GRAFANA_ADMIN_PASSWORD .env | cut -d'=' -f2- > "$SECRETS_DIR/grafana-password"
-grep ARGOCD_ADMIN_PASSWORD_HASH .env | cut -d'=' -f2- > "$SECRETS_DIR/argocd-password-hash"
-grep ARGOCD_SERVER_SECRET_KEY .env | cut -d'=' -f2- > "$SECRETS_DIR/argocd-server-secret-key"
-# Alertmanager secrets (optional - defaults to empty)
-grep PAGERDUTY_ROUTING_KEY .env | cut -d'=' -f2- > "$SECRETS_DIR/pagerduty-routing-key" 2>/dev/null || echo -n "" > "$SECRETS_DIR/pagerduty-routing-key"
-grep SLACK_CRITICAL_WEBHOOK .env | cut -d'=' -f2- > "$SECRETS_DIR/slack-critical-webhook" 2>/dev/null || echo -n "" > "$SECRETS_DIR/slack-critical-webhook"
-grep SLACK_WARNING_WEBHOOK .env | cut -d'=' -f2- > "$SECRETS_DIR/slack-warning-webhook" 2>/dev/null || echo -n "" > "$SECRETS_DIR/slack-warning-webhook"
-# Keycloak secrets
-grep KEYCLOAK_ADMIN_USER .env | cut -d'=' -f2- > "$SECRETS_DIR/keycloak-admin-user"
-grep KEYCLOAK_ADMIN_PASSWORD .env | cut -d'=' -f2- > "$SECRETS_DIR/keycloak-admin-password"
-grep ARGOCD_OIDC_CLIENT_SECRET .env | cut -d'=' -f2- > "$SECRETS_DIR/argocd-oidc-client-secret"
-grep GRAFANA_OIDC_CLIENT_SECRET .env | cut -d'=' -f2- > "$SECRETS_DIR/grafana-oidc-client-secret"
-grep VAULT_OIDC_CLIENT_SECRET .env | cut -d'=' -f2- > "$SECRETS_DIR/vault-oidc-client-secret"
-kubectl create secret generic vault-bootstrap-secrets \
-    --namespace vault \
-    --from-file="$SECRETS_DIR/grafana-user" \
-    --from-file="$SECRETS_DIR/grafana-password" \
-    --from-file="$SECRETS_DIR/argocd-password-hash" \
-    --from-file="$SECRETS_DIR/argocd-server-secret-key" \
-    --from-file="$SECRETS_DIR/pagerduty-routing-key" \
-    --from-file="$SECRETS_DIR/slack-critical-webhook" \
-    --from-file="$SECRETS_DIR/slack-warning-webhook" \
-    --from-file="$SECRETS_DIR/keycloak-admin-user" \
-    --from-file="$SECRETS_DIR/keycloak-admin-password" \
-    --from-file="$SECRETS_DIR/argocd-oidc-client-secret" \
-    --from-file="$SECRETS_DIR/grafana-oidc-client-secret" \
-    --from-file="$SECRETS_DIR/vault-oidc-client-secret" \
-    --dry-run=client -o yaml | kubectl apply -f -
-rm -rf "$SECRETS_DIR"
-
 log "Vault prerequisites created - ArgoCD will deploy Vault in Wave 2"
-
-# ============================================================================
-# Create Keycloak secrets (needed before ArgoCD deploys Keycloak)
-# ============================================================================
-log "Creating Keycloak namespace and secrets..."
-kubectl create namespace keycloak --dry-run=client -o yaml | kubectl apply -f -
-
-# Create Keycloak admin credentials secret
-kubectl create secret generic keycloak-admin-credentials \
-    --namespace keycloak \
-    --from-literal=admin-user="${KEYCLOAK_ADMIN_USER}" \
-    --from-literal=admin-password="${KEYCLOAK_ADMIN_PASSWORD}" \
-    --dry-run=client -o yaml | kubectl apply -f -
-
-# Create Keycloak OIDC clients secret
-kubectl create secret generic keycloak-oidc-clients \
-    --namespace keycloak \
-    --from-literal=argocd-client-secret="${ARGOCD_OIDC_CLIENT_SECRET}" \
-    --from-literal=grafana-client-secret="${GRAFANA_OIDC_CLIENT_SECRET}" \
-    --from-literal=vault-client-secret="${VAULT_OIDC_CLIENT_SECRET}" \
-    --dry-run=client -o yaml | kubectl apply -f -
-
-log "Keycloak secrets created"
-
-# ============================================================================
-# Create Monitoring secrets (needed before ArgoCD deploys Monitoring)
-# ============================================================================
-log "Creating Monitoring namespace and secrets..."
-kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
-
-# Create Grafana admin credentials secret
-kubectl create secret generic grafana-admin-credentials \
-    --namespace monitoring \
-    --from-literal=admin-user="${GRAFANA_ADMIN_USER}" \
-    --from-literal=admin-password="${GRAFANA_ADMIN_PASSWORD}" \
-    --dry-run=client -o yaml | kubectl apply -f -
-
-# Create Grafana OIDC secret
-kubectl create secret generic grafana-oidc-secret \
-    --namespace monitoring \
-    --from-literal=GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET="${GRAFANA_OIDC_CLIENT_SECRET}" \
-    --dry-run=client -o yaml | kubectl apply -f -
-
-# Create Alertmanager webhooks secret (optional - empty if not configured)
-PAGERDUTY_KEY=$(grep PAGERDUTY_ROUTING_KEY .env 2>/dev/null | cut -d'=' -f2- || echo "")
-SLACK_CRITICAL=$(grep SLACK_CRITICAL_WEBHOOK .env 2>/dev/null | cut -d'=' -f2- || echo "")
-SLACK_WARNING=$(grep SLACK_WARNING_WEBHOOK .env 2>/dev/null | cut -d'=' -f2- || echo "")
-kubectl create secret generic alertmanager-slack-webhooks \
-    --namespace monitoring \
-    --from-literal=pagerduty-routing-key="${PAGERDUTY_KEY}" \
-    --from-literal=slack-critical-webhook="${SLACK_CRITICAL}" \
-    --from-literal=slack-warning-webhook="${SLACK_WARNING}" \
-    --dry-run=client -o yaml | kubectl apply -f -
-
-log "Monitoring secrets created"
+log "Note: Static secrets are now stored in Transit Vault and pulled by VSO"
 
 # ============================================================================
 # Install ArgoCD (GitOps controller)

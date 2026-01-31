@@ -1,0 +1,10 @@
+{{- if .Values.transitVault.enabled }}
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultConnection
+metadata:
+  name: transit-vault
+  namespace: {{ .Release.Namespace }}
+spec:
+  address: http://{{ .Values.transitVault.address }}:8200
+  skipTLSVerify: true  # Dev mode - Transit Vault runs without TLS
+{{- end }}

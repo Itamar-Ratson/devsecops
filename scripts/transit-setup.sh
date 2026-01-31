@@ -35,5 +35,9 @@ vault secrets enable transit 2>/dev/null || echo "Transit already enabled"
 echo "Creating auto-unseal key..."
 vault write -f transit/keys/autounseal 2>/dev/null || echo "Key already exists"
 
+echo "Enabling KV v2 secrets engine..."
+vault secrets enable -path=secret kv-v2 2>/dev/null || echo "KV engine already enabled"
+
 echo "Transit Vault setup complete!"
 echo "The in-cluster Vault will now auto-unseal using this Transit instance."
+echo "KV v2 engine available at 'secret/' for static secrets storage."

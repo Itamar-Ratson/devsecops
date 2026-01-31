@@ -1,5 +1,12 @@
+# Transit Vault configuration (external Docker container for static secrets)
+transitVault:
+  enabled: true
+  # This IP is set by setup.sh based on the KinD network subnet
+  # Default: 172.18.0.100 (standard KinD subnet)
+  address: "172.18.0.100"
+
 vault-secrets-operator:
-  # Default Vault connection configuration
+  # Default Vault connection configuration (in-cluster Vault - for future dynamic secrets)
   defaultVaultConnection:
     enabled: true
     address: "http://vault.vault.svc.cluster.local:8200"

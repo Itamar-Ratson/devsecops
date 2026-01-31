@@ -122,60 +122,35 @@ spec:
               vault write auth/kubernetes/config \
                 kubernetes_host="https://kubernetes.default.svc:443"
 
-              # Create vault-secrets-operator role
+              # Create vault-secrets-operator role (for future in-cluster dynamic secrets)
               echo "Creating Kubernetes auth roles..."
               vault write auth/kubernetes/role/vault-secrets-operator \
                 bound_service_account_names="vault-secrets-operator-controller-manager,default" \
-                bound_service_account_namespaces="vault-secrets-operator,monitoring,argocd,keycloak,vault" \
+                bound_service_account_namespaces="vault-secrets-operator-system,monitoring,argocd,keycloak,vault" \
                 policies="monitoring,argocd,keycloak" \
                 ttl=24h
 
-              # Seed secrets from the pre-created Secret (created by setup.sh)
-              echo "Seeding secrets from vault-bootstrap-secrets..."
+              # Note: Static secrets are now stored in Transit Vault and pulled by VSO
+              # This in-cluster Vault is available for future dynamic secrets (AWS, DB, PKI)
 
-              # Read secrets from mounted Secret
-              GRAFANA_USER=$(cat /secrets/grafana-user)
-              GRAFANA_PASSWORD=$(cat /secrets/grafana-password)
-              ARGOCD_PASSWORD_HASH=$(cat /secrets/argocd-password-hash)
-              ARGOCD_SECRET_KEY=$(cat /secrets/argocd-server-secret-key)
-              PAGERDUTY_ROUTING_KEY=$(cat /secrets/pagerduty-routing-key)
-              SLACK_CRITICAL_WEBHOOK=$(cat /secrets/slack-critical-webhook)
-              SLACK_WARNING_WEBHOOK=$(cat /secrets/slack-warning-webhook)
+              # Read OIDC client secret from Transit Vault secret for OIDC config
+              # VSO will create this secret once it syncs
+              echo "Waiting for vault-oidc-secret to be available..."
+              OIDC_SECRET_RETRIES=30
+              OIDC_SECRET_COUNT=0
+              while ! kubectl get secret vault-oidc-secret -n {{ .Release.Namespace }} >/dev/null 2>&1; do
+                OIDC_SECRET_COUNT=$((OIDC_SECRET_COUNT + 1))
+                if [ $OIDC_SECRET_COUNT -ge $OIDC_SECRET_RETRIES ]; then
+                  echo "WARNING: vault-oidc-secret not found after $OIDC_SECRET_RETRIES attempts, skipping OIDC config"
+                  break
+                fi
+                echo "Waiting for VSO to create vault-oidc-secret... (attempt $OIDC_SECRET_COUNT/$OIDC_SECRET_RETRIES)"
+                sleep 5
+              done
 
-              # Seed Grafana secrets
-              vault kv put secret/monitoring/grafana \
-                admin-user="$GRAFANA_USER" \
-                admin-password="$GRAFANA_PASSWORD"
-
-              # Seed Alertmanager secrets
-              vault kv put secret/monitoring/alertmanager \
-                slack-critical-webhook="$SLACK_CRITICAL_WEBHOOK" \
-                slack-warning-webhook="$SLACK_WARNING_WEBHOOK" \
-                pagerduty-routing-key="$PAGERDUTY_ROUTING_KEY"
-
-              # Seed ArgoCD secrets
-              vault kv put secret/argocd/admin \
-                "admin.password=$ARGOCD_PASSWORD_HASH" \
-                "admin.passwordMtime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-                "server.secretkey=$ARGOCD_SECRET_KEY"
-
-              # Read Keycloak secrets from mounted Secret
-              KEYCLOAK_ADMIN_USER=$(cat /secrets/keycloak-admin-user)
-              KEYCLOAK_ADMIN_PASSWORD=$(cat /secrets/keycloak-admin-password)
-              ARGOCD_OIDC_CLIENT_SECRET=$(cat /secrets/argocd-oidc-client-secret)
-              GRAFANA_OIDC_CLIENT_SECRET=$(cat /secrets/grafana-oidc-client-secret)
-              VAULT_OIDC_CLIENT_SECRET=$(cat /secrets/vault-oidc-client-secret)
-
-              # Seed Keycloak admin secrets
-              vault kv put secret/keycloak/admin \
-                admin-user="$KEYCLOAK_ADMIN_USER" \
-                admin-password="$KEYCLOAK_ADMIN_PASSWORD"
-
-              # Seed OIDC client secrets
-              vault kv put secret/keycloak/oidc-clients \
-                argocd-client-secret="$ARGOCD_OIDC_CLIENT_SECRET" \
-                grafana-client-secret="$GRAFANA_OIDC_CLIENT_SECRET" \
-                vault-client-secret="$VAULT_OIDC_CLIENT_SECRET"
+              if kubectl get secret vault-oidc-secret -n {{ .Release.Namespace }} >/dev/null 2>&1; then
+                VAULT_OIDC_CLIENT_SECRET=$(kubectl get secret vault-oidc-secret -n {{ .Release.Namespace }} -o jsonpath='{.data.vault-client-secret}' | base64 -d)
+              fi
 
               # Configure OIDC auth method for Vault UI login
               # Uses external Keycloak URL with Gateway CA certificate
@@ -198,7 +173,7 @@ spec:
                 sleep 5
               done
 
-              if [ $OIDC_COUNT -lt $OIDC_RETRIES ]; then
+              if [ $OIDC_COUNT -lt $OIDC_RETRIES ] && [ -n "$VAULT_OIDC_CLIENT_SECRET" ]; then
                 # Fetch Gateway CA certificate for TLS verification
                 echo "Fetching Gateway TLS certificate..."
                 GATEWAY_CA_CERT=$(kubectl get secret gateway-tls -n gateway -o jsonpath='{.data.tls\.crt}' | base64 -d)
@@ -220,6 +195,8 @@ spec:
                 else
                   echo "WARNING: Gateway TLS secret not found, skipping OIDC config"
                 fi
+              else
+                echo "WARNING: Skipping OIDC config (Keycloak not ready or OIDC secret not available)"
               fi
 
               echo "=== Vault Bootstrap Complete ==="
@@ -227,16 +204,10 @@ spec:
             - name: config
               mountPath: /config
               readOnly: true
-            - name: secrets
-              mountPath: /secrets
-              readOnly: true
       volumes:
         - name: config
           configMap:
             name: vault-bootstrap-config
-        - name: secrets
-          secret:
-            secretName: vault-bootstrap-secrets
 ---
 # RBAC for bootstrap job to create secrets
 apiVersion: rbac.authorization.k8s.io/v1
