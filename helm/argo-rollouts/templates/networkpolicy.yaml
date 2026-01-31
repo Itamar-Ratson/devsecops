@@ -21,3 +21,12 @@ spec:
         - ports:
             - port: "{{ .Values.ports.argoRollouts.metrics }}"
               protocol: TCP
+
+  egress:
+    # Allow downloading plugins from GitHub
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
