@@ -126,7 +126,7 @@ spec:
               echo "Creating Kubernetes auth roles..."
               vault write auth/kubernetes/role/vault-secrets-operator \
                 bound_service_account_names="vault-secrets-operator-controller-manager,default" \
-                bound_service_account_namespaces="vault-secrets-operator-system,monitoring,argocd,keycloak,vault" \
+                bound_service_account_namespaces="vault-secrets-operator,monitoring,argocd,keycloak,vault" \
                 policies="monitoring,argocd,keycloak" \
                 ttl=24h
 

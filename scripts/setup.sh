@@ -127,7 +127,7 @@ POLICY
 docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
   vault write auth/kubernetes/role/vso \
     bound_service_account_names=vault-secrets-operator-controller-manager \
-    bound_service_account_namespaces=vault-secrets-operator-system \
+    bound_service_account_namespaces=vault-secrets-operator \
     policies=vso-reader \
     ttl=1h
 
