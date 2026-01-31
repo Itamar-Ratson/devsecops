@@ -11,4 +11,6 @@ spec:
   kubernetes:
     role: vso
     serviceAccount: vault-secrets-operator-controller-manager
+  allowedNamespaces:
+    - "*"  # Allow secrets in all namespaces
 {{- end }}
