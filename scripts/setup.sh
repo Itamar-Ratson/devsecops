@@ -114,8 +114,7 @@ docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_T
     kubernetes_ca_cert="$KUBE_CA"
 
 # Create policy for VSO to read secrets
-docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
-  vault policy write vso-reader - <<'POLICY'
+cat <<'POLICY' | docker exec -i -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit vault policy write vso-reader -
 path "secret/data/*" {
   capabilities = ["read"]
 }
