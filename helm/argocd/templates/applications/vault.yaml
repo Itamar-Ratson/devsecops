@@ -1,4 +1,4 @@
-# Wave 2: Secrets - HashiCorp Vault
+# Wave 3: Secrets - HashiCorp Vault (after VSO provides CRDs)
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -6,7 +6,7 @@ metadata:
   name: vault
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "3"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

@@ -4,10 +4,10 @@ gateway:
   namespace: gateway
 
 # Vault Secrets - enables VaultStaticSecret for syncing secrets from Vault
-# Disabled by default: setup.sh creates the argocd-oidc-secret directly
-# Enable manually after VSO is deployed if you want Vault-managed secrets
+# Disabled: ArgoCD is Wave 0, before VSO (Wave 2) installs CRDs
+# setup.sh creates argocd-oidc-secret directly via kubectl
 vaultSecrets:
-  enabled: true
+  enabled: false
 
 # GitOps repository configuration
 # enabled: false during initial bootstrap (CRDs don't exist yet)
