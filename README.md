@@ -39,8 +39,9 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![Kafka](https://img.shields.io/badge/Kafka-231F20?style=flat&logo=apachekafka&logoColor=white)
 ![Strimzi](https://img.shields.io/badge/Strimzi-191A1C?style=flat&logo=apachekafka&logoColor=white)
 
-**GitOps**<br>
+**GitOps & Delivery**<br>
 ![ArgoCD](https://img.shields.io/badge/ArgoCD-EF7B4D?style=flat&logo=argo&logoColor=white)
+![Argo Rollouts](https://img.shields.io/badge/Argo_Rollouts-EF7B4D?style=flat&logo=argo&logoColor=white)
 
 ## Prerequisites
 
@@ -77,7 +78,7 @@ cp .env.example .env   # Configure secrets (see .env.example for details)
 | 0 | ArgoCD (self-managed) |
 | 1 | Tetragon, Kyverno, Trivy, cert-manager, Sealed-secrets, Strimzi, Network-policies |
 | 2 | Kyverno-policies, Vault, Kafka |
-| 3 | Vault-secrets-operator, Gateway, Kafka-UI |
+| 3 | Vault-secrets-operator, Gateway, Kafka-UI, Argo-Rollouts |
 | 4 | http-echo, juice-shop, Keycloak |
 | 5 | Monitoring |
 
