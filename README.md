@@ -102,48 +102,27 @@ After setup, add the SSH key shown in output as a [deploy key](https://github.co
 kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base64 -d
 ```
 
-## Alerting Setup
+## Alerting
 
-AlertManager routes alerts to Slack and PagerDuty based on severity:
-
-| Severity | Slack Channel | PagerDuty |
-|----------|---------------|-----------|
-| critical | #alerts-critical | Yes |
-| warning | #alerts-warning | No |
-
-### Configuration
-
-Add to `.env` before running `setup.sh`:
-
+Add to `.env` (all optional):
 ```bash
-# Slack webhooks (https://api.slack.com/apps > Incoming Webhooks)
-SLACK_CRITICAL_WEBHOOK=https://hooks.slack.com/services/xxx/yyy/zzz
-SLACK_WARNING_WEBHOOK=https://hooks.slack.com/services/xxx/yyy/zzz
-
-# PagerDuty (Services > Your Service > Integrations > Events API v2)
+SLACK_CRITICAL_WEBHOOK=https://hooks.slack.com/...  # critical -> #alerts-critical + PagerDuty
+SLACK_WARNING_WEBHOOK=https://hooks.slack.com/...   # warning -> #alerts-warning
 PAGERDUTY_ROUTING_KEY=your-integration-key
 ```
 
-All three are optional - leave empty to disable that integration.
-
 ## SSO with Keycloak
 
-Keycloak provides centralized SSO for ArgoCD, Grafana, and Vault. Add to `.env`:
-
+Add to `.env`:
 ```bash
-# Keycloak admin
 KEYCLOAK_ADMIN_USER=admin
 KEYCLOAK_ADMIN_PASSWORD=admin
-
-# OIDC secrets (generate each with: openssl rand -hex 32)
-ARGOCD_OIDC_CLIENT_SECRET=<generated>
-GRAFANA_OIDC_CLIENT_SECRET=<generated>
-VAULT_OIDC_CLIENT_SECRET=<generated>
+ARGOCD_OIDC_CLIENT_SECRET=$(openssl rand -hex 32)
+GRAFANA_OIDC_CLIENT_SECRET=$(openssl rand -hex 32)
+VAULT_OIDC_CLIENT_SECRET=$(openssl rand -hex 32)
 ```
 
-Secrets flow automatically: `.env` → Vault → Keycloak realm import. No manual configuration needed.
-
-**User Management:** Create users at https://keycloak.localhost (`devsecops` realm) and assign to groups:
+Create users at https://keycloak.localhost (`devsecops` realm) and assign to groups:
 
 | Group | ArgoCD | Grafana | Vault |
 |-------|--------|---------|-------|
@@ -153,68 +132,29 @@ Secrets flow automatically: `.env` → Vault → Keycloak realm import. No manua
 
 ## GitOps Workflow
 
-**All infrastructure changes go through Git, not direct deployment.**
-
-### How to Make Changes
-
-1. **Edit the Helm chart** - Modify files in `helm/<component>/values.yaml` or `templates/`
-2. **Commit and push** - `git add . && git commit -m "message" && git push`
-3. **ArgoCD syncs automatically** - Or trigger manual sync in ArgoCD UI
-4. **Monitor sync status** - `kubectl get applications -n argocd`
-
-### What NOT to Do
+**All changes go through Git** - edit `helm/<component>/values.yaml`, commit, push. ArgoCD syncs automatically.
 
 ```bash
-# WRONG - bypasses GitOps
-helm upgrade --install vault helm/vault/ -n vault ...
-kubectl apply -f some-manifest.yaml
-
-# RIGHT - let ArgoCD handle it
-vim helm/vault/values.yaml  # make changes
-git add . && git commit -m "update vault config" && git push
-# ArgoCD syncs automatically
+# Never run helm/kubectl directly - let ArgoCD handle it
+vim helm/vault/values.yaml && git add . && git commit -m "update" && git push
 ```
 
-### Bootstrap vs GitOps-Managed
+| Component | Deployed By |
+|-----------|-------------|
+| Cilium, Sealed-Secrets | setup.sh (re-run to change) |
+| Everything else | ArgoCD (commit to change) |
 
-| Component | Deployed By | How to Change |
-|-----------|-------------|---------------|
-| Cilium, Sealed-Secrets | setup.sh | Edit chart, re-run setup.sh |
-| ArgoCD | setup.sh (bootstrap) | Edit chart, commit, ArgoCD self-manages |
-| Everything else (Waves 1-5) | ArgoCD | Edit chart, commit, ArgoCD syncs |
+## Argo Rollouts
 
-## Argo Rollouts (Progressive Delivery)
+Canary deployments with Gateway API traffic splitting and Prometheus-based analysis.
 
-Canary deployments for demo applications with automated Prometheus-based promotion.
+**Apps:** http-echo, juice-shop
 
-**Features:**
-- Gateway API traffic splitting (20% -> 50% -> 100%)
-- Automated analysis using Envoy/Gateway metrics
-- ArgoCD UI integration for rollout visibility
+Update the image to trigger a rollout: 20% → 50% → 100% with automated analysis at each step.
 
-**Applications using Rollouts:**
-- http-echo
-- juice-shop
-
-**Triggering a Rollout:**
-Update the container image or any pod spec field. Argo Rollouts will automatically:
-1. Create canary ReplicaSet
-2. Shift 20% traffic to canary
-3. Run analysis (check success rate)
-4. Shift 50% traffic
-5. Run analysis again
-6. Promote to 100%
-
-**Manual Control:**
 ```bash
-# Promote current canary immediately
-kubectl argo rollouts promote http-echo -n http-echo
-
-# Abort and rollback
-kubectl argo rollouts abort http-echo -n http-echo
-
-# Check rollout status
-kubectl argo rollouts status http-echo -n http-echo
+kubectl argo rollouts promote http-echo -n http-echo  # promote immediately
+kubectl argo rollouts abort http-echo -n http-echo    # rollback
 ```
 
 ## Troubleshooting
