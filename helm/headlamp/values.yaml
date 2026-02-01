@@ -1,6 +1,6 @@
 # Gateway configuration
 gateway:
-  name: cilium-gateway
+  name: main-gateway
   namespace: gateway
 
 # Headlamp configuration
