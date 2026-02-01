@@ -144,6 +144,41 @@ data:
               }
             }
           ]
+        },
+        {
+          "clientId": "headlamp",
+          "name": "Headlamp",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "${HEADLAMP_CLIENT_SECRET}",
+          "redirectUris": [
+            "https://headlamp.localhost/*",
+            "https://headlamp.localhost/oidc-callback"
+          ],
+          "webOrigins": [
+            "https://headlamp.localhost"
+          ],
+          "standardFlowEnabled": true,
+          "implicitFlowEnabled": false,
+          "directAccessGrantsEnabled": false,
+          "publicClient": false,
+          "protocol": "openid-connect",
+          "fullScopeAllowed": true,
+          "protocolMappers": [
+            {
+              "name": "groups",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-group-membership-mapper",
+              "consentRequired": false,
+              "config": {
+                "full.path": "false",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "groups",
+                "userinfo.token.claim": "true"
+              }
+            }
+          ]
         }
       ],
       "clientScopes": [
