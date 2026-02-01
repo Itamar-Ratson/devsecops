@@ -42,6 +42,7 @@ MISSING_VARS=""
 [[ -z "$ARGOCD_OIDC_CLIENT_SECRET" ]] && MISSING_VARS="$MISSING_VARS ARGOCD_OIDC_CLIENT_SECRET"
 [[ -z "$GRAFANA_OIDC_CLIENT_SECRET" ]] && MISSING_VARS="$MISSING_VARS GRAFANA_OIDC_CLIENT_SECRET"
 [[ -z "$VAULT_OIDC_CLIENT_SECRET" ]] && MISSING_VARS="$MISSING_VARS VAULT_OIDC_CLIENT_SECRET"
+[[ -z "$HEADLAMP_OIDC_CLIENT_SECRET" ]] && MISSING_VARS="$MISSING_VARS HEADLAMP_OIDC_CLIENT_SECRET"
 
 if [[ -n "$MISSING_VARS" ]]; then
     error "Missing required environment variables in .env:$MISSING_VARS"
@@ -170,7 +171,7 @@ POLICY
 docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
   vault write auth/kubernetes/role/vso \
     bound_service_account_names=default \
-    bound_service_account_namespaces=vault-secrets-operator,monitoring,argocd,keycloak,vault \
+    bound_service_account_namespaces=vault-secrets-operator,monitoring,argocd,keycloak,vault,headlamp \
     policies=vso-reader \
     ttl=1h
 
@@ -186,7 +187,8 @@ docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_T
   vault kv put secret/keycloak/oidc-clients \
     argocd-client-secret="$ARGOCD_OIDC_CLIENT_SECRET" \
     grafana-client-secret="$GRAFANA_OIDC_CLIENT_SECRET" \
-    vault-client-secret="$VAULT_OIDC_CLIENT_SECRET"
+    vault-client-secret="$VAULT_OIDC_CLIENT_SECRET" \
+    headlamp-client-secret="$HEADLAMP_OIDC_CLIENT_SECRET"
 
 # Keycloak admin credentials (keys match VaultStaticSecret templates)
 docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
