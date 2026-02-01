@@ -35,6 +35,9 @@ kube-prometheus-stack:
     # Hook jobs have a race condition: they complete fast and get deleted
     # before ArgoCD can detect completion, causing sync to hang forever.
     admissionWebhooks:
+      # Use cert-manager for TLS certificates
+      certManager:
+        enabled: true
       # Disable hook-based patching (causes ArgoCD sync hangs)
       patch:
         enabled: false
