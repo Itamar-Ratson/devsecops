@@ -1,0 +1,84 @@
+---
+# Headlamp network policy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: headlamp
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: headlamp
+
+  ingress:
+    # Allow from Gateway (Cilium Envoy) for UI access
+    - fromEntities:
+        - ingress
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.headlamp.http }}"
+              protocol: TCP
+
+    # Allow from host for port-forwarding
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.headlamp.http }}"
+              protocol: TCP
+
+    # Allow Prometheus to scrape metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.headlamp.http }}"
+              protocol: TCP
+
+  egress:
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP
+
+    # Allow Kubernetes API access (for cluster operations)
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.apiServerSecure }}"
+              protocol: TCP
+
+    # Allow Keycloak access for OIDC
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: keycloak
+            app.kubernetes.io/name: keycloakx
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
+    # Allow ArgoCD namespace for reading cluster secrets
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.argocd.http }}"
+              protocol: TCP
+
+    # Allow external cluster APIs (EKS/AKS) via world
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.gateway.https }}"
+              protocol: TCP
