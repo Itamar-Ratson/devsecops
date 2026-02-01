@@ -65,6 +65,11 @@ keycloakx:
         secretKeyRef:
           name: keycloak-oidc-clients
           key: vault-client-secret
+    - name: HEADLAMP_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-oidc-clients
+          key: headlamp-client-secret
 
   # Mount realm configuration for import
   extraVolumes: |
