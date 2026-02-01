@@ -1,0 +1,49 @@
+# Gateway configuration
+gateway:
+  name: cilium-gateway
+  namespace: gateway
+
+# Headlamp configuration
+headlamp:
+  replicaCount: 1
+
+  config:
+    oidc:
+      # Do not create secret from values - we use external secret from VSO
+      secret:
+        create: false
+      # Client secret from VaultStaticSecret
+      externalSecret:
+        enabled: true
+        name: headlamp-oidc-secret
+
+  # Cluster discovery from ArgoCD secrets
+  # Headlamp reads secrets with label: argocd.argoproj.io/secret-type=cluster
+  clusterRoleBinding:
+    create: true
+    clusterRoleName: cluster-admin
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  # Disable built-in ingress (we use HTTPRoute)
+  ingress:
+    enabled: false
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+  # Run as non-root
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 100
+    runAsGroup: 101
+
+  podSecurityContext:
+    fsGroup: 101
