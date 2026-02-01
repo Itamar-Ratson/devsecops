@@ -106,15 +106,55 @@ KUBE_HOST_IP=$(docker inspect k8s-dev-control-plane --format '{{.NetworkSettings
 KUBE_HOST="https://${KUBE_HOST_IP}:6443"
 KUBE_CA=$(kubectl config view --minify --raw -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' | base64 -d)
 
+# Create service account with TokenReview permissions for Transit Vault to validate JWTs
+# Transit Vault runs outside K8s (in Docker), so it needs a token_reviewer_jwt
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault-auth
+  namespace: kube-system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-auth-token
+  namespace: kube-system
+  annotations:
+    kubernetes.io/service-account.name: vault-auth
+type: kubernetes.io/service-account-token
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vault-auth-tokenreview
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:auth-delegator
+subjects:
+  - kind: ServiceAccount
+    name: vault-auth
+    namespace: kube-system
+EOF
+
+# Wait for the token to be populated
+sleep 2
+
+# Get the TokenReviewer JWT
+TOKEN_REVIEWER_JWT=$(kubectl get secret vault-auth-token -n kube-system -o jsonpath='{.data.token}' | base64 -d)
+
 # Enable Kubernetes auth on Transit Vault
 docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
   vault auth enable kubernetes 2>/dev/null || true
 
 # Configure K8s auth to trust KinD cluster
+# Include token_reviewer_jwt since Transit Vault runs outside K8s
 docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit \
   vault write auth/kubernetes/config \
     kubernetes_host="$KUBE_HOST" \
-    kubernetes_ca_cert="$KUBE_CA"
+    kubernetes_ca_cert="$KUBE_CA" \
+    token_reviewer_jwt="$TOKEN_REVIEWER_JWT"
 
 # Create policy for VSO to read secrets
 cat <<'POLICY' | docker exec -i -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN="$VAULT_TRANSIT_TOKEN" vault-transit vault policy write vso-reader -
