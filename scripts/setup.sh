@@ -100,7 +100,10 @@ log "Transit Vault IP on KinD network: $TRANSIT_VAULT_IP"
 log "Configuring Transit Vault Kubernetes auth..."
 
 # Get KinD cluster info for Transit Vault to trust
-KUBE_HOST=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+# Use internal K8s API IP (reachable from Transit Vault container on kind network)
+# kubectl's config shows 127.0.0.1 which doesn't work from inside Transit Vault container
+KUBE_HOST_IP=$(docker inspect k8s-dev-control-plane --format '{{.NetworkSettings.Networks.kind.IPAddress}}')
+KUBE_HOST="https://${KUBE_HOST_IP}:6443"
 KUBE_CA=$(kubectl config view --minify --raw -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' | base64 -d)
 
 # Enable Kubernetes auth on Transit Vault
