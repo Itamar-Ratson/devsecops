@@ -22,8 +22,6 @@ keycloakx:
     vendor: dev-file
 
   # Keycloak command configuration
-  # Note: Using JAVA_OPTS_APPEND for realm import instead of --import-realm
-  # because --import-realm doesn't support placeholder substitution
   command:
     - "/opt/keycloak/bin/kc.sh"
     - "start"
@@ -33,9 +31,10 @@ keycloakx:
     - "--hostname-strict=false"
     - "--proxy-headers=xforwarded"
     - "--http-relative-path=/"
+    - "--import-realm"
     - "--cache=local"  # Disable clustering for single-replica dev environment
 
-  # Admin credentials and OIDC secrets for realm import
+  # Admin credentials
   extraEnv: |
     - name: KEYCLOAK_ADMIN
       valueFrom:
@@ -47,36 +46,52 @@ keycloakx:
         secretKeyRef:
           name: keycloak-admin-credentials
           key: admin-password
-    # Enable env var substitution in realm import using legacy migration approach
-    - name: JAVA_OPTS_APPEND
-      value: "-Dkeycloak.migration.action=import -Dkeycloak.migration.provider=dir -Dkeycloak.migration.dir=/opt/keycloak/data/import -Dkeycloak.migration.strategy=IGNORE_EXISTING -Dkeycloak.migration.replace-placeholders=true"
-    # OIDC client secrets for realm import (env var substitution)
-    - name: ARGOCD_CLIENT_SECRET
-      valueFrom:
-        secretKeyRef:
-          name: keycloak-oidc-clients
-          key: argocd-client-secret
-    - name: GRAFANA_CLIENT_SECRET
-      valueFrom:
-        secretKeyRef:
-          name: keycloak-oidc-clients
-          key: grafana-client-secret
-    - name: VAULT_CLIENT_SECRET
-      valueFrom:
-        secretKeyRef:
-          name: keycloak-oidc-clients
-          key: vault-client-secret
-    - name: HEADLAMP_CLIENT_SECRET
-      valueFrom:
-        secretKeyRef:
-          name: keycloak-oidc-clients
-          key: headlamp-client-secret
 
-  # Mount realm configuration for import
+  # Init container to substitute env vars in realm JSON
+  extraInitContainers: |
+    - name: envsubst-realm
+      image: alpine:3.19
+      command:
+        - sh
+        - -c
+        - |
+          apk add --no-cache gettext
+          envsubst < /realm-template/devsecops-realm.json > /realm-output/devsecops-realm.json
+      env:
+        - name: ARGOCD_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-oidc-clients
+              key: argocd-client-secret
+        - name: GRAFANA_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-oidc-clients
+              key: grafana-client-secret
+        - name: VAULT_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-oidc-clients
+              key: vault-client-secret
+        - name: HEADLAMP_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-oidc-clients
+              key: headlamp-client-secret
+      volumeMounts:
+        - name: realm-template
+          mountPath: /realm-template
+          readOnly: true
+        - name: realm-config
+          mountPath: /realm-output
+
+  # Mount realm configuration
   extraVolumes: |
-    - name: realm-config
+    - name: realm-template
       configMap:
         name: keycloak-realm-config
+    - name: realm-config
+      emptyDir: {}
 
   extraVolumeMounts: |
     - name: realm-config
