@@ -89,6 +89,24 @@ spec:
             - port: "{{ .Values.ports.vault.http }}"
               protocol: TCP
 
+    # Allow Keycloak access for OIDC (external URL via Gateway)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.gateway.https }}"
+              protocol: TCP
+
+    # Allow Keycloak access for OIDC (internal cluster URL)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: keycloak
+            app.kubernetes.io/name: keycloakx
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
 ---
 # Vault Agent Injector Network Policy
 apiVersion: cilium.io/v2
