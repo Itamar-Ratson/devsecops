@@ -47,7 +47,7 @@ data:
           "name": "ArgoCD",
           "enabled": true,
           "clientAuthenticatorType": "client-secret",
-          "secret": "${env.ARGOCD_CLIENT_SECRET}",
+          "secret": "${ARGOCD_CLIENT_SECRET}",
           "redirectUris": [
             "https://argocd.localhost/auth/callback",
             "https://argocd.localhost/api/dex/callback"
@@ -82,7 +82,7 @@ data:
           "name": "Grafana",
           "enabled": true,
           "clientAuthenticatorType": "client-secret",
-          "secret": "${env.GRAFANA_CLIENT_SECRET}",
+          "secret": "${GRAFANA_CLIENT_SECRET}",
           "redirectUris": [
             "https://grafana.localhost/login/generic_oauth"
           ],
@@ -116,7 +116,7 @@ data:
           "name": "Vault",
           "enabled": true,
           "clientAuthenticatorType": "client-secret",
-          "secret": "${env.VAULT_CLIENT_SECRET}",
+          "secret": "${VAULT_CLIENT_SECRET}",
           "redirectUris": [
             "https://vault.localhost/ui/vault/auth/oidc/oidc/callback"
           ],
@@ -150,7 +150,7 @@ data:
           "name": "Headlamp",
           "enabled": true,
           "clientAuthenticatorType": "client-secret",
-          "secret": "${env.HEADLAMP_CLIENT_SECRET}",
+          "secret": "${HEADLAMP_CLIENT_SECRET}",
           "redirectUris": [
             "https://headlamp.localhost/*",
             "https://headlamp.localhost/oidc-callback"
