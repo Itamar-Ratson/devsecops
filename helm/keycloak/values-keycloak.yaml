@@ -46,9 +46,9 @@ keycloakx:
         secretKeyRef:
           name: keycloak-admin-credentials
           key: admin-password
-    # Enable env var substitution in realm import JSON (${env.X} placeholders)
-    - name: KC_SPI_REALM_IMPORT_PLACEHOLDER_RESOLVER_ENABLED
-      value: "true"
+    # Enable env var substitution in realm import JSON (${VAR} placeholders)
+    - name: JAVA_OPTS_APPEND
+      value: "-Dkeycloak.migration.replace-placeholders=true"
     # OIDC client secrets for realm import (env var substitution)
     - name: ARGOCD_CLIENT_SECRET
       valueFrom:
