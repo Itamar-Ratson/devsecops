@@ -154,7 +154,7 @@ argo-cd:
         name: Keycloak
         issuer: https://keycloak.localhost/realms/devsecops
         clientID: argocd
-        clientSecret: $oidc.keycloak.clientSecret
+        clientSecret: $argocd-oidc-secret:oidc.keycloak.clientSecret
         requestedScopes: ["openid", "profile", "email", "groups"]
         requestedIDTokenClaims: {"groups": {"essential": true}}
 
