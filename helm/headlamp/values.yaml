@@ -16,9 +16,9 @@ headlamp:
       externalSecret:
         enabled: true
         name: headlamp-oidc-secret
-    # Skip TLS verification for OIDC (self-signed certs in dev)
+    # CA certificate for OIDC TLS verification (self-signed certs in dev)
     extraArgs:
-      - "-oidc-skip-tls-verify"
+      - "-oidc-ca-cert=/etc/ssl/certs/gateway-ca.crt"
 
   # Cluster discovery from ArgoCD secrets
   # Headlamp reads secrets with label: argocd.argoproj.io/secret-type=cluster
