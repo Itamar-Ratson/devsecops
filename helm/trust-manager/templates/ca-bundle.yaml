@@ -1,0 +1,22 @@
+# Bundle to distribute the root CA to namespaces that need it
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: gateway-ca-bundle
+spec:
+  sources:
+    # Source: root CA from cert-manager namespace
+    - secret:
+        name: root-ca-secret
+        key: ca.crt
+  target:
+    # Distribute to ConfigMap in target namespaces
+    configMap:
+      key: ca.crt
+    # Also create as Secret for apps that need it
+    secret:
+      key: ca.crt
+    # Namespaces to distribute to (using label selector)
+    namespaceSelector:
+      matchLabels:
+        trust-manager.io/ca-bundle: "true"

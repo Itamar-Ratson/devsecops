@@ -1,0 +1,20 @@
+trust-manager:
+  # Use cert-manager namespace (default trust namespace)
+  app:
+    trust:
+      namespace: cert-manager
+
+  # Enable secret targets for distributing CA as Secrets
+  secretTargets:
+    enabled: true
+    # Allow creating secrets in all namespaces
+    authorizedSecretsAll: true
+
+  # Resource limits
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi

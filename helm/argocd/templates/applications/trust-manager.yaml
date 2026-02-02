@@ -1,0 +1,32 @@
+# Wave 1: trust-manager (CA bundle distribution)
+{{- if .Values.gitops.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trust-manager
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.gitops.repoURL }}
+    targetRevision: {{ .Values.gitops.targetRevision }}
+    path: helm/trust-manager
+    helm:
+      valueFiles:
+        - ../ports.yaml
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+{{- end }}
