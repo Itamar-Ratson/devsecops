@@ -18,7 +18,7 @@ headlamp:
         name: headlamp-oidc-secret
     # CA certificate for OIDC TLS verification (self-signed certs in dev)
     extraArgs:
-      - "-oidc-ca-cert=/etc/ssl/certs/gateway-ca.crt"
+      - "-oidc-ca-file=/etc/ssl/certs/gateway-ca.crt"
 
   # Cluster discovery from ArgoCD secrets
   # Headlamp reads secrets with label: argocd.argoproj.io/secret-type=cluster
