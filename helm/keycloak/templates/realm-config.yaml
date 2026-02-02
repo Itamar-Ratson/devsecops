@@ -292,5 +292,8 @@ data:
         "profile",
         "email",
         "groups"
+      ],
+      "defaultOptionalClientScopes": [
+        "offline_access"
       ]
     }
