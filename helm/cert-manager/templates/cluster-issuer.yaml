@@ -5,8 +5,7 @@ kind: ClusterIssuer
 metadata:
   name: selfsigned-bootstrap
   annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "1"
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   selfSigned: {}
 ---
@@ -17,8 +16,7 @@ metadata:
   name: root-ca
   namespace: cert-manager
   annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "2"
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   isCA: true
   commonName: devsecops-root-ca
@@ -39,8 +37,7 @@ kind: ClusterIssuer
 metadata:
   name: selfsigned
   annotations:
-    "helm.sh/hook": post-install,post-upgrade
-    "helm.sh/hook-weight": "3"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   ca:
     secretName: root-ca-secret
