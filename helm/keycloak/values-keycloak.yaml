@@ -55,8 +55,11 @@ keycloakx:
         - sh
         - -c
         - |
-          apk add --no-cache gettext
-          envsubst < /realm-template/devsecops-realm.json > /realm-output/devsecops-realm.json
+          sed -e "s|\${ARGOCD_CLIENT_SECRET}|$ARGOCD_CLIENT_SECRET|g" \
+              -e "s|\${GRAFANA_CLIENT_SECRET}|$GRAFANA_CLIENT_SECRET|g" \
+              -e "s|\${VAULT_CLIENT_SECRET}|$VAULT_CLIENT_SECRET|g" \
+              -e "s|\${HEADLAMP_CLIENT_SECRET}|$HEADLAMP_CLIENT_SECRET|g" \
+              /realm-template/devsecops-realm.json > /realm-output/devsecops-realm.json
       env:
         - name: ARGOCD_CLIENT_SECRET
           valueFrom:
