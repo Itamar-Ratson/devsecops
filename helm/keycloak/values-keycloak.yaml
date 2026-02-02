@@ -34,7 +34,7 @@ keycloakx:
     - "--import-realm"
     - "--cache=local"  # Disable clustering for single-replica dev environment
 
-  # Admin credentials
+  # Admin credentials and realm import settings
   extraEnv: |
     - name: KEYCLOAK_ADMIN
       valueFrom:
@@ -46,6 +46,8 @@ keycloakx:
         secretKeyRef:
           name: keycloak-admin-credentials
           key: admin-password
+    - name: KC_SPI_IMPORT_IMPORTER_STRATEGY
+      value: "OVERWRITE_EXISTING"
 
   # Init container to substitute env vars in realm JSON
   extraInitContainers: |
