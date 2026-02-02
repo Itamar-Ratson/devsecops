@@ -18,7 +18,7 @@ headlamp:
         name: headlamp-oidc-secret
     # Skip TLS verification for OIDC (self-signed certs in dev)
     extraArgs:
-      - "-insecure-ssl"
+      - "-oidc-skip-tls-verify"
 
   # Cluster discovery from ArgoCD secrets
   # Headlamp reads secrets with label: argocd.argoproj.io/secret-type=cluster
