@@ -313,7 +313,5 @@ data:
         "email",
         "groups"
       ],
-      "defaultOptionalClientScopes": [
-        "offline_access"
-      ]
+      "defaultOptionalClientScopes": []
     }
