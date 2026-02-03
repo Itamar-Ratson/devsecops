@@ -46,8 +46,10 @@ keycloakx:
         secretKeyRef:
           name: keycloak-admin-credentials
           key: admin-password
-    - name: KC_SPI_IMPORT_IMPORTER_STRATEGY
-      value: "OVERWRITE_EXISTING"
+    # Use JAVA_OPTS_APPEND for import strategy (KC_SPI_IMPORT_IMPORTER_STRATEGY is ignored by --import-realm)
+    # See: https://github.com/keycloak/keycloak/issues/32355
+    - name: JAVA_OPTS_APPEND
+      value: "-Dkeycloak.migration.strategy=OVERWRITE_EXISTING"
 
   # Init container to substitute env vars in realm JSON
   extraInitContainers: |
