@@ -31,7 +31,8 @@ keycloakx:
     - "--hostname-strict=false"
     - "--proxy-headers=xforwarded"
     - "--http-relative-path=/"
-    - "--import-realm"
+    # NOTE: Don't use --import-realm - it hardcodes IGNORE_EXISTING strategy
+    # Use JAVA_OPTS migration params instead (see extraEnv below)
     - "--cache=local"  # Disable clustering for single-replica dev environment
 
   # Admin credentials and realm import settings
@@ -46,10 +47,10 @@ keycloakx:
         secretKeyRef:
           name: keycloak-admin-credentials
           key: admin-password
-    # Use JAVA_OPTS_APPEND for import strategy (KC_SPI_IMPORT_IMPORTER_STRATEGY is ignored by --import-realm)
-    # See: https://github.com/keycloak/keycloak/issues/32355
+    # Use JAVA_OPTS_APPEND for import with OVERWRITE_EXISTING strategy
+    # --import-realm flag hardcodes IGNORE_EXISTING - see https://github.com/keycloak/keycloak/issues/32355
     - name: JAVA_OPTS_APPEND
-      value: "-Dkeycloak.migration.strategy=OVERWRITE_EXISTING"
+      value: "-Dkeycloak.migration.action=import -Dkeycloak.migration.provider=dir -Dkeycloak.migration.dir=/opt/keycloak/data/import -Dkeycloak.migration.strategy=OVERWRITE_EXISTING"
 
   # Init container to substitute env vars in realm JSON
   extraInitContainers: |
