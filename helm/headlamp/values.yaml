@@ -7,6 +7,13 @@ gateway:
 headlamp:
   replicaCount: 1
 
+  # Downgrade to v0.28.0 - last version with working OIDC refresh tokens
+  # See: https://github.com/kubernetes-sigs/headlamp/issues/3143
+  image:
+    registry: ghcr.io
+    repository: headlamp-k8s/headlamp
+    tag: "v0.28.0"
+
   config:
     oidc:
       # Do not create secret from values - we use external secret from VSO
