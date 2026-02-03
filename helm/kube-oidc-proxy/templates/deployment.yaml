@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-oidc-proxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: kube-oidc-proxy
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kube-oidc-proxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kube-oidc-proxy
+    spec:
+      serviceAccountName: kube-oidc-proxy
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        seccompProfile:
+          type: {{ .Values.securityContext.seccompProfile.type }}
+      containers:
+        - name: kube-oidc-proxy
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --secure-port=8443
+            - --tls-cert-file=/etc/tls/tls.crt
+            - --tls-private-key-file=/etc/tls/tls.key
+            - --oidc-issuer-url={{ .Values.oidc.issuerUrl }}
+            - --oidc-client-id={{ .Values.oidc.clientId }}
+            - --oidc-username-claim={{ .Values.oidc.usernameClaim }}
+            - --oidc-groups-claim={{ .Values.oidc.groupsClaim }}
+            - --oidc-ca-file=/etc/ssl/certs/oidc-ca.crt
+          ports:
+            - name: https
+              containerPort: 8443
+              protocol: TCP
+          volumeMounts:
+            - name: tls
+              mountPath: /etc/tls
+              readOnly: true
+            - name: oidc-ca
+              mountPath: /etc/ssl/certs/oidc-ca.crt
+              subPath: ca.crt
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
+            capabilities:
+              drop:
+                {{- toYaml .Values.securityContext.capabilities.drop | nindent 16 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      volumes:
+        - name: tls
+          secret:
+            secretName: {{ .Values.tls.secretName }}
+        - name: oidc-ca
+          configMap:
+            name: gateway-ca-bundle
+            optional: true

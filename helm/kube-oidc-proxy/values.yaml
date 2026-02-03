@@ -1,0 +1,52 @@
+# kube-oidc-proxy configuration
+image:
+  repository: quay.io/jetstack/kube-oidc-proxy
+  tag: "v0.3.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# OIDC configuration
+oidc:
+  issuerUrl: "https://keycloak.localhost/realms/devsecops"
+  clientId: "headlamp"
+  usernameClaim: "preferred_username"
+  groupsClaim: "groups"
+  # Client secret from VaultStaticSecret
+  existingSecret: "kube-oidc-proxy-config"
+  secretKey: "client-secret"
+
+# TLS configuration
+tls:
+  # Use cert-manager to generate certificate
+  secretName: "kube-oidc-proxy-tls"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 443
+
+# Resources
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+# Gateway configuration
+gateway:
+  name: main-gateway
+  namespace: gateway

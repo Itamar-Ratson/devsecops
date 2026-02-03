@@ -1,0 +1,55 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kube-oidc-proxy
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kube-oidc-proxy
+
+  ingress:
+    # Allow from Gateway (Cilium Envoy)
+    - fromEntities:
+        - ingress
+      toPorts:
+        - ports:
+            - port: "8443"
+              protocol: TCP
+
+    # Allow from host for port-forwarding
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "8443"
+              protocol: TCP
+
+  egress:
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+
+    # Allow to Kubernetes API server
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+
+    # Allow to Keycloak for OIDC discovery/validation
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: keycloak
+            app.kubernetes.io/name: keycloakx
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

@@ -7,12 +7,12 @@ gateway:
 headlamp:
   replicaCount: 1
 
-  # Downgrade to v0.28.0 - last version with working OIDC refresh tokens
-  # See: https://github.com/kubernetes-sigs/headlamp/issues/3143
+  # Using latest version with kube-oidc-proxy for API authentication
+  # Token lifespans extended in Keycloak to mitigate refresh token issues
   image:
     registry: ghcr.io
     repository: headlamp-k8s/headlamp
-    tag: "v0.28.0"
+    tag: "v0.39.0"
 
   config:
     oidc:
@@ -23,9 +23,9 @@ headlamp:
       externalSecret:
         enabled: true
         name: headlamp-oidc-secret
-    # Note: -oidc-ca-file not available in v0.28.0
-    # Using SSL_CERT_FILE env var instead for CA verification
-    extraArgs: []
+    # CA certificate for OIDC TLS verification (self-signed certs in dev)
+    extraArgs:
+      - "-oidc-ca-file=/etc/ssl/certs/gateway-ca.crt"
 
   # Cluster discovery from ArgoCD secrets
   # Headlamp reads secrets with label: argocd.argoproj.io/secret-type=cluster
@@ -66,6 +66,12 @@ headlamp:
   env:
     - name: SSL_CERT_FILE
       value: /etc/ssl/certs/gateway-ca.crt
+    # Point Headlamp to kube-oidc-proxy instead of real API server
+    # This allows OIDC token validation through the proxy
+    - name: KUBERNETES_SERVICE_HOST
+      value: kube-oidc-proxy.kube-oidc-proxy.svc
+    - name: KUBERNETES_SERVICE_PORT
+      value: "443"
 
   # Run as non-root
   securityContext:

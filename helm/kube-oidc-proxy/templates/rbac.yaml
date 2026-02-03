@@ -1,0 +1,40 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kube-oidc-proxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: kube-oidc-proxy
+---
+# ClusterRole for impersonation - allows proxy to act as authenticated users
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kube-oidc-proxy-impersonator
+rules:
+  # Allow impersonating users
+  - apiGroups: [""]
+    resources: ["users"]
+    verbs: ["impersonate"]
+  # Allow impersonating groups
+  - apiGroups: [""]
+    resources: ["groups"]
+    verbs: ["impersonate"]
+  # Allow impersonating user extras (for additional claims)
+  - apiGroups: ["authentication.k8s.io"]
+    resources: ["userextras/scopes", "userextras/aud"]
+    verbs: ["impersonate"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kube-oidc-proxy-impersonator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kube-oidc-proxy-impersonator
+subjects:
+  - kind: ServiceAccount
+    name: kube-oidc-proxy
+    namespace: {{ .Release.Namespace }}
