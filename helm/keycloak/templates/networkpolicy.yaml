@@ -57,6 +57,16 @@ spec:
             - port: "{{ .Values.ports.keycloak.http }}"
               protocol: TCP
 
+    # Allow from Headlamp for OIDC
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: headlamp
+            app.kubernetes.io/name: headlamp
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.keycloak.http }}"
+              protocol: TCP
+
     # Allow from Vault for OIDC
     - fromEndpoints:
         - matchLabels:
