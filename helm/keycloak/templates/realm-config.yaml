@@ -58,6 +58,9 @@ data:
           ],
           "groups": [
             "/admins"
+          ],
+          "realmRoles": [
+            "default-roles-devsecops"
           ]
         }
       ],
