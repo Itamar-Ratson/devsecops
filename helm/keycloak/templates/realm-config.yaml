@@ -23,10 +23,10 @@ data:
       "maxDeltaTimeSeconds": 43200,
       "failureFactor": 5,
       "defaultSignatureAlgorithm": "RS256",
-      "accessTokenLifespan": 300,
-      "accessTokenLifespanForImplicitFlow": 900,
-      "ssoSessionIdleTimeout": 1800,
-      "ssoSessionMaxLifespan": 36000,
+      "accessTokenLifespan": 3600,
+      "accessTokenLifespanForImplicitFlow": 3600,
+      "ssoSessionIdleTimeout": 86400,
+      "ssoSessionMaxLifespan": 86400,
       "groups": [
         {
           "name": "admins",
