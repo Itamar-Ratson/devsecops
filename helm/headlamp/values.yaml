@@ -23,9 +23,9 @@ headlamp:
       externalSecret:
         enabled: true
         name: headlamp-oidc-secret
-    # CA certificate for OIDC TLS verification (self-signed certs in dev)
-    extraArgs:
-      - "-oidc-ca-file=/etc/ssl/certs/gateway-ca.crt"
+    # Note: -oidc-ca-file not available in v0.28.0
+    # Using SSL_CERT_FILE env var instead for CA verification
+    extraArgs: []
 
   # Cluster discovery from ArgoCD secrets
   # Headlamp reads secrets with label: argocd.argoproj.io/secret-type=cluster
