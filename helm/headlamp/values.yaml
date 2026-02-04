@@ -15,6 +15,8 @@ headlamp:
     tag: "v0.28.0"
 
   config:
+    # Don't use in-cluster mode - we use a kubeconfig pointing to kube-oidc-proxy
+    inCluster: false
     oidc:
       # Do not create secret from values - we use external secret from VSO
       secret:
@@ -23,11 +25,9 @@ headlamp:
       externalSecret:
         enabled: true
         name: headlamp-oidc-secret
-    # Note: -oidc-ca-file not available in v0.28.0
-    # -insecure-ssl needed because client-go doesn't respect SSL_CERT_FILE
-    # and uses ServiceAccount CA which doesn't include kube-oidc-proxy's CA
+    # Use kubeconfig pointing to kube-oidc-proxy with correct CA
     extraArgs:
-      - -insecure-ssl
+      - -kubeconfig=/etc/headlamp/kubeconfig
 
   # Cluster discovery from ArgoCD secrets
   # Headlamp reads secrets with label: argocd.argoproj.io/secret-type=cluster
@@ -57,23 +57,24 @@ headlamp:
       configMap:
         name: gateway-ca-bundle
         optional: true  # Don't fail if trust-manager hasn't synced yet
+    - name: kubeconfig
+      configMap:
+        name: headlamp-kubeconfig
 
   volumeMounts:
     - name: ca-bundle
       mountPath: /etc/headlamp/certs/ca.crt
       subPath: ca.crt
       readOnly: true
+    - name: kubeconfig
+      mountPath: /etc/headlamp/kubeconfig
+      subPath: kubeconfig
+      readOnly: true
 
-  # Point Go's TLS to use our CA bundle
+  # Point Go's TLS to use our CA bundle for OIDC connections
   env:
     - name: SSL_CERT_FILE
       value: /etc/headlamp/certs/ca.crt
-    # Point Headlamp to kube-oidc-proxy instead of real API server
-    # This allows OIDC token validation through the proxy
-    - name: KUBERNETES_SERVICE_HOST
-      value: kube-oidc-proxy.kube-oidc-proxy.svc
-    - name: KUBERNETES_SERVICE_PORT
-      value: "443"
 
   # Run as non-root
   securityContext:
