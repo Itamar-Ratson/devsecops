@@ -15,8 +15,8 @@ headlamp:
     tag: "v0.28.0"
 
   config:
-    # Don't use in-cluster mode - we use a kubeconfig pointing to kube-oidc-proxy
-    inCluster: false
+    # Must use in-cluster mode for OIDC to work
+    inCluster: true
     oidc:
       # Do not create secret from values - we use external secret from VSO
       secret:
@@ -25,9 +25,7 @@ headlamp:
       externalSecret:
         enabled: true
         name: headlamp-oidc-secret
-    # Use kubeconfig pointing to kube-oidc-proxy with correct CA
-    extraArgs:
-      - -kubeconfig=/etc/headlamp/kubeconfig
+    extraArgs: []
 
   # Cluster discovery from ArgoCD secrets
   # Headlamp reads secrets with label: argocd.argoproj.io/secret-type=cluster
@@ -51,30 +49,55 @@ headlamp:
       cpu: 200m
       memory: 128Mi
 
+  # Disable default SA mount - we'll create our own with custom CA
+  automountServiceAccountToken: false
+
   # Mount CA bundle from trust-manager for OIDC TLS verification
   volumes:
     - name: ca-bundle
       configMap:
         name: gateway-ca-bundle
         optional: true  # Don't fail if trust-manager hasn't synced yet
-    - name: kubeconfig
-      configMap:
-        name: headlamp-kubeconfig
+    # Custom ServiceAccount volume with our CA
+    - name: custom-sa
+      projected:
+        sources:
+          # Token from the ServiceAccount
+          - serviceAccountToken:
+              path: token
+              expirationSeconds: 3600
+          # Our combined CA bundle (includes Kubernetes + gateway CA)
+          - configMap:
+              name: gateway-ca-bundle
+              items:
+                - key: ca.crt
+                  path: ca.crt
+          # Namespace
+          - downwardAPI:
+              items:
+                - path: namespace
+                  fieldRef:
+                    fieldPath: metadata.namespace
 
   volumeMounts:
     - name: ca-bundle
       mountPath: /etc/headlamp/certs/ca.crt
       subPath: ca.crt
       readOnly: true
-    - name: kubeconfig
-      mountPath: /etc/headlamp/kubeconfig
-      subPath: kubeconfig
+    # Mount custom SA to the standard path
+    - name: custom-sa
+      mountPath: /var/run/secrets/kubernetes.io/serviceaccount
       readOnly: true
 
   # Point Go's TLS to use our CA bundle for OIDC connections
   env:
     - name: SSL_CERT_FILE
       value: /etc/headlamp/certs/ca.crt
+    # Point Headlamp to kube-oidc-proxy instead of real API server
+    - name: KUBERNETES_SERVICE_HOST
+      value: kube-oidc-proxy.kube-oidc-proxy.svc
+    - name: KUBERNETES_SERVICE_PORT
+      value: "443"
 
   # Run as non-root
   securityContext:
