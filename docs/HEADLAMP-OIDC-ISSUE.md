@@ -188,7 +188,13 @@ kubectl logs -n headlamp deploy/headlamp --tail=20 | grep -i tls
 
 ## Version Compatibility
 
-The solution works with both Headlamp v0.28.0 and v0.39.0. The original "Lost connection to cluster" error was primarily caused by the TLS verification issue, not Headlamp version bugs.
+**v0.28.0**: Works correctly with this solution.
+
+**v0.39.0**: Has additional bugs beyond the TLS issue:
+- `"failed to append ca cert to pool"` - Different CA handling code that fails
+- `"refreshing token: getting refresh token: key not found"` - Refresh token bug persists
+
+**Recommendation**: Use v0.28.0 until these bugs are fixed in a later release.
 
 ## Related GitHub Issues
 

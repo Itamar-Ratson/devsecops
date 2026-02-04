@@ -7,11 +7,13 @@ gateway:
 headlamp:
   replicaCount: 1
 
-  # Testing v0.39.0 - the OIDC issue may have been TLS configuration, not version
+  # v0.28.0 is the last version with working OIDC refresh tokens
+  # v0.39.0 has "failed to append ca cert to pool" and refresh token bugs
+  # See: https://github.com/kubernetes-sigs/headlamp/issues/3143
   image:
     registry: ghcr.io
     repository: headlamp-k8s/headlamp
-    tag: "v0.39.0"
+    tag: "v0.28.0"
 
   config:
     # Must use in-cluster mode for OIDC to work
