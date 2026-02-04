@@ -61,12 +61,6 @@ headlamp:
       mountPath: /etc/headlamp/certs/ca.crt
       subPath: ca.crt
       readOnly: true
-    # Override ServiceAccount CA with gateway CA for kube-oidc-proxy TLS verification
-    # Go's kubernetes client uses this path when KUBERNETES_SERVICE_HOST is overridden
-    - name: ca-bundle
-      mountPath: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-      subPath: ca.crt
-      readOnly: true
 
   # Point Go's TLS to use our CA bundle
   env:

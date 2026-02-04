@@ -9,6 +9,10 @@ spec:
     - secret:
         name: root-ca-secret
         key: ca.crt
+    # Source: Kubernetes cluster CA (for API server TLS)
+    - configMap:
+        name: kube-root-ca.crt
+        key: ca.crt
   target:
     # Distribute to ConfigMap in target namespaces
     configMap:
