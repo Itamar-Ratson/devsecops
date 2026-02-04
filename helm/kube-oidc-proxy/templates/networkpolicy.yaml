@@ -25,6 +25,16 @@ spec:
             - port: "8443"
               protocol: TCP
 
+    # Allow from Headlamp for API proxy
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: headlamp
+            app.kubernetes.io/name: headlamp
+      toPorts:
+        - ports:
+            - port: "8443"
+              protocol: TCP
+
   egress:
     # Allow DNS resolution
     - toEndpoints:
