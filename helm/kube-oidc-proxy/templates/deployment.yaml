@@ -55,16 +55,15 @@ spec:
                 {{- toYaml .Values.securityContext.capabilities.drop | nindent 16 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          # kube-oidc-proxy uses TCP probe on the secure port
           readinessProbe:
-            httpGet:
-              path: /ready
-              port: 8080
+            tcpSocket:
+              port: 8443
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
+            tcpSocket:
+              port: 8443
             initialDelaySeconds: 15
             periodSeconds: 20
       volumes:
