@@ -24,8 +24,10 @@ headlamp:
         enabled: true
         name: headlamp-oidc-secret
     # Note: -oidc-ca-file not available in v0.28.0
-    # Using SSL_CERT_FILE env var instead for CA verification
-    extraArgs: []
+    # -insecure-ssl needed because client-go doesn't respect SSL_CERT_FILE
+    # and uses ServiceAccount CA which doesn't include kube-oidc-proxy's CA
+    extraArgs:
+      - -insecure-ssl
 
   # Cluster discovery from ArgoCD secrets
   # Headlamp reads secrets with label: argocd.argoproj.io/secret-type=cluster
