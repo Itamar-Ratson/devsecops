@@ -55,7 +55,7 @@ spec:
             app.kubernetes.io/name: kube-oidc-proxy
       toPorts:
         - ports:
-            - port: "443"
+            - port: "{{ .Values.ports.kubeOidcProxy.https }}"
               protocol: TCP
 
     # Allow direct Kubernetes API access (fallback)

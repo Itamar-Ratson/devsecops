@@ -134,3 +134,7 @@ ports:
   # Headlamp
   headlamp:
     http: 4466
+
+  # kube-oidc-proxy
+  kubeOidcProxy:
+    https: 8443
