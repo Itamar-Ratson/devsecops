@@ -25,6 +25,8 @@ spec:
         - name: kube-oidc-proxy
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - kube-oidc-proxy
           args:
             - --secure-port=8443
             - --tls-cert-file=/etc/tls/tls.crt
