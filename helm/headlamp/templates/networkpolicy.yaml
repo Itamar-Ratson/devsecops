@@ -48,7 +48,17 @@ spec:
             - port: "{{ .Values.ports.dns }}"
               protocol: UDP
 
-    # Allow Kubernetes API access (for cluster operations)
+    # Allow Kubernetes API access via kube-oidc-proxy
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-oidc-proxy
+            app.kubernetes.io/name: kube-oidc-proxy
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+
+    # Allow direct Kubernetes API access (fallback)
     - toEntities:
         - kube-apiserver
       toPorts:
