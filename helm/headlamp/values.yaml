@@ -25,7 +25,7 @@ headlamp:
         name: headlamp-oidc-secret
     # CA certificate for OIDC TLS verification (self-signed certs in dev)
     extraArgs:
-      - "-oidc-ca-file=/etc/ssl/certs/gateway-ca.crt"
+      - "-oidc-ca-file=/etc/headlamp/certs/ca.crt"
 
   # Cluster discovery from ArgoCD secrets
   # Headlamp reads secrets with label: argocd.argoproj.io/secret-type=cluster
@@ -58,14 +58,14 @@ headlamp:
 
   volumeMounts:
     - name: ca-bundle
-      mountPath: /etc/ssl/certs/gateway-ca.crt
+      mountPath: /etc/headlamp/certs/ca.crt
       subPath: ca.crt
       readOnly: true
 
   # Point Go's TLS to use our CA bundle
   env:
     - name: SSL_CERT_FILE
-      value: /etc/ssl/certs/gateway-ca.crt
+      value: /etc/headlamp/certs/ca.crt
     # Point Headlamp to kube-oidc-proxy instead of real API server
     # This allows OIDC token validation through the proxy
     - name: KUBERNETES_SERVICE_HOST
