@@ -19,10 +19,14 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![Sealed Secrets](https://img.shields.io/badge/Sealed_Secrets-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![Vault](https://img.shields.io/badge/Vault-FFEC6E?style=flat&logo=vault&logoColor=black)
 ![Keycloak](https://img.shields.io/badge/Keycloak-4D4D4D?style=flat&logo=keycloak&logoColor=white)
+![kube-oidc-proxy](https://img.shields.io/badge/kube--oidc--proxy-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![Tetragon](https://img.shields.io/badge/Tetragon-F8C517?style=flat&logo=cilium&logoColor=black)
 ![Kyverno](https://img.shields.io/badge/Kyverno-FF6F00?style=flat&logo=kubernetes&logoColor=white)
 ![Trivy](https://img.shields.io/badge/Trivy-1904DA?style=flat&logo=aquasecurity&logoColor=white)
 ![OWASP ZAP](https://img.shields.io/badge/OWASP_ZAP-00549E?style=flat&logo=owasp&logoColor=white)
+
+**Dashboard**<br>
+![Headlamp](https://img.shields.io/badge/Headlamp-326CE5?style=flat&logo=kubernetes&logoColor=white)
 
 **Observability**<br>
 ![Hubble](https://img.shields.io/badge/Hubble-F8C517?style=flat&logo=cilium&logoColor=black)
@@ -83,7 +87,7 @@ cp .env.example .env   # Configure secrets (see .env.example for details)
 | 2 | Kyverno-policies, Vault, Kafka |
 | 3 | Vault-secrets-operator, Gateway, Kafka-UI, Argo-Rollouts |
 | 4 | http-echo, juice-shop, Keycloak |
-| 5 | Monitoring |
+| 5 | Monitoring, kube-oidc-proxy, Headlamp |
 
 After setup, add the SSH key shown in output as a [deploy key](https://github.com/YOUR-ORG/devsecops/settings/keys) (read-only).
 
@@ -94,6 +98,7 @@ After setup, add the SSH key shown in output as a [deploy key](https://github.co
 | Echo | https://echo.localhost | - |
 | Juice Shop | https://juice-shop.localhost | - |
 | Hubble UI | https://hubble.localhost | - |
+| Headlamp | https://headlamp.localhost | SSO via Keycloak (testuser/testuser) |
 | Grafana | https://grafana.localhost | SSO via Keycloak or .env: GRAFANA_ADMIN_* |
 | Kafka UI | https://kafka-ui.localhost | - |
 | ArgoCD | https://argocd.localhost | SSO via Keycloak or admin/.env: ARGOCD_ADMIN_PASSWORD_HASH |
@@ -127,11 +132,30 @@ VAULT_OIDC_CLIENT_SECRET=$(openssl rand -hex 32)
 
 Create users at https://keycloak.localhost (`devsecops` realm) and assign to groups:
 
-| Group | ArgoCD | Grafana | Vault |
-|-------|--------|---------|-------|
-| admins | admin | Admin | default |
-| developers | admin | Editor | default |
-| viewers | readonly | Viewer | default |
+| Group | ArgoCD | Grafana | Vault | Headlamp |
+|-------|--------|---------|-------|----------|
+| admins | admin | Admin | default | cluster-admin |
+| developers | admin | Editor | default | edit |
+| viewers | readonly | Viewer | default | view |
+
+## Headlamp Kubernetes Dashboard
+
+Headlamp provides a web UI for Kubernetes with OIDC authentication via Keycloak.
+
+**Architecture:**
+```
+Browser → Headlamp → kube-oidc-proxy → Kubernetes API
+                ↓
+            Keycloak (OIDC)
+```
+
+- **kube-oidc-proxy** validates OIDC tokens and impersonates users to the API server
+- No API server OIDC configuration required (works with any K8s distribution)
+- User permissions based on Keycloak group membership (RBAC)
+
+**Test user:** `testuser` / `testuser` (member of `admins` group)
+
+For implementation details, see [docs/HEADLAMP-OIDC-ISSUE.md](docs/HEADLAMP-OIDC-ISSUE.md).
 
 ## GitOps Workflow
 
