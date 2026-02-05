@@ -3,6 +3,7 @@
 !.gitignore
 !Chart.lock
 !README.md
+!Makefile
 !Dockerfile
 !*.yaml
 !*.json
@@ -10,8 +11,22 @@
 !*.tsv
 !.env.example
 
+# Terraform files
+!*.tf
+!*.hcl
+!.terraform.lock.hcl
+
 # Ignore hidden directories (except .github)
 .*
 !.github
 !.gitignore
 !.env.example
+
+# Terraform state and sensitive files
+.terraform/
+.terragrunt-cache/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+secrets.tfvars
+!secrets.tfvars.example

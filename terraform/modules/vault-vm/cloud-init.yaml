@@ -1,0 +1,69 @@
+#cloud-config
+hostname: vault
+fqdn: vault.k8s.local
+
+network:
+  version: 2
+  ethernets:
+    enp1s0:
+      addresses:
+        - ${vm_ip}/24
+      gateway4: 192.168.100.1
+      nameservers:
+        addresses:
+          - 8.8.8.8
+          - 8.8.4.4
+
+packages:
+  - curl
+  - unzip
+  - jq
+
+runcmd:
+  - curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
+  - apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+  - apt-get update
+  - apt-get install -y vault=${vault_version}-*
+  - |
+    cat > /etc/vault.d/vault.hcl <<EOF
+    ui = true
+
+    listener "tcp" {
+      address     = "0.0.0.0:8200"
+      tls_disable = 1
+    }
+
+    storage "inmem" {}
+
+    disable_mlock = true
+    EOF
+  - |
+    cat > /etc/systemd/system/vault.service <<EOF
+    [Unit]
+    Description=Vault
+    Documentation=https://www.vaultproject.io/docs/
+    Requires=network-online.target
+    After=network-online.target
+
+    [Service]
+    User=vault
+    Group=vault
+    ExecStart=/usr/bin/vault server -dev -dev-listen-address=0.0.0.0:8200 -dev-root-token-id=root
+    ExecReload=/bin/kill -HUP \$MAINPID
+    KillMode=process
+    Restart=on-failure
+    LimitNOFILE=65536
+
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+  - systemctl daemon-reload
+  - systemctl enable vault
+  - systemctl start vault
+  - sleep 10
+  - echo 'export VAULT_ADDR=http://127.0.0.1:8200' >> /etc/profile.d/vault.sh
+  - echo 'export VAULT_TOKEN=root' >> /etc/profile.d/vault.sh
+
+power_state:
+  mode: reboot
+  condition: true
