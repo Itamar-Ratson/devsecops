@@ -18,6 +18,14 @@ dependency "cluster" {
   }
 }
 
+dependency "vault_config" {
+  config_path = "../vault-config"
+
+  mock_outputs = {
+    kubernetes_auth_configured = true
+  }
+}
+
 inputs = {
   kubeconfig = dependency.cluster.outputs.kubeconfig
 

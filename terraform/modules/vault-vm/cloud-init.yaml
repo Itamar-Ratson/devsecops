@@ -18,25 +18,15 @@ packages:
   - curl
   - unzip
   - jq
+  - gpg
 
 runcmd:
-  - curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
-  - apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+  # Install Vault from HashiCorp APT repo
+  - curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+  - echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
   - apt-get update
   - apt-get install -y vault=${vault_version}-*
-  - |
-    cat > /etc/vault.d/vault.hcl <<EOF
-    ui = true
-
-    listener "tcp" {
-      address     = "0.0.0.0:8200"
-      tls_disable = 1
-    }
-
-    storage "inmem" {}
-
-    disable_mlock = true
-    EOF
+  # Create systemd service (dev mode — in-memory, auto-unsealed)
   - |
     cat > /etc/systemd/system/vault.service <<EOF
     [Unit]
@@ -63,7 +53,3 @@ runcmd:
   - sleep 10
   - echo 'export VAULT_ADDR=http://127.0.0.1:8200' >> /etc/profile.d/vault.sh
   - echo 'export VAULT_TOKEN=root' >> /etc/profile.d/vault.sh
-
-power_state:
-  mode: reboot
-  condition: true

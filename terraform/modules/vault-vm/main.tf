@@ -1,23 +1,12 @@
-# Download Ubuntu cloud image
-resource "libvirt_volume" "vault_base" {
-  name = "${var.vm_name}-base.qcow2"
+# Download Ubuntu cloud image directly (no backing store due to provider limitations)
+resource "libvirt_volume" "vault_disk" {
+  name = "${var.vm_name}.qcow2"
   pool = "default"
 
   create = {
     content = {
       url = "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img"
     }
-  }
-}
-
-# Create COW volume from base image
-resource "libvirt_volume" "vault_disk" {
-  name     = "${var.vm_name}.qcow2"
-  pool     = "default"
-  capacity = 10737418240
-
-  backing_store = {
-    path = libvirt_volume.vault_base.path
   }
 }
 
@@ -111,16 +100,6 @@ resource "libvirt_domain" "vault" {
           type = "serial"
           port = "0"
         }
-      }
-    ]
-
-    graphics = [
-      {
-        type = "spice"
-        listen = {
-          type = "address"
-        }
-        autoport = true
       }
     ]
   }

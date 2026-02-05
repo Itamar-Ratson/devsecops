@@ -1,5 +1,6 @@
-# Transit Vault VM module configuration
-# Creates Vault VM and configures Vault engines, policies, roles
+# Transit Vault VM module configuration (pre-cluster)
+# Creates Vault VM and configures engines, transit key, policy, auth backend + role
+# K8s auth config and secret seeding happen in vault-config (post-cluster)
 
 terraform {
   source = "../../../modules/vault-vm"
@@ -27,13 +28,5 @@ inputs = {
   network_id   = dependency.network.outputs.network_id
   vm_ip        = "192.168.100.2"
 
-  vault_dev_root_token_id = "root"
-
-  # Secrets loaded from secrets.tfvars via root terragrunt.hcl
-  # These will be available automatically:
-  # - argocd_admin
-  # - grafana_admin
-  # - keycloak_admin
-  # - oidc_client_secrets
-  # - alertmanager_webhooks
+  # Note: Secret seeding happens in the vault-config module (post-cluster)
 }

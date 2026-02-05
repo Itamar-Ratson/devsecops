@@ -8,6 +8,11 @@ output "kubernetes_auth_path" {
   value       = vault_auth_backend.kubernetes.path
 }
 
+output "kv_mount_path" {
+  description = "Path to the KV v2 secret engine"
+  value       = vault_mount.kv.path
+}
+
 output "transit_mount_path" {
   description = "Path to the transit engine"
   value       = vault_mount.transit.path
