@@ -12,22 +12,27 @@ run "validate_network_configuration" {
   }
 
   assert {
-    condition     = libvirt_network.main.mode == "nat"
-    error_message = "Network mode should be NAT"
+    condition     = libvirt_network.main.forward.mode == "nat"
+    error_message = "Network forward mode should be NAT"
   }
 
   assert {
-    condition     = contains(libvirt_network.main.addresses, "192.168.100.0/24")
-    error_message = "Network CIDR should be 192.168.100.0/24"
+    condition     = libvirt_network.main.domain.name == "k8s.local"
+    error_message = "Domain name should be k8s.local"
   }
 
   assert {
-    condition     = libvirt_network.main.dhcp[0].enabled == false
-    error_message = "DHCP should be disabled"
+    condition     = libvirt_network.main.bridge.name == "virbr-k8s"
+    error_message = "Bridge name should be virbr-k8s"
   }
 
   assert {
     condition     = libvirt_network.main.autostart == true
     error_message = "Network should be set to autostart"
+  }
+
+  assert {
+    condition     = libvirt_network.main.dns.enable == "true"
+    error_message = "DNS should be enabled"
   }
 }

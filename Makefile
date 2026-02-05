@@ -29,10 +29,10 @@ test:
 # Run Terrascan security scans
 scan:
 	@echo "Running Terrascan security scans..."
-	@terrascan scan -t terraform -d terraform/modules/libvirt-network || true
-	@terrascan scan -t terraform -d terraform/modules/vault-vm || true
-	@terrascan scan -t terraform -d terraform/modules/talos-cluster || true
-	@terrascan scan -t terraform -d terraform/modules/argocd-bootstrap || true
+	@terrascan scan -i terraform -d terraform/modules/libvirt-network || true
+	@terrascan scan -i terraform -d terraform/modules/vault-vm || true
+	@terrascan scan -i terraform -d terraform/modules/talos-cluster || true
+	@terrascan scan -i terraform -d terraform/modules/argocd-bootstrap || true
 	@echo "✓ Security scans complete!"
 
 # Format all Terraform files
