@@ -23,7 +23,7 @@ resource "libvirt_volume" "vault_disk" {
 
 # Generate cloud-init ISO
 resource "libvirt_cloudinit_disk" "vault_init" {
-  name      = "${var.vm_name}-init"
+  name = "${var.vm_name}-init"
   user_data = templatefile("${path.module}/cloud-init.yaml", {
     vault_version = var.vault_version
     vm_ip         = var.vm_ip
@@ -48,10 +48,11 @@ resource "libvirt_volume" "cloudinit" {
 
 # Create Vault VM
 resource "libvirt_domain" "vault" {
-  name   = var.vm_name
-  memory = var.vm_memory
-  vcpu   = var.vm_vcpu
-  type   = "kvm"
+  name      = var.vm_name
+  memory    = var.vm_memory
+  vcpu      = var.vm_vcpu
+  type      = "kvm"
+  autostart = true
 
   os = {
     type         = "hvm"

@@ -26,10 +26,11 @@ resource "libvirt_volume" "worker_disk" {
 
 # Create control plane VM
 resource "libvirt_domain" "controlplane" {
-  name   = "${var.cluster_name}-controlplane"
-  memory = var.controlplane_memory
-  vcpu   = var.controlplane_vcpu
-  type   = "kvm"
+  name      = "${var.cluster_name}-controlplane"
+  memory    = var.controlplane_memory
+  vcpu      = var.controlplane_vcpu
+  type      = "kvm"
+  autostart = true
 
   os = {
     type         = "hvm"
@@ -114,10 +115,11 @@ resource "libvirt_domain" "controlplane" {
 
 # Create worker VM
 resource "libvirt_domain" "worker" {
-  name   = "${var.cluster_name}-worker"
-  memory = var.worker_memory
-  vcpu   = var.worker_vcpu
-  type   = "kvm"
+  name      = "${var.cluster_name}-worker"
+  memory    = var.worker_memory
+  vcpu      = var.worker_vcpu
+  type      = "kvm"
+  autostart = true
 
   os = {
     type         = "hvm"
