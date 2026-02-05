@@ -20,6 +20,6 @@ resource "libvirt_network" "main" {
   }]
 
   dns = {
-    enable = "true"
+    enabled = true
   }
 }
