@@ -28,4 +28,12 @@ inputs = {
   vm_ip        = "192.168.100.2"
 
   vault_dev_root_token_id = "root"
+
+  # Secrets loaded from secrets.tfvars via root terragrunt.hcl
+  # These will be available automatically:
+  # - argocd_admin
+  # - grafana_admin
+  # - keycloak_admin
+  # - oidc_client_secrets
+  # - alertmanager_webhooks
 }

@@ -20,4 +20,8 @@ dependency "cluster" {
 
 inputs = {
   kubeconfig = dependency.cluster.outputs.kubeconfig
+
+  # Secrets loaded from secrets.tfvars via root terragrunt.hcl:
+  # - git_repo_url
+  # - argocd_ssh_private_key
 }

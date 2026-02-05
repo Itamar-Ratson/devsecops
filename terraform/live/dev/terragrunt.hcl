@@ -33,6 +33,17 @@ generate "provider" {
 PROVIDER
 }
 
+# Load secrets from secrets.tfvars
+terraform {
+  extra_arguments "secrets" {
+    commands = get_terraform_commands_that_need_vars()
+
+    optional_var_files = [
+      "${get_terragrunt_dir()}/../../secrets.tfvars"
+    ]
+  }
+}
+
 # Common inputs for all Terragrunt units
 inputs = {
   project_name = local.project_name
