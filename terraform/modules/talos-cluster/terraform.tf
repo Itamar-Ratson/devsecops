@@ -14,7 +14,7 @@ terraform {
 
     libvirt = {
       source  = "dmacvicar/libvirt"
-      version = "~> 0.7"
+      version = "~> 0.9"
     }
 
     local = {

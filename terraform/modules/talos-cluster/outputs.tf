@@ -13,9 +13,3 @@ output "kubeconfig" {
   value       = data.talos_cluster_kubeconfig.main.kubeconfig_raw
   sensitive   = true
 }
-
-output "talosconfig" {
-  description = "Talosconfig for managing the cluster"
-  value       = data.talos_cluster_kubeconfig.main.talos_config
-  sensitive   = true
-}

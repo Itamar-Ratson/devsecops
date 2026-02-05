@@ -1,57 +1,135 @@
+# Download Ubuntu cloud image
 resource "libvirt_volume" "vault_base" {
-  name   = "${var.vm_name}-base.qcow2"
-  source = "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img"
-  format = "qcow2"
-  pool   = "default"
+  name = "${var.vm_name}-base.qcow2"
+  pool = "default"
+
+  create = {
+    content = {
+      url = "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img"
+    }
+  }
 }
 
+# Create COW volume from base image
 resource "libvirt_volume" "vault_disk" {
-  name           = "${var.vm_name}.qcow2"
-  base_volume_id = libvirt_volume.vault_base.id
-  size           = 10737418240
-  pool           = "default"
+  name     = "${var.vm_name}.qcow2"
+  pool     = "default"
+  capacity = 10737418240
+
+  backing_store = {
+    path = libvirt_volume.vault_base.path
+  }
 }
 
+# Generate cloud-init ISO
 resource "libvirt_cloudinit_disk" "vault_init" {
-  name = "${var.vm_name}-init.iso"
+  name      = "${var.vm_name}-init"
   user_data = templatefile("${path.module}/cloud-init.yaml", {
     vault_version = var.vault_version
     vm_ip         = var.vm_ip
   })
+  meta_data = yamlencode({
+    instance-id    = var.vm_name
+    local-hostname = var.vm_name
+  })
+}
+
+# Upload cloud-init ISO to libvirt volume
+resource "libvirt_volume" "cloudinit" {
+  name = "${var.vm_name}-cloudinit.iso"
   pool = "default"
+
+  create = {
+    content = {
+      url = libvirt_cloudinit_disk.vault_init.path
+    }
+  }
 }
 
+# Create Vault VM
 resource "libvirt_domain" "vault" {
-  name      = var.vm_name
-  memory    = var.vm_memory
-  vcpu      = var.vm_vcpu
-  autostart = true
+  name   = var.vm_name
+  memory = var.vm_memory
+  vcpu   = var.vm_vcpu
+  type   = "kvm"
 
-  cloudinit = libvirt_cloudinit_disk.vault_init.id
-
-  disk {
-    volume_id = libvirt_volume.vault_disk.id
+  os = {
+    type         = "hvm"
+    type_arch    = "x86_64"
+    type_machine = "q35"
+    boot_devices = [
+      { dev = "hd" }
+    ]
   }
 
-  network_interface {
-    network_id     = var.network_id
-    wait_for_lease = true
-    addresses      = [var.vm_ip]
+  devices = {
+    disks = [
+      {
+        source = {
+          volume = {
+            pool   = "default"
+            volume = libvirt_volume.vault_disk.name
+          }
+        }
+        target = {
+          dev = "vda"
+          bus = "virtio"
+        }
+      },
+      {
+        source = {
+          volume = {
+            pool   = "default"
+            volume = libvirt_volume.cloudinit.name
+          }
+        }
+        target = {
+          dev = "vdb"
+          bus = "virtio"
+        }
+      }
+    ]
+
+    interfaces = [
+      {
+        model = {
+          type = "virtio"
+        }
+        source = {
+          network = {
+            network = var.network_name
+          }
+        }
+        addresses = [var.vm_ip]
+      }
+    ]
+
+    consoles = [
+      {
+        target = {
+          type = "serial"
+          port = "0"
+        }
+      }
+    ]
+
+    graphics = [
+      {
+        type = "spice"
+        listen = {
+          type = "address"
+        }
+        autoport = true
+      }
+    ]
   }
 
-  console {
-    type        = "pty"
-    target_type = "serial"
-    target_port = "0"
-  }
-
-  graphics {
-    type        = "spice"
-    listen_type = "address"
-    autoport    = true
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
+# Wait for Vault to be ready
 resource "null_resource" "wait_for_vault" {
   depends_on = [libvirt_domain.vault]
 

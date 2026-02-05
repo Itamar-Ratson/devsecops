@@ -21,6 +21,11 @@ variable "network_id" {
   type        = string
 }
 
+variable "network_name" {
+  description = "Name of the libvirt network"
+  type        = string
+}
+
 variable "pod_cidr" {
   description = "CIDR block for Kubernetes pods"
   type        = string

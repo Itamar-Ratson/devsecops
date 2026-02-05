@@ -49,6 +49,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
 
   client_configuration        = talos_machine_secrets.cluster.client_configuration
   machine_configuration_input = data.talos_machine_configuration.controlplane.machine_configuration
+  node                        = var.vm_controlplane_ip
   endpoint                    = var.vm_controlplane_ip
 }
 
@@ -57,6 +58,7 @@ resource "talos_machine_configuration_apply" "worker" {
 
   client_configuration        = talos_machine_secrets.cluster.client_configuration
   machine_configuration_input = data.talos_machine_configuration.worker.machine_configuration
+  node                        = var.vm_worker_ip
   endpoint                    = var.vm_worker_ip
 }
 
@@ -67,6 +69,7 @@ resource "talos_machine_bootstrap" "cluster" {
   ]
 
   client_configuration = talos_machine_secrets.cluster.client_configuration
+  node                 = var.vm_controlplane_ip
   endpoint             = var.vm_controlplane_ip
 }
 
@@ -74,5 +77,5 @@ data "talos_cluster_kubeconfig" "main" {
   depends_on = [talos_machine_bootstrap.cluster]
 
   client_configuration = talos_machine_secrets.cluster.client_configuration
-  endpoint             = var.vm_controlplane_ip
+  node                 = var.vm_controlplane_ip
 }
