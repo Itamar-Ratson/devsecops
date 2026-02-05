@@ -18,8 +18,4 @@ resource "libvirt_network" "main" {
     address = cidrhost(var.network_cidr, 1)
     netmask = cidrnetmask(var.network_cidr)
   }]
-
-  dns = {
-    enabled = true
-  }
 }
