@@ -10,6 +10,6 @@ output "cluster_name" {
 
 output "kubeconfig" {
   description = "Kubeconfig for accessing the cluster"
-  value       = data.talos_cluster_kubeconfig.main.kubeconfig_raw
+  value       = talos_cluster_kubeconfig.main.kubeconfig_raw
   sensitive   = true
 }

@@ -73,7 +73,7 @@ resource "talos_machine_bootstrap" "cluster" {
   endpoint             = var.vm_controlplane_ip
 }
 
-data "talos_cluster_kubeconfig" "main" {
+resource "talos_cluster_kubeconfig" "main" {
   depends_on = [talos_machine_bootstrap.cluster]
 
   client_configuration = talos_machine_secrets.cluster.client_configuration

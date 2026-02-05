@@ -3,23 +3,23 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     config_path = var.kubeconfig
   }
 }
 
-resource "kubernetes_namespace" "argocd" {
+resource "kubernetes_namespace_v1" "argocd" {
   metadata {
     name = "argocd"
   }
 }
 
-resource "kubernetes_secret" "argocd_repo_creds" {
-  depends_on = [kubernetes_namespace.argocd]
+resource "kubernetes_secret_v1" "argocd_repo_creds" {
+  depends_on = [kubernetes_namespace_v1.argocd]
 
   metadata {
     name      = "argocd-repo-creds"
-    namespace = kubernetes_namespace.argocd.metadata[0].name
+    namespace = kubernetes_namespace_v1.argocd.metadata[0].name
     labels = {
       "argocd.argoproj.io/secret-type" = "repo-creds"
     }
@@ -33,12 +33,12 @@ resource "kubernetes_secret" "argocd_repo_creds" {
 }
 
 resource "helm_release" "argocd" {
-  depends_on = [kubernetes_secret.argocd_repo_creds]
+  depends_on = [kubernetes_secret_v1.argocd_repo_creds]
 
   name       = "argocd"
   repository = "file://../../../helm/argocd"
   chart      = "argocd"
-  namespace  = kubernetes_namespace.argocd.metadata[0].name
+  namespace  = kubernetes_namespace_v1.argocd.metadata[0].name
 
   values = [
     file("${path.root}/../../../helm/ports.yaml"),
@@ -46,15 +46,16 @@ resource "helm_release" "argocd" {
     file("${path.root}/../../../helm/argocd/values-argocd.yaml")
   ]
 
-  set {
-    name  = "gitops.enabled"
-    value = "true"
-  }
-
-  set {
-    name  = "gitops.repoURL"
-    value = var.git_repo_url
-  }
+  set = [
+    {
+      name  = "gitops.enabled"
+      value = "true"
+    },
+    {
+      name  = "gitops.repoURL"
+      value = var.git_repo_url
+    }
+  ]
 }
 
 resource "null_resource" "wait_argocd" {

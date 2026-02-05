@@ -1,17 +1,17 @@
 provider "helm" {
-  kubernetes {
-    host                   = data.talos_cluster_kubeconfig.main.kubernetes_client_configuration.host
-    client_certificate     = base64decode(data.talos_cluster_kubeconfig.main.kubernetes_client_configuration.client_certificate)
-    client_key             = base64decode(data.talos_cluster_kubeconfig.main.kubernetes_client_configuration.client_key)
-    cluster_ca_certificate = base64decode(data.talos_cluster_kubeconfig.main.kubernetes_client_configuration.ca_certificate)
+  kubernetes = {
+    host                   = talos_cluster_kubeconfig.main.kubernetes_client_configuration.host
+    client_certificate     = base64decode(talos_cluster_kubeconfig.main.kubernetes_client_configuration.client_certificate)
+    client_key             = base64decode(talos_cluster_kubeconfig.main.kubernetes_client_configuration.client_key)
+    cluster_ca_certificate = base64decode(talos_cluster_kubeconfig.main.kubernetes_client_configuration.ca_certificate)
   }
 }
 
 provider "kubernetes" {
-  host                   = data.talos_cluster_kubeconfig.main.kubernetes_client_configuration.host
-  client_certificate     = base64decode(data.talos_cluster_kubeconfig.main.kubernetes_client_configuration.client_certificate)
-  client_key             = base64decode(data.talos_cluster_kubeconfig.main.kubernetes_client_configuration.client_key)
-  cluster_ca_certificate = base64decode(data.talos_cluster_kubeconfig.main.kubernetes_client_configuration.ca_certificate)
+  host                   = talos_cluster_kubeconfig.main.kubernetes_client_configuration.host
+  client_certificate     = base64decode(talos_cluster_kubeconfig.main.kubernetes_client_configuration.client_certificate)
+  client_key             = base64decode(talos_cluster_kubeconfig.main.kubernetes_client_configuration.client_key)
+  cluster_ca_certificate = base64decode(talos_cluster_kubeconfig.main.kubernetes_client_configuration.ca_certificate)
 }
 
 resource "helm_release" "cilium" {
@@ -45,6 +45,6 @@ resource "null_resource" "wait_nodes" {
   depends_on = [helm_release.cilium]
 
   provisioner "local-exec" {
-    command = "kubectl --kubeconfig=<(echo '${data.talos_cluster_kubeconfig.main.kubeconfig_raw}') wait --for=condition=Ready nodes --all --timeout=300s"
+    command = "kubectl --kubeconfig=<(echo '${talos_cluster_kubeconfig.main.kubeconfig_raw}') wait --for=condition=Ready nodes --all --timeout=300s"
   }
 }
