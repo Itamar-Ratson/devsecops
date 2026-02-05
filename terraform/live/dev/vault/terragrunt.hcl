@@ -1,54 +1,31 @@
-# Vault VM module configuration
-include "root" {
-  path = find_in_parent_folders()
-}
+# Transit Vault VM module configuration
+# Creates Vault VM and configures Vault engines, policies, roles
 
 terraform {
   source = "../../../modules/vault-vm"
+}
+
+include "root" {
+  path = find_in_parent_folders()
 }
 
 dependency "network" {
   config_path = "../network"
 
   mock_outputs = {
+    network_name = "k8s-dev"
     network_id   = "mock-network-id"
-    network_name = "mock-network"
   }
 }
 
 inputs = {
-  network_id   = dependency.network.outputs.network_id
+  vm_name   = "vault-dev"
+  vm_memory = 512
+  vm_vcpu   = 1
+
   network_name = dependency.network.outputs.network_name
+  network_id   = dependency.network.outputs.network_id
+  vm_ip        = "192.168.100.2"
 
-  vm_name    = "transit-vault"
-  vm_ip      = "192.168.100.2"
-  vm_memory  = 512
-  vm_vcpu    = 1
-
-  vault_version = "1.15.0"
-
-  # Secrets provided via secrets.tfvars
-  oidc_client_secrets = {
-    argocd   = ""
-    grafana  = ""
-    vault    = ""
-    headlamp = ""
-  }
-
-  keycloak_admin = {
-    user     = ""
-    password = ""
-  }
-
-  grafana_admin = {
-    user     = ""
-    password = ""
-  }
-
-  argocd_admin = {
-    password_hash     = ""
-    server_secret_key = ""
-  }
-
-  alertmanager_webhooks = {}
+  vault_dev_root_token_id = "root"
 }

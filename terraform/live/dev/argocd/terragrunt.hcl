@@ -1,24 +1,23 @@
-# ArgoCD bootstrap module configuration
-include "root" {
-  path = find_in_parent_folders()
-}
+# ArgoCD Bootstrap module configuration
+# Installs ArgoCD with GitOps configuration
 
 terraform {
   source = "../../../modules/argocd-bootstrap"
+}
+
+include "root" {
+  path = find_in_parent_folders()
 }
 
 dependency "cluster" {
   config_path = "../cluster"
 
   mock_outputs = {
-    kubeconfig = "/tmp/mock-kubeconfig"
+    kubeconfig       = "mock-kubeconfig"
+    cluster_endpoint = "https://192.168.100.10:6443"
   }
 }
 
 inputs = {
   kubeconfig = dependency.cluster.outputs.kubeconfig
-
-  # Secrets provided via secrets.tfvars
-  git_repo_url           = ""
-  argocd_ssh_private_key = ""
 }

@@ -1,42 +1,48 @@
 # Root Terragrunt configuration for dev environment
+# Configures HCP Terraform backend for all modules
 
 locals {
-  environment = "dev"
-  project     = "devsecops"
+  project_name = "devsecops"
+  environment  = "dev"
 }
 
-# Generate backend configuration for HCP Terraform
-generate "backend" {
-  path      = "backend.tf"
-  if_exists = "overwrite"
-  contents  = <<EOF
-terraform {
-  backend "remote" {
-    organization = "itamar-ratson-hcp-org"
+# Configure HCP Terraform backend
+# Sign up at: https://app.terraform.io/signup
+# Configure: terraform login
+remote_state {
+  backend = "remote"
+
+  config = {
+    organization = "REPLACE_WITH_YOUR_ORG"
 
     workspaces {
-      name = "${local.project}-${local.environment}-${path_relative_to_include()}"
+      prefix = "${local.project_name}-${local.environment}-"
     }
   }
 }
-EOF
+
+# Generate Terraform backend configuration
+generate "backend" {
+  path      = "backend.tf"
+  if_exists = "overwrite"
+  contents  = <<BACKEND
+terraform {
+  backend "remote" {}
+}
+BACKEND
 }
 
-# Common terraform configuration
-terraform {
-  extra_arguments "common_vars" {
-    commands = get_terraform_commands_that_need_vars()
+# Generate provider configuration
+generate "provider" {
+  path      = "provider.tf"
+  if_exists = "overwrite"
+  contents  = <<PROVIDER
+# Provider configurations are defined in individual modules
+PROVIDER
+}
 
-    optional_var_files = [
-      "${get_repo_root()}/terraform/secrets.tfvars"
-    ]
-  }
-
-  extra_arguments "retry_lock" {
-    commands = get_terraform_commands_that_need_locking()
-
-    arguments = [
-      "-lock-timeout=5m"
-    ]
-  }
+# Common inputs for all Terragrunt units
+inputs = {
+  project_name = local.project_name
+  environment  = local.environment
 }
