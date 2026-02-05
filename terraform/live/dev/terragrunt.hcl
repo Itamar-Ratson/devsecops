@@ -2,34 +2,26 @@
 # Configures HCP Terraform backend for all modules
 
 locals {
-  project_name = "devsecops"
-  environment  = "dev"
+  project_name   = "devsecops"
+  environment    = "dev"
+  hcp_org_name   = "itamar-ratson-hcp-org"
 }
 
 # Configure HCP Terraform backend
-# Sign up at: https://app.terraform.io/signup
-# Configure: terraform login
-remote_state {
-  backend = "remote"
-
-  config = {
-    organization = "REPLACE_WITH_YOUR_ORG"
+generate "backend" {
+  path      = "backend.tf"
+  if_exists = "overwrite_terragrunt"
+  contents  = <<EOF
+terraform {
+  cloud {
+    organization = "${local.hcp_org_name}"
 
     workspaces {
-      prefix = "${local.project_name}-${local.environment}-"
+      name = "${local.project_name}-${local.environment}-${path_relative_to_include()}"
     }
   }
 }
-
-# Generate Terraform backend configuration
-generate "backend" {
-  path      = "backend.tf"
-  if_exists = "overwrite"
-  contents  = <<BACKEND
-terraform {
-  backend "remote" {}
-}
-BACKEND
+EOF
 }
 
 # Generate provider configuration
