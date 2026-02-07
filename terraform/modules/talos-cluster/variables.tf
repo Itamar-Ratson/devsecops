@@ -4,6 +4,11 @@ variable "cluster_name" {
   default     = "talos-dev"
 }
 
+variable "helm_values_dir" {
+  description = "Absolute path to the helm/ directory containing chart values"
+  type        = string
+}
+
 variable "controlplane_memory" {
   description = "Memory for control plane VM in MB"
   type        = number

@@ -2,6 +2,7 @@ variables {
   kubeconfig             = "/tmp/test-kubeconfig"
   git_repo_url           = "git@github.com:test/repo.git"
   argocd_ssh_private_key = "test-private-key"
+  helm_values_dir        = "${path.module}/../../../helm"
 }
 
 run "validate_namespace" {

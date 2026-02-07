@@ -27,7 +27,8 @@ dependency "vault_config" {
 }
 
 inputs = {
-  kubeconfig = dependency.cluster.outputs.kubeconfig
+  kubeconfig      = dependency.cluster.outputs.kubeconfig
+  helm_values_dir = "${get_repo_root()}/helm"
 
   # Secrets loaded from secrets.tfvars via root terragrunt.hcl:
   # - git_repo_url

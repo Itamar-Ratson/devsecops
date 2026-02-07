@@ -18,13 +18,13 @@ resource "helm_release" "cilium" {
   depends_on = [talos_machine_bootstrap.cluster]
 
   name       = "cilium"
-  repository = "file://../../../helm/cilium"
+  repository = "file://${var.helm_values_dir}/cilium"
   chart      = "cilium"
   namespace  = "kube-system"
 
   values = [
-    file("${path.root}/../../../helm/ports.yaml"),
-    file("${path.root}/../../../helm/cilium/values.yaml"),
+    file("${var.helm_values_dir}/ports.yaml"),
+    file("${var.helm_values_dir}/cilium/values.yaml"),
     yamlencode({
       cilium = {
         bgpControlPlane = {

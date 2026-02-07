@@ -27,7 +27,8 @@ dependency "vault" {
 }
 
 inputs = {
-  cluster_name = "talos-dev"
+  cluster_name    = "talos-dev"
+  helm_values_dir = "${get_repo_root()}/helm"
 
   network_name = dependency.network.outputs.network_name
   network_id   = dependency.network.outputs.network_id

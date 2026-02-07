@@ -36,14 +36,14 @@ resource "helm_release" "argocd" {
   depends_on = [kubernetes_secret_v1.argocd_repo_creds]
 
   name       = "argocd"
-  repository = "file://../../../helm/argocd"
+  repository = "file://${var.helm_values_dir}/argocd"
   chart      = "argocd"
   namespace  = kubernetes_namespace_v1.argocd.metadata[0].name
 
   values = [
-    file("${path.root}/../../../helm/ports.yaml"),
-    file("${path.root}/../../../helm/argocd/values.yaml"),
-    file("${path.root}/../../../helm/argocd/values-argocd.yaml")
+    file("${var.helm_values_dir}/ports.yaml"),
+    file("${var.helm_values_dir}/argocd/values.yaml"),
+    file("${var.helm_values_dir}/argocd/values-argocd.yaml")
   ]
 
   set = [

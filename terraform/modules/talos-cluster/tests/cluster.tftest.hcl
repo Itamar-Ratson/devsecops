@@ -2,6 +2,7 @@ variables {
   network_id         = "test-network-id"
   network_name       = "test-network"
   vault_address      = "http://192.168.100.2:8200"
+  helm_values_dir    = "${path.module}/../../../helm"
   vm_controlplane_ip = "192.168.100.10"
   vm_worker_ip       = "192.168.100.11"
 }
