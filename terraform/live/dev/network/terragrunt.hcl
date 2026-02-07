@@ -12,5 +12,4 @@ include "root" {
 inputs = {
   network_name = "k8s-dev"
   network_cidr = "192.168.100.0/24"
-  dhcp_enabled = false
 }

@@ -2,28 +2,6 @@ variables {
   network_id   = "test-network-id"
   network_name = "k8s-test"
   vm_ip        = "192.168.100.2"
-
-  oidc_client_secrets = {
-    argocd   = "test-secret-1"
-    grafana  = "test-secret-2"
-    vault    = "test-secret-3"
-    headlamp = "test-secret-4"
-  }
-
-  keycloak_admin = {
-    user     = "admin"
-    password = "test-password"
-  }
-
-  grafana_admin = {
-    user     = "admin"
-    password = "test-password"
-  }
-
-  argocd_admin = {
-    password_hash     = "test-hash"
-    server_secret_key = "test-key"
-  }
 }
 
 run "validate_vm_configuration" {

@@ -3,5 +3,6 @@ provider "vault" {
   token   = var.vault_token
 }
 
-# Kubernetes provider is configured by the caller (Terragrunt)
-# using the kubeconfig from the cluster module output
+provider "kubernetes" {
+  config_path = var.kubeconfig
+}

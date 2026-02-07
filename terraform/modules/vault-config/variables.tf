@@ -23,6 +23,12 @@ variable "kv_mount_path" {
 
 # --- From cluster module outputs ---
 
+variable "kubeconfig" {
+  description = "Path to kubeconfig for accessing the Kubernetes cluster"
+  type        = string
+  sensitive   = true
+}
+
 variable "cluster_endpoint" {
   description = "Kubernetes API server endpoint"
   type        = string

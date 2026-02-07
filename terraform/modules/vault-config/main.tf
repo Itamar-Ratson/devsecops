@@ -89,9 +89,9 @@ resource "vault_kv_secret_v2" "argocd_admin" {
   name  = "argocd/admin"
 
   data_json = jsonencode({
-    "admin.password"   = var.argocd_admin.password_hash
+    "admin.password"      = var.argocd_admin.password_hash
     "admin.passwordMtime" = formatdate("YYYY-MM-DD'T'HH:mm:ss'Z'", timestamp())
-    "server.secretkey" = var.argocd_admin.server_secret_key
+    "server.secretkey"    = var.argocd_admin.server_secret_key
   })
 
   lifecycle {

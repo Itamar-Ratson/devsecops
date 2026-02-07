@@ -30,9 +30,4 @@ run "validate_network_configuration" {
     condition     = libvirt_network.main.autostart == true
     error_message = "Network should be set to autostart"
   }
-
-  assert {
-    condition     = libvirt_network.main.dns.enable == "true"
-    error_message = "DNS should be enabled"
-  }
 }

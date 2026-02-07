@@ -40,10 +40,8 @@ inputs = {
   worker_memory       = 4096
   worker_vcpu         = 2
 
-  pod_subnet     = "10.10.0.0/16"
-  service_subnet = "10.96.0.0/12"
-
-  loadbalancer_ip_pool = "192.168.100.200-192.168.100.250"
+  pod_cidr     = "10.10.0.0/16"
+  service_cidr = "10.96.0.0/12"
 
   vault_address = dependency.vault.outputs.vault_address
 }

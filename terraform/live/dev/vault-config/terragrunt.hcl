@@ -40,6 +40,7 @@ inputs = {
   kv_mount_path        = dependency.vault.outputs.kv_mount_path
 
   # From cluster module
+  kubeconfig         = dependency.cluster.outputs.kubeconfig
   cluster_endpoint   = dependency.cluster.outputs.cluster_endpoint
   cluster_ca_cert    = dependency.cluster.outputs.cluster_ca_cert
   token_reviewer_jwt = dependency.cluster.outputs.token_reviewer_jwt
