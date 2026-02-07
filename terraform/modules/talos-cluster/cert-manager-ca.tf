@@ -24,7 +24,7 @@ data "local_file" "mkcert_ca_key" {
   filename = "${local.mkcert_ca_path}/rootCA-key.pem"
 }
 
-resource "kubernetes_namespace" "cert_manager" {
+resource "kubernetes_namespace_v1" "cert_manager" {
   depends_on = [null_resource.wait_nodes]
 
   metadata {
@@ -32,8 +32,8 @@ resource "kubernetes_namespace" "cert_manager" {
   }
 }
 
-resource "kubernetes_secret" "mkcert_ca" {
-  depends_on = [kubernetes_namespace.cert_manager]
+resource "kubernetes_secret_v1" "mkcert_ca" {
+  depends_on = [kubernetes_namespace_v1.cert_manager]
 
   metadata {
     name      = "mkcert-ca"
@@ -49,7 +49,7 @@ resource "kubernetes_secret" "mkcert_ca" {
 }
 
 resource "kubernetes_manifest" "mkcert_issuer" {
-  depends_on = [kubernetes_secret.mkcert_ca]
+  depends_on = [kubernetes_secret_v1.mkcert_ca]
 
   manifest = {
     apiVersion = "cert-manager.io/v1"

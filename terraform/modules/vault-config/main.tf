@@ -15,7 +15,7 @@ resource "vault_kubernetes_auth_backend_config" "main" {
 }
 
 # Create vault-transit-token K8s secret for in-cluster Vault auto-unseal
-resource "kubernetes_secret" "vault_transit_token" {
+resource "kubernetes_secret_v1" "vault_transit_token" {
   metadata {
     name      = "vault-transit-token"
     namespace = "vault"
@@ -27,7 +27,7 @@ resource "kubernetes_secret" "vault_transit_token" {
 }
 
 # Create argocd-oidc-secret for ArgoCD bootstrap (before VSO takes over in Wave 2)
-resource "kubernetes_secret" "argocd_oidc_secret" {
+resource "kubernetes_secret_v1" "argocd_oidc_secret" {
   metadata {
     name      = "argocd-oidc-secret"
     namespace = "argocd"

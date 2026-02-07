@@ -78,22 +78,22 @@ run "validate_k8s_secrets" {
   command = plan
 
   assert {
-    condition     = kubernetes_secret.vault_transit_token.metadata[0].name == "vault-transit-token"
+    condition     = kubernetes_secret_v1.vault_transit_token.metadata[0].name == "vault-transit-token"
     error_message = "Vault transit token secret should be named 'vault-transit-token'"
   }
 
   assert {
-    condition     = kubernetes_secret.vault_transit_token.metadata[0].namespace == "vault"
+    condition     = kubernetes_secret_v1.vault_transit_token.metadata[0].namespace == "vault"
     error_message = "Vault transit token should be in 'vault' namespace"
   }
 
   assert {
-    condition     = kubernetes_secret.argocd_oidc_secret.metadata[0].name == "argocd-oidc-secret"
+    condition     = kubernetes_secret_v1.argocd_oidc_secret.metadata[0].name == "argocd-oidc-secret"
     error_message = "ArgoCD OIDC secret should be named 'argocd-oidc-secret'"
   }
 
   assert {
-    condition     = kubernetes_secret.argocd_oidc_secret.metadata[0].namespace == "argocd"
+    condition     = kubernetes_secret_v1.argocd_oidc_secret.metadata[0].namespace == "argocd"
     error_message = "ArgoCD OIDC secret should be in 'argocd' namespace"
   }
 }
