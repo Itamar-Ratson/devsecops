@@ -11,7 +11,7 @@ variable "network_name" {
 variable "vault_version" {
   description = "Vault version to install"
   type        = string
-  default     = "1.15.0"
+  default     = "1.21.3"
 }
 
 variable "vm_ip" {

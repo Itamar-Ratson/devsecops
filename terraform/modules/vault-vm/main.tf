@@ -5,7 +5,7 @@ resource "libvirt_volume" "vault_disk" {
 
   create = {
     content = {
-      url = "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img"
+      url = "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-amd64.img"
     }
   }
 }

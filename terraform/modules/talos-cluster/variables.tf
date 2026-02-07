@@ -41,7 +41,7 @@ variable "service_cidr" {
 variable "talos_version" {
   description = "Talos OS version"
   type        = string
-  default     = "v1.8"
+  default     = "v1.12.1"
 }
 
 variable "vault_address" {
