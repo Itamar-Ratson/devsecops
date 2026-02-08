@@ -60,10 +60,22 @@ variable "vm_controlplane_ip" {
   default     = "192.168.100.10"
 }
 
+variable "vm_controlplane_mac" {
+  description = "MAC address for control plane VM"
+  type        = string
+  default     = "52:54:00:00:01:10"
+}
+
 variable "vm_worker_ip" {
   description = "Static IP for worker VM"
   type        = string
   default     = "192.168.100.11"
+}
+
+variable "vm_worker_mac" {
+  description = "MAC address for worker VM"
+  type        = string
+  default     = "52:54:00:00:01:11"
 }
 
 variable "worker_memory" {

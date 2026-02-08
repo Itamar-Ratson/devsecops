@@ -10,6 +10,11 @@ data "talos_machine_configuration" "controlplane" {
 
   config_patches = [
     yamlencode({
+      machine = {
+        install = {
+          disk = "/dev/vda"
+        }
+      }
       cluster = {
         network = {
           cni = {
@@ -17,6 +22,9 @@ data "talos_machine_configuration" "controlplane" {
           }
           podSubnets     = [var.pod_cidr]
           serviceSubnets = [var.service_cidr]
+        }
+        proxy = {
+          disabled = true
         }
       }
     })
@@ -31,6 +39,11 @@ data "talos_machine_configuration" "worker" {
 
   config_patches = [
     yamlencode({
+      machine = {
+        install = {
+          disk = "/dev/vda"
+        }
+      }
       cluster = {
         network = {
           cni = {
@@ -38,6 +51,9 @@ data "talos_machine_configuration" "worker" {
           }
           podSubnets     = [var.pod_cidr]
           serviceSubnets = [var.service_cidr]
+        }
+        proxy = {
+          disabled = true
         }
       }
     })
@@ -62,11 +78,49 @@ resource "talos_machine_configuration_apply" "worker" {
   endpoint                    = var.vm_worker_ip
 }
 
-resource "talos_machine_bootstrap" "cluster" {
+# Wait for Talos to install to disk and reboot into running mode
+resource "null_resource" "wait_for_talos_install" {
   depends_on = [
     talos_machine_configuration_apply.controlplane,
     talos_machine_configuration_apply.worker
   ]
+
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = <<-EOT
+      echo "Phase 1: Waiting for Talos to install and start rebooting..."
+      echo "Giving install 30s head start..."
+      sleep 30
+      echo "Waiting for port 50000 to go DOWN (reboot started)..."
+      for i in {1..180}; do
+        if ! nc -z -w2 ${var.vm_controlplane_ip} 50000 2>/dev/null; then
+          echo "Port 50000 is down - node is rebooting!"
+          break
+        fi
+        echo "Attempt $i/180: Node still installing (port 50000 still up)..."
+        sleep 5
+      done
+      echo ""
+      echo "Phase 2: Waiting for node to come back up in running mode..."
+      sleep 10
+      for i in {1..120}; do
+        if nc -z -w2 ${var.vm_controlplane_ip} 50000 2>/dev/null; then
+          echo "Talos controlplane API is back up in running mode!"
+          echo "Waiting 15s for API to fully initialize..."
+          sleep 15
+          exit 0
+        fi
+        echo "Attempt $i/120: Talos API not ready yet..."
+        sleep 5
+      done
+      echo "Timeout waiting for Talos API"
+      exit 1
+    EOT
+  }
+}
+
+resource "talos_machine_bootstrap" "cluster" {
+  depends_on = [null_resource.wait_for_talos_install]
 
   client_configuration = talos_machine_secrets.cluster.client_configuration
   node                 = var.vm_controlplane_ip

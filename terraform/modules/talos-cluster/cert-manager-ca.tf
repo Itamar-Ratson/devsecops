@@ -48,19 +48,5 @@ resource "kubernetes_secret_v1" "mkcert_ca" {
   }
 }
 
-resource "kubernetes_manifest" "mkcert_issuer" {
-  depends_on = [kubernetes_secret_v1.mkcert_ca]
-
-  manifest = {
-    apiVersion = "cert-manager.io/v1"
-    kind       = "ClusterIssuer"
-    metadata = {
-      name = "mkcert-ca-issuer"
-    }
-    spec = {
-      ca = {
-        secretName = "mkcert-ca"
-      }
-    }
-  }
-}
+# ClusterIssuer is created by ArgoCD after cert-manager is deployed
+# (cert-manager CRDs must exist first)

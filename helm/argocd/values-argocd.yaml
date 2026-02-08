@@ -32,9 +32,7 @@ argo-cd:
       serviceMonitor:
         enabled: false  # We create our own ServiceMonitor
 
-    # Insecure mode (terminate TLS at gateway)
-    extraArgs:
-      - --insecure
+    # Insecure mode removed - using configs.params instead
 
     service:
       type: ClusterIP
@@ -57,6 +55,13 @@ argo-cd:
       enabled: true
       serviceMonitor:
         enabled: false
+
+    livenessProbe:
+      timeoutSeconds: 10
+      initialDelaySeconds: 30
+
+    readinessProbe:
+      timeoutSeconds: 10
 
   # Application Controller - reconciles desired vs actual state
   controller:
@@ -139,7 +144,9 @@ argo-cd:
     repositories: {}
 
     params:
+      server.insecure: "true"
       server.enable.gzip: true
+      controller.diff.server.side: "true"
       application.instanceLabelKey: argocd.argoproj.io/instance
 
     cm:

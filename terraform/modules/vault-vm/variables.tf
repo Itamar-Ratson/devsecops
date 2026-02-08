@@ -32,6 +32,24 @@ variable "vm_name" {
   default     = "transit-vault"
 }
 
+variable "vm_mac" {
+  description = "MAC address for the VM's network interface"
+  type        = string
+  default     = "52:54:00:00:01:02"
+}
+
+variable "ssh_public_key" {
+  description = "SSH public key for VM access"
+  type        = string
+  default     = ""
+}
+
+variable "vm_disk_size" {
+  description = "Disk size for Vault VM in bytes"
+  type        = number
+  default     = 10737418240 # 10 GB
+}
+
 variable "vm_vcpu" {
   description = "Number of vCPUs for Vault VM"
   type        = number

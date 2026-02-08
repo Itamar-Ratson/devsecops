@@ -26,7 +26,9 @@ inputs = {
 
   network_name = dependency.network.outputs.network_name
   network_id   = dependency.network.outputs.network_id
-  vm_ip        = "192.168.100.2"
+  vm_ip          = "192.168.100.2"
+  vm_mac         = "52:54:00:00:01:02"
+  ssh_public_key = file("~/.ssh/id_ed25519.pub")
 
   # Note: Secret seeding happens in the vault-config module (post-cluster)
 }

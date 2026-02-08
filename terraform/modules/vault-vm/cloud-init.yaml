@@ -2,19 +2,8 @@
 hostname: vault
 fqdn: vault.k8s.local
 
-network:
-  version: 2
-  ethernets:
-    enp1s0:
-      addresses:
-        - ${vm_ip}/24
-      routes:
-        - to: default
-          via: 192.168.100.1
-      nameservers:
-        addresses:
-          - 8.8.8.8
-          - 8.8.4.4
+ssh_authorized_keys:
+  - ${ssh_public_key}
 
 packages:
   - curl
@@ -22,36 +11,37 @@ packages:
   - jq
   - gpg
 
+write_files:
+  - path: /etc/systemd/system/vault.service
+    content: |
+      [Unit]
+      Description=Vault
+      Documentation=https://www.vaultproject.io/docs/
+      Requires=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=vault
+      Group=vault
+      ExecStart=/usr/bin/vault server -dev -dev-listen-address=0.0.0.0:8200 -dev-root-token-id=root
+      ExecReload=/bin/kill -HUP $MAINPID
+      KillMode=process
+      Restart=on-failure
+      LimitNOFILE=65536
+
+      [Install]
+      WantedBy=multi-user.target
+  - path: /etc/profile.d/vault.sh
+    content: |
+      export VAULT_ADDR=http://127.0.0.1:8200
+      export VAULT_TOKEN=root
+
 runcmd:
-  # Install Vault from HashiCorp APT repo
   - curl -fsSL https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
   - echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
   - apt-get update
   - apt-get install -y vault=${vault_version}-*
-  # Create systemd service (dev mode — in-memory, auto-unsealed)
-  - |
-    cat > /etc/systemd/system/vault.service <<EOF
-    [Unit]
-    Description=Vault
-    Documentation=https://www.vaultproject.io/docs/
-    Requires=network-online.target
-    After=network-online.target
-
-    [Service]
-    User=vault
-    Group=vault
-    ExecStart=/usr/bin/vault server -dev -dev-listen-address=0.0.0.0:8200 -dev-root-token-id=root
-    ExecReload=/bin/kill -HUP \$MAINPID
-    KillMode=process
-    Restart=on-failure
-    LimitNOFILE=65536
-
-    [Install]
-    WantedBy=multi-user.target
-    EOF
+  - mkdir -p /home/vault && chown vault:vault /home/vault
   - systemctl daemon-reload
   - systemctl enable vault
   - systemctl start vault
-  - sleep 10
-  - echo 'export VAULT_ADDR=http://127.0.0.1:8200' >> /etc/profile.d/vault.sh
-  - echo 'export VAULT_TOKEN=root' >> /etc/profile.d/vault.sh

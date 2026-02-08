@@ -128,7 +128,9 @@ spec:
             - port: "{{ .Values.ports.argocd.repoServer }}"
               protocol: TCP
 
-    # Allow Prometheus to scrape metrics
+    # Allow kubelet health probes and Prometheus to scrape metrics
+    - fromEntities:
+        - host
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: monitoring
@@ -187,7 +189,9 @@ spec:
       app.kubernetes.io/name: argocd-application-controller
 
   ingress:
-    # Allow Prometheus to scrape metrics
+    # Allow kubelet health probes and Prometheus to scrape metrics
+    - fromEntities:
+        - host
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: monitoring
@@ -285,7 +289,9 @@ spec:
       app.kubernetes.io/name: argocd-applicationset-controller
 
   ingress:
-    # Allow Prometheus to scrape metrics
+    # Allow kubelet health probes and Prometheus to scrape metrics
+    - fromEntities:
+        - host
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: monitoring

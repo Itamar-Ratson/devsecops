@@ -1,6 +1,6 @@
 output "argocd_namespace" {
   description = "Namespace where ArgoCD is deployed"
-  value       = kubernetes_namespace_v1.argocd.metadata[0].name
+  value       = "argocd"
 }
 
 output "argocd_server_url" {

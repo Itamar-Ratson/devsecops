@@ -3,6 +3,19 @@
 # It configures Vault's Kubernetes auth backend (which needs cluster data)
 # and seeds KV secrets from secrets.tfvars.
 
+# Create namespaces needed by this module's K8s secrets
+resource "kubernetes_namespace_v1" "vault" {
+  metadata {
+    name = "vault"
+  }
+}
+
+resource "kubernetes_namespace_v1" "argocd" {
+  metadata {
+    name = "argocd"
+  }
+}
+
 # Configure Kubernetes auth backend — tells Vault HOW to validate K8s SA tokens.
 # This was the circular dependency: it needs the cluster CA cert and API endpoint,
 # but the cluster depends on the Vault VM for transit autounseal.
@@ -16,6 +29,8 @@ resource "vault_kubernetes_auth_backend_config" "main" {
 
 # Create vault-transit-token K8s secret for in-cluster Vault auto-unseal
 resource "kubernetes_secret_v1" "vault_transit_token" {
+  depends_on = [kubernetes_namespace_v1.vault]
+
   metadata {
     name      = "vault-transit-token"
     namespace = "vault"
@@ -28,6 +43,8 @@ resource "kubernetes_secret_v1" "vault_transit_token" {
 
 # Create argocd-oidc-secret for ArgoCD bootstrap (before VSO takes over in Wave 2)
 resource "kubernetes_secret_v1" "argocd_oidc_secret" {
+  depends_on = [kubernetes_namespace_v1.argocd]
+
   metadata {
     name      = "argocd-oidc-secret"
     namespace = "argocd"

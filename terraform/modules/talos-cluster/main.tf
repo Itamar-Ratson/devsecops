@@ -26,19 +26,28 @@ resource "libvirt_volume" "worker_disk" {
 
 # Create control plane VM
 resource "libvirt_domain" "controlplane" {
-  name      = "${var.cluster_name}-controlplane"
-  memory    = var.controlplane_memory
-  vcpu      = var.controlplane_vcpu
-  type      = "kvm"
-  autostart = true
+  name        = "${var.cluster_name}-controlplane"
+  memory      = var.controlplane_memory
+  memory_unit = "MiB"
+  vcpu        = var.controlplane_vcpu
+  type        = "kvm"
+  running     = true
+  autostart   = true
+
+  cpu = {
+    mode = "host-passthrough"
+  }
+
+  sec_label = [{
+    type = "none"
+  }]
 
   os = {
     type         = "hvm"
     type_arch    = "x86_64"
-    type_machine = "q35"
     boot_devices = [
-      { dev = "cdrom" },
-      { dev = "hd" }
+      { dev = "hd" },
+      { dev = "cdrom" }
     ]
   }
 
@@ -64,8 +73,8 @@ resource "libvirt_domain" "controlplane" {
           }
         }
         target = {
-          dev = "sda"
-          bus = "sata"
+          dev = "hda"
+          bus = "ide"
         }
         driver = {
           type = "raw"
@@ -76,6 +85,9 @@ resource "libvirt_domain" "controlplane" {
 
     interfaces = [
       {
+        mac = {
+          address = var.vm_controlplane_mac
+        }
         model = {
           type = "virtio"
         }
@@ -84,7 +96,6 @@ resource "libvirt_domain" "controlplane" {
             network = var.network_name
           }
         }
-        addresses = [var.vm_controlplane_ip]
       }
     ]
 
@@ -97,15 +108,6 @@ resource "libvirt_domain" "controlplane" {
       }
     ]
 
-    graphics = [
-      {
-        type = "spice"
-        listen = {
-          type = "address"
-        }
-        autoport = true
-      }
-    ]
   }
 
   lifecycle {
@@ -115,19 +117,28 @@ resource "libvirt_domain" "controlplane" {
 
 # Create worker VM
 resource "libvirt_domain" "worker" {
-  name      = "${var.cluster_name}-worker"
-  memory    = var.worker_memory
-  vcpu      = var.worker_vcpu
-  type      = "kvm"
-  autostart = true
+  name        = "${var.cluster_name}-worker"
+  memory      = var.worker_memory
+  memory_unit = "MiB"
+  vcpu        = var.worker_vcpu
+  type        = "kvm"
+  running     = true
+  autostart   = true
+
+  cpu = {
+    mode = "host-passthrough"
+  }
+
+  sec_label = [{
+    type = "none"
+  }]
 
   os = {
     type         = "hvm"
     type_arch    = "x86_64"
-    type_machine = "q35"
     boot_devices = [
-      { dev = "cdrom" },
-      { dev = "hd" }
+      { dev = "hd" },
+      { dev = "cdrom" }
     ]
   }
 
@@ -153,8 +164,8 @@ resource "libvirt_domain" "worker" {
           }
         }
         target = {
-          dev = "sda"
-          bus = "sata"
+          dev = "hda"
+          bus = "ide"
         }
         driver = {
           type = "raw"
@@ -165,6 +176,9 @@ resource "libvirt_domain" "worker" {
 
     interfaces = [
       {
+        mac = {
+          address = var.vm_worker_mac
+        }
         model = {
           type = "virtio"
         }
@@ -173,7 +187,6 @@ resource "libvirt_domain" "worker" {
             network = var.network_name
           }
         }
-        addresses = [var.vm_worker_ip]
       }
     ]
 
@@ -186,15 +199,6 @@ resource "libvirt_domain" "worker" {
       }
     ]
 
-    graphics = [
-      {
-        type = "spice"
-        listen = {
-          type = "address"
-        }
-        autoport = true
-      }
-    ]
   }
 
   lifecycle {
