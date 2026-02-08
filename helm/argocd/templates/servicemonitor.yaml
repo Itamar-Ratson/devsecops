@@ -1,4 +1,4 @@
-{{- if .Values.gitops.enabled }}
+{{- if and .Values.gitops.enabled (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1") }}
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -8,9 +8,6 @@ metadata:
   labels:
     app.kubernetes.io/name: argocd-server
     app.kubernetes.io/instance: {{ .Release.Name }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-    argocd.argoproj.io/sync-options: SkipDryRun=true
 spec:
   selector:
     matchLabels:
@@ -28,9 +25,6 @@ metadata:
   labels:
     app.kubernetes.io/name: argocd-repo-server
     app.kubernetes.io/instance: {{ .Release.Name }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-    argocd.argoproj.io/sync-options: SkipDryRun=true
 spec:
   selector:
     matchLabels:
@@ -48,9 +42,6 @@ metadata:
   labels:
     app.kubernetes.io/name: argocd-application-controller
     app.kubernetes.io/instance: {{ .Release.Name }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-    argocd.argoproj.io/sync-options: SkipDryRun=true
 spec:
   selector:
     matchLabels:
@@ -68,9 +59,6 @@ metadata:
   labels:
     app.kubernetes.io/name: argocd-applicationset-controller
     app.kubernetes.io/instance: {{ .Release.Name }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-    argocd.argoproj.io/sync-options: SkipDryRun=true
 spec:
   selector:
     matchLabels:
