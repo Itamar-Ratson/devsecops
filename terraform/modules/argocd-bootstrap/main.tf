@@ -18,6 +18,24 @@ provider "helm" {
   }
 }
 
+# Pre-create the redis secret so redis can start without the init hook
+# (redisSecretInit is disabled in values to prevent ArgoCD sync deadlock)
+resource "random_password" "redis" {
+  length  = 32
+  special = false
+}
+
+resource "kubernetes_secret_v1" "argocd_redis" {
+  metadata {
+    name      = "argocd-redis"
+    namespace = "argocd"
+  }
+
+  data = {
+    auth = random_password.redis.result
+  }
+}
+
 resource "kubernetes_secret_v1" "argocd_repo_creds" {
   metadata {
     name      = "argocd-repo-creds"
@@ -37,7 +55,7 @@ resource "kubernetes_secret_v1" "argocd_repo_creds" {
 # Install ArgoCD core without CRD-dependent resources (Applications, HTTPRoute, ServiceMonitor)
 # gitops.enabled=false skips those templates so install succeeds on a fresh cluster
 resource "helm_release" "argocd" {
-  depends_on = [kubernetes_secret_v1.argocd_repo_creds]
+  depends_on = [kubernetes_secret_v1.argocd_repo_creds, kubernetes_secret_v1.argocd_redis]
 
   name      = "argocd"
   chart     = "${var.helm_values_dir}/argocd"

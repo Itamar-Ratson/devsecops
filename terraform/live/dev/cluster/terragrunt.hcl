@@ -1,5 +1,5 @@
 # Talos Cluster module configuration
-# Creates Talos VMs, bootstraps cluster, installs Cilium, configures mkcert CA
+# Creates Talos VMs, bootstraps cluster, generates kubeconfig
 
 terraform {
   source = "../../../modules/talos-cluster"
@@ -18,17 +18,8 @@ dependency "network" {
   }
 }
 
-dependency "vault" {
-  config_path = "../vault"
-
-  mock_outputs = {
-    vault_address = "http://192.168.100.2:8200"
-  }
-}
-
 inputs = {
-  cluster_name    = "talos-dev"
-  helm_values_dir = "${get_repo_root()}/helm"
+  cluster_name = "talos-dev"
 
   network_name = dependency.network.outputs.network_name
   network_id   = dependency.network.outputs.network_id
@@ -43,6 +34,4 @@ inputs = {
 
   pod_cidr     = "10.10.0.0/16"
   service_cidr = "10.96.0.0/12"
-
-  vault_address = dependency.vault.outputs.vault_address
 }

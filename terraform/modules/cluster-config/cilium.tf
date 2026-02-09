@@ -1,46 +1,9 @@
-provider "helm" {
-  kubernetes = {
-    host                   = talos_cluster_kubeconfig.main.kubernetes_client_configuration.host
-    client_certificate     = base64decode(talos_cluster_kubeconfig.main.kubernetes_client_configuration.client_certificate)
-    client_key             = base64decode(talos_cluster_kubeconfig.main.kubernetes_client_configuration.client_key)
-    cluster_ca_certificate = base64decode(talos_cluster_kubeconfig.main.kubernetes_client_configuration.ca_certificate)
-  }
-}
-
-provider "kubernetes" {
-  host                   = talos_cluster_kubeconfig.main.kubernetes_client_configuration.host
-  client_certificate     = base64decode(talos_cluster_kubeconfig.main.kubernetes_client_configuration.client_certificate)
-  client_key             = base64decode(talos_cluster_kubeconfig.main.kubernetes_client_configuration.client_key)
-  cluster_ca_certificate = base64decode(talos_cluster_kubeconfig.main.kubernetes_client_configuration.ca_certificate)
-}
-
-resource "null_resource" "wait_for_k8s_api" {
-  depends_on = [talos_machine_bootstrap.cluster]
-
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = <<-EOT
-      echo "Waiting for Kubernetes API to be ready..."
-      for i in {1..120}; do
-        if curl -sk https://${var.vm_controlplane_ip}:6443/version >/dev/null 2>&1; then
-          echo "Kubernetes API is ready!"
-          exit 0
-        fi
-        echo "Attempt $i/120: K8s API not ready yet..."
-        sleep 5
-      done
-      echo "Timeout waiting for Kubernetes API"
-      exit 1
-    EOT
-  }
-}
-
 resource "helm_release" "cilium" {
   depends_on = [null_resource.wait_for_k8s_api]
 
-  name  = "cilium"
-  chart = "${var.helm_values_dir}/cilium"
-  namespace  = "kube-system"
+  name      = "cilium"
+  chart     = "${var.helm_values_dir}/cilium"
+  namespace = "kube-system"
 
   values = [
     file("${var.helm_values_dir}/ports.yaml"),
@@ -102,11 +65,6 @@ resource "helm_release" "cilium" {
       }
     })
   ]
-}
-
-resource "local_sensitive_file" "kubeconfig" {
-  content  = talos_cluster_kubeconfig.main.kubeconfig_raw
-  filename = pathexpand("~/.kube/config")
 }
 
 resource "null_resource" "wait_nodes" {

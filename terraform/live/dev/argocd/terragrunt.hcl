@@ -18,6 +18,14 @@ dependency "cluster" {
   }
 }
 
+dependency "cluster_config" {
+  config_path = "../cluster-config"
+
+  mock_outputs = {
+    token_reviewer_jwt = "mock-jwt"
+  }
+}
+
 dependency "vault_config" {
   config_path = "../vault-config"
 

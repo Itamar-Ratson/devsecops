@@ -4,11 +4,6 @@ variable "cluster_name" {
   default     = "talos-dev"
 }
 
-variable "helm_values_dir" {
-  description = "Absolute path to the helm/ directory containing chart values"
-  type        = string
-}
-
 variable "controlplane_memory" {
   description = "Memory for control plane VM in MB"
   type        = number
@@ -47,11 +42,6 @@ variable "talos_version" {
   description = "Talos OS version"
   type        = string
   default     = "v1.12.1"
-}
-
-variable "vault_address" {
-  description = "Address of the Vault server"
-  type        = string
 }
 
 variable "vm_controlplane_ip" {

@@ -2,16 +2,6 @@ terraform {
   required_version = ">= 1.10.0"
 
   required_providers {
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 3.1"
-    }
-
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 3.0"
-    }
-
     libvirt = {
       source  = "dmacvicar/libvirt"
       version = "~> 0.9"
