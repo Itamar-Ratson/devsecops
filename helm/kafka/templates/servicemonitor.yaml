@@ -1,3 +1,4 @@
+{{- if .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" }}
 ---
 # PodMonitor for Kafka brokers (JMX metrics)
 apiVersion: monitoring.coreos.com/v1
@@ -36,3 +37,4 @@ spec:
     - port: tcp-prometheus
       interval: 30s
       path: /metrics
+{{- end }}

@@ -1,3 +1,4 @@
+{{- if .Capabilities.APIVersions.Has "cert-manager.io/v1" }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -16,3 +17,4 @@ spec:
     - kube-oidc-proxy.{{ .Release.Namespace }}.svc
     - kube-oidc-proxy.{{ .Release.Namespace }}.svc.cluster.local
     - k8s-api.localhost
+{{- end }}

@@ -1,3 +1,4 @@
+{{- if .Capabilities.APIVersions.Has "trust.cert-manager.io/v1alpha1" }}
 # Bundle to distribute the root CA to namespaces that need it
 apiVersion: trust.cert-manager.io/v1alpha1
 kind: Bundle
@@ -24,3 +25,4 @@ spec:
     namespaceSelector:
       matchLabels:
         trust-manager.io/ca-bundle: "true"
+{{- end }}

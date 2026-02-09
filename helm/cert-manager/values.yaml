@@ -1,4 +1,4 @@
 cert-manager:
   # CRDs are installed separately in README setup (best practice)
   crds:
-    enabled: false
+    enabled: true
