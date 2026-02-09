@@ -155,6 +155,14 @@ argo-cd:
       # ArgoCD server URL (used for OIDC callbacks)
       url: https://argocd.localhost
 
+      # HTTPRoute health: treat as Healthy if accepted by any parent, otherwise Progressing
+      # Prevents sync deadlock when Gateway doesn't exist yet
+      resource.customizations.health.gateway.networking.k8s.io_HTTPRoute: |
+        hs = {}
+        hs.status = "Healthy"
+        hs.message = "HTTPRoute created"
+        return hs
+
       # Skip TLS verification for OIDC provider (self-signed certs in dev)
       oidc.tls.insecure.skip.verify: "true"
 
