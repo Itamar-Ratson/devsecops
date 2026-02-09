@@ -148,6 +148,7 @@ argo-cd:
       server.insecure: "true"
       server.enable.gzip: true
       controller.diff.server.side: "true"
+      controller.repo.server.timeout.seconds: "120"
       application.instanceLabelKey: argocd.argoproj.io/instance
 
     cm:
