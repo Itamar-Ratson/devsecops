@@ -63,7 +63,7 @@ argo-cd:
     livenessProbe:
       timeoutSeconds: 10
       initialDelaySeconds: 30
-      failureThreshold: 10  # helm dependency build takes ~40s; default 3 kills pod too early
+      failureThreshold: 30  # monitoring chart dep build blocks health checks for ~2min
 
     readinessProbe:
       timeoutSeconds: 10
