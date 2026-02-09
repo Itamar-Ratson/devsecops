@@ -37,6 +37,8 @@ dependency "cluster_config" {
   mock_outputs = {
     token_reviewer_jwt = "mock-jwt"
   }
+
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "destroy"]
 }
 
 inputs = {

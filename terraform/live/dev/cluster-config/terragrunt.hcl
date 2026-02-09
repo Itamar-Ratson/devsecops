@@ -17,6 +17,8 @@ dependency "cluster" {
     cluster_name       = "talos-dev"
     vm_controlplane_ip = "192.168.100.10"
   }
+
+  mock_outputs_merge_strategy_with_state = "shallow"
 }
 
 inputs = {
