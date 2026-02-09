@@ -92,6 +92,10 @@ argo-cd:
         cpu: 50m
         memory: 64Mi
 
+  # Disable redis secret init hook - secret already exists from initial helm install
+  redisSecretInit:
+    enabled: false
+
   # Disable HA components for minimal installation
   redis-ha:
     enabled: false
