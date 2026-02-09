@@ -1,14 +1,15 @@
-# Kubernetes Local Dev Setup
+# DevSecOps - Kubernetes on Bare Metal VMs
 
-A zero-trust Kubernetes development environment with comprehensive security and observability.
+A zero-trust Kubernetes development environment running on Talos Linux VMs with libvirt/KVM, managed by Terraform and Terragrunt.
 
 ## Stack Overview
 
-**Infrastructure**<br>
-![KinD](https://img.shields.io/badge/KinD-326CE5?style=flat&logo=kubernetes&logoColor=white)
-![cert-manager](https://img.shields.io/badge/cert--manager-0A5CBF?style=flat&logo=letsencrypt&logoColor=white)
-![trust-manager](https://img.shields.io/badge/trust--manager-0A5CBF?style=flat&logo=letsencrypt&logoColor=white)
-![Transit Vault](https://img.shields.io/badge/Transit_Vault-FFEC6E?style=flat&logo=vault&logoColor=black)
+**VM Infrastructure**<br>
+![Talos Linux](https://img.shields.io/badge/Talos_Linux-FF7300?style=flat&logo=linux&logoColor=white)
+![libvirt/KVM](https://img.shields.io/badge/libvirt%2FKVM-009639?style=flat&logo=linux&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-844FBA?style=flat&logo=terraform&logoColor=white)
+![Terragrunt](https://img.shields.io/badge/Terragrunt-844FBA?style=flat&logo=terraform&logoColor=white)
+![HCP Terraform](https://img.shields.io/badge/HCP_Terraform-844FBA?style=flat&logo=terraform&logoColor=white)
 
 **Networking**<br>
 ![Cilium](https://img.shields.io/badge/Cilium-F8C517?style=flat&logo=cilium&logoColor=black)
@@ -19,8 +20,8 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![Cilium Network Policies](https://img.shields.io/badge/Network_Policies-F8C517?style=flat&logo=cilium&logoColor=black)
 
 **Security & Identity**<br>
-![Sealed Secrets](https://img.shields.io/badge/Sealed_Secrets-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![Vault](https://img.shields.io/badge/Vault-FFEC6E?style=flat&logo=vault&logoColor=black)
+![cert-manager](https://img.shields.io/badge/cert--manager-0A5CBF?style=flat&logo=letsencrypt&logoColor=white)
 ![Keycloak](https://img.shields.io/badge/Keycloak-4D4D4D?style=flat&logo=keycloak&logoColor=white)
 ![kube-oidc-proxy](https://img.shields.io/badge/kube--oidc--proxy-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![Tetragon](https://img.shields.io/badge/Tetragon-F8C517?style=flat&logo=cilium&logoColor=black)
@@ -53,16 +54,49 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 **CI/CD**<br>
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat&logo=githubactions&logoColor=white)
 
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  libvirt/KVM Host                                       │
+│                                                         │
+│  ┌──────────────┐  ┌─────────────┐  ┌────────────────┐ │
+│  │ Vault VM     │  │ CP Node     │  │ Worker Node    │ │
+│  │ Ubuntu 24.04 │  │ Talos Linux │  │ Talos Linux    │ │
+│  │ :8200        │  │ :6443       │  │                │ │
+│  └──────┬───────┘  └──────┬──────┘  └───────┬────────┘ │
+│         │                 │                  │          │
+│         └─────────┬───────┴──────────────────┘          │
+│              k8s-dev network (192.168.100.0/24)         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Terraform modules** (deployed via Terragrunt):
+
+| Order | Module | Description |
+|-------|--------|-------------|
+| 1 | `libvirt-network` | NAT network with static IPs |
+| 2 | `vault-vm` | Vault server VM (transit + KV + K8s auth) |
+| 3 | `talos-cluster` | Talos control plane + worker VMs |
+| 4 | `cluster-config` | Cilium, Gateway API, cert-manager CA, Vault auth |
+| 5 | `vault-config` | Vault secrets (OIDC, Grafana, Keycloak, ArgoCD) |
+| 6 | `argocd-bootstrap` | ArgoCD Helm install + root Application |
+
 ## Prerequisites
 
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
-![docker-compose](https://img.shields.io/badge/docker--compose-2496ED?style=flat&logo=docker&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform_≥1.10-844FBA?style=flat&logo=terraform&logoColor=white)
+![Terragrunt](https://img.shields.io/badge/Terragrunt-844FBA?style=flat&logo=terraform&logoColor=white)
+![libvirt/QEMU](https://img.shields.io/badge/libvirt%2FQEMU-009639?style=flat&logo=linux&logoColor=white)
 ![kubectl](https://img.shields.io/badge/kubectl-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![Helm](https://img.shields.io/badge/Helm-0F1689?style=flat&logo=helm&logoColor=white)
-![KinD](https://img.shields.io/badge/KinD-326CE5?style=flat&logo=kubernetes&logoColor=white)
-![kubeseal](https://img.shields.io/badge/kubeseal-326CE5?style=flat&logo=kubernetes&logoColor=white)
-![GitHub CLI](https://img.shields.io/badge/gh-181717?style=flat&logo=github&logoColor=white)
+![mkcert](https://img.shields.io/badge/mkcert-009639?style=flat&logo=letsencrypt&logoColor=white)
+
+- **Terraform** >= 1.10 with HCP Terraform account
+- **Terragrunt** for orchestrating module dependencies
+- **libvirt/QEMU/KVM** with the default storage pool
+- **kubectl**, **Helm**
+- **mkcert** for local CA (cert-manager ClusterIssuer)
 
 Increase inotify limits (required for monitoring stack):
 ```bash
@@ -77,11 +111,20 @@ fs.inotify.max_user_watches=16384
 ## Quick Setup
 
 ```bash
-cp .env.example .env   # Configure secrets (see .env.example for details)
-./setup.sh             # Creates cluster and deploys everything via GitOps
+# 1. Configure secrets
+cp terraform/live/dev/secrets.tfvars.example terraform/live/dev/secrets.tfvars
+# Edit secrets.tfvars with your values
+
+# 2. Deploy everything
+cd terraform/live/dev
+terragrunt run-all apply --terragrunt-non-interactive
+
+# 3. Set execution mode for new workspaces (first run only)
+# cluster-config, vault-config, argocd workspaces must be set to "local"
+# execution mode in HCP Terraform (they access local VM IPs)
 ```
 
-**What setup.sh does:** Creates Transit Vault, KinD cluster with Cilium, Sealed-Secrets, and ArgoCD. ArgoCD then deploys all remaining infrastructure via sync waves.
+**What this does:** Creates a libvirt network, Vault VM, two Talos Linux VMs (control plane + worker), installs Cilium CNI, configures Vault secrets, and bootstraps ArgoCD. ArgoCD then deploys all remaining infrastructure via sync waves.
 
 | Wave | Components |
 |------|------------|
@@ -92,7 +135,14 @@ cp .env.example .env   # Configure secrets (see .env.example for details)
 | 4 | http-echo, juice-shop, Keycloak |
 | 5 | Monitoring, kube-oidc-proxy, Headlamp |
 
-After setup, add the SSH key shown in output as a [deploy key](https://github.com/YOUR-ORG/devsecops/settings/keys) (read-only).
+## Destroy
+
+```bash
+cd terraform/live/dev
+terragrunt run-all destroy --terragrunt-non-interactive
+```
+
+Destroy order is automatically reversed: argocd → vault-config → cluster-config → cluster → vault → network.
 
 ## Access URLs
 
@@ -102,63 +152,11 @@ After setup, add the SSH key shown in output as a [deploy key](https://github.co
 | Juice Shop | https://juice-shop.localhost | - |
 | Hubble UI | https://hubble.localhost | - |
 | Headlamp | https://headlamp.localhost | SSO via Keycloak (testuser/testuser) |
-| Grafana | https://grafana.localhost | SSO via Keycloak or .env: GRAFANA_ADMIN_* |
+| Grafana | https://grafana.localhost | SSO via Keycloak or secrets.tfvars |
 | Kafka UI | https://kafka-ui.localhost | - |
-| ArgoCD | https://argocd.localhost | SSO via Keycloak or admin/.env: ARGOCD_ADMIN_PASSWORD_HASH |
-| Vault UI | https://vault.localhost | SSO via Keycloak (OIDC) or root token below |
-| Keycloak | https://keycloak.localhost | .env: KEYCLOAK_ADMIN_* |
-
-**Vault root token:**
-```bash
-kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base64 -d
-```
-
-## Alerting
-
-Add to `.env` (all optional):
-```bash
-SLACK_CRITICAL_WEBHOOK=https://hooks.slack.com/...  # critical -> #alerts-critical + PagerDuty
-SLACK_WARNING_WEBHOOK=https://hooks.slack.com/...   # warning -> #alerts-warning
-PAGERDUTY_ROUTING_KEY=your-integration-key
-```
-
-## SSO with Keycloak
-
-Add to `.env`:
-```bash
-KEYCLOAK_ADMIN_USER=admin
-KEYCLOAK_ADMIN_PASSWORD=admin
-ARGOCD_OIDC_CLIENT_SECRET=$(openssl rand -hex 32)
-GRAFANA_OIDC_CLIENT_SECRET=$(openssl rand -hex 32)
-VAULT_OIDC_CLIENT_SECRET=$(openssl rand -hex 32)
-```
-
-Create users at https://keycloak.localhost (`devsecops` realm) and assign to groups:
-
-| Group | ArgoCD | Grafana | Vault | Headlamp |
-|-------|--------|---------|-------|----------|
-| admins | admin | Admin | default | cluster-admin |
-| developers | admin | Editor | default | edit |
-| viewers | readonly | Viewer | default | view |
-
-## Headlamp Kubernetes Dashboard
-
-Headlamp provides a web UI for Kubernetes with OIDC authentication via Keycloak.
-
-**Architecture:**
-```
-Browser → Headlamp → kube-oidc-proxy → Kubernetes API
-                ↓
-            Keycloak (OIDC)
-```
-
-- **kube-oidc-proxy** validates OIDC tokens and impersonates users to the API server
-- No API server OIDC configuration required (works with any K8s distribution)
-- User permissions based on Keycloak group membership (RBAC)
-
-**Test user:** `testuser` / `testuser` (member of `admins` group)
-
-For implementation details, see [docs/HEADLAMP-OIDC-ISSUE.md](docs/HEADLAMP-OIDC-ISSUE.md).
+| ArgoCD | https://argocd.localhost | SSO via Keycloak or secrets.tfvars |
+| Vault UI | https://vault.localhost | SSO via Keycloak (OIDC) or root token |
+| Keycloak | https://keycloak.localhost | secrets.tfvars |
 
 ## GitOps Workflow
 
@@ -171,7 +169,7 @@ vim helm/vault/values.yaml && git add . && git commit -m "update" && git push
 
 | Component | Deployed By |
 |-----------|-------------|
-| Cilium, Sealed-Secrets | setup.sh (re-run to change) |
+| Network, Vault VM, Talos VMs, Cilium | Terraform/Terragrunt |
 | Everything else | ArgoCD (commit to change) |
 
 ## Argo Rollouts
@@ -191,7 +189,13 @@ kubectl argo rollouts abort http-echo -n http-echo    # rollback
 
 ```bash
 # Full reset
-./setup.sh  # Automatically cleans up and starts fresh
+cd terraform/live/dev
+terragrunt run-all destroy --terragrunt-non-interactive
+terragrunt run-all apply --terragrunt-non-interactive
+
+# Check VMs
+virsh list --all
+virsh vol-list --pool default
 
 # Check network policies
 kubectl get ciliumnetworkpolicies -A
