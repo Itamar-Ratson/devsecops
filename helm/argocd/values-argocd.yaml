@@ -43,6 +43,10 @@ argo-cd:
   repoServer:
     replicas: 1
 
+    env:
+      - name: ARGOCD_EXEC_TIMEOUT
+        value: "5m"
+
     resources:
       limits:
         cpu: "1"
