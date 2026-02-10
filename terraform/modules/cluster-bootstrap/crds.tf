@@ -27,7 +27,7 @@ resource "null_resource" "prometheus_operator_crds" {
       KUBECONFIG = local_sensitive_file.kubeconfig.filename
     }
     command = <<-EOT
-      kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/${var.prometheus_operator_version}/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+      kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/${var.prometheus_operator_version}/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
       kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/${var.prometheus_operator_version}/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
       kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/${var.prometheus_operator_version}/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
       kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/${var.prometheus_operator_version}/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml

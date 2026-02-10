@@ -25,7 +25,6 @@ dependency "kind_cluster" {
     cluster_ca_certificate = "mock-ca"
     client_certificate     = "mock-cert"
     client_key             = "mock-key"
-    vault_cluster_ip       = "172.18.0.100"
   }
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "destroy"]
   mock_outputs_merge_strategy_with_state  = "shallow"
@@ -47,7 +46,8 @@ inputs = {
   client_certificate     = dependency.kind_cluster.outputs.client_certificate
   client_key             = dependency.kind_cluster.outputs.client_key
   kubeconfig             = dependency.kind_cluster.outputs.kubeconfig
-  vault_cluster_ip       = dependency.kind_cluster.outputs.vault_cluster_ip
   vault_root_token       = dependency.transit_vault.outputs.vault_token
   helm_values_dir        = "${get_repo_root()}/helm"
+  # git_repo_url, argocd_ssh_private_key, argocd_oidc_client_secret
+  # — loaded from secrets.tfvars via root extra_arguments
 }

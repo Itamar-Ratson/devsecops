@@ -60,7 +60,3 @@ variable "argocd_oidc_client_secret" {
   sensitive   = true
 }
 
-variable "vault_cluster_ip" {
-  description = "Transit Vault IP on the KinD network"
-  type        = string
-}

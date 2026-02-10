@@ -11,7 +11,7 @@ resource "kubernetes_service_account" "vault_auth" {
   depends_on = [null_resource.wait_nodes_ready]
 }
 
-resource "kubernetes_secret" "vault_auth_token" {
+resource "kubernetes_secret_v1" "vault_auth_token" {
   metadata {
     name      = "vault-auth-token"
     namespace = "kube-system"

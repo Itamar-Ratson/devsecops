@@ -55,6 +55,7 @@ resource "helm_release" "argocd" {
     null_resource.argocd_repo_creds,
     kubernetes_secret_v1.argocd_oidc,
     kubernetes_secret_v1.vault_transit_token,
+    kubernetes_secret_v1.argocd_redis,
   ]
 }
 
@@ -90,6 +91,7 @@ resource "null_resource" "enable_gitops" {
         -f ${var.helm_values_dir}/ports.yaml \
         -f ${var.helm_values_dir}/argocd/values.yaml \
         -f ${var.helm_values_dir}/argocd/values-argocd.yaml \
+        --set gitops.enabled=true \
         --set gitops.repoURL=${var.git_repo_url} \
         --set vaultSecrets.enabled=false
     EOT

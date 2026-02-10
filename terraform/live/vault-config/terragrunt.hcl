@@ -44,4 +44,6 @@ inputs = {
   control_plane_ip       = dependency.kind_cluster.outputs.control_plane_ip
   cluster_ca_certificate = dependency.kind_cluster.outputs.cluster_ca_certificate
   token_reviewer_jwt     = dependency.cluster_bootstrap.outputs.token_reviewer_jwt
+  # oidc_client_secrets, keycloak_admin, grafana_admin, argocd_admin,
+  # alertmanager_webhooks — loaded from secrets.tfvars via root extra_arguments
 }

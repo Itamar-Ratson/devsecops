@@ -1,4 +1,23 @@
 # ============================================================================
+# Redis Secret (must exist before ArgoCD Helm install)
+# ============================================================================
+resource "random_password" "redis" {
+  length  = 32
+  special = false
+}
+
+resource "kubernetes_secret_v1" "argocd_redis" {
+  metadata {
+    name      = "argocd-redis"
+    namespace = kubernetes_namespace.argocd.metadata[0].name
+  }
+
+  data = {
+    auth = random_password.redis.result
+  }
+}
+
+# ============================================================================
 # ArgoCD Namespace
 # ============================================================================
 resource "kubernetes_namespace" "argocd" {
