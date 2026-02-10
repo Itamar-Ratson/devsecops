@@ -6,7 +6,7 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = var.endpoint
     cluster_ca_certificate = var.cluster_ca_certificate
     client_certificate     = var.client_certificate
@@ -34,22 +34,16 @@ resource "helm_release" "argocd" {
     file("${var.helm_values_dir}/ports.yaml"),
     file("${var.helm_values_dir}/argocd/values.yaml"),
     file("${var.helm_values_dir}/argocd/values-argocd.yaml"),
+    yamlencode({
+      gitops = {
+        enabled = false
+        repoURL = var.git_repo_url
+      }
+      vaultSecrets = {
+        enabled = false
+      }
+    }),
   ]
-
-  set {
-    name  = "gitops.repoURL"
-    value = var.git_repo_url
-  }
-
-  set {
-    name  = "gitops.enabled"
-    value = "false"
-  }
-
-  set {
-    name  = "vaultSecrets.enabled"
-    value = "false"
-  }
 
   depends_on = [
     null_resource.argocd_repo_creds,

@@ -6,7 +6,7 @@ provider "kubernetes" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = var.endpoint
     cluster_ca_certificate = var.cluster_ca_certificate
     client_certificate     = var.client_certificate

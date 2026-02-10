@@ -10,7 +10,7 @@ resource "null_resource" "gateway_api_crds" {
     environment = {
       KUBECONFIG = local_sensitive_file.kubeconfig.filename
     }
-    command = "kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/${var.gateway_api_version}/experimental-install.yaml"
+    command = "kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/${var.gateway_api_version}/experimental-install.yaml"
   }
 }
 
@@ -48,6 +48,6 @@ resource "null_resource" "cert_manager_crds" {
     environment = {
       KUBECONFIG = local_sensitive_file.kubeconfig.filename
     }
-    command = "kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/${var.cert_manager_version}/cert-manager.crds.yaml"
+    command = "kubectl apply --server-side -f https://github.com/cert-manager/cert-manager/releases/download/${var.cert_manager_version}/cert-manager.crds.yaml"
   }
 }

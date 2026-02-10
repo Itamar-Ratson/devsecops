@@ -27,3 +27,6 @@ secrets.tfvars
 !.env.example
 .terraform/
 .terragrunt-cache/
+# Terragrunt auto-generated files in root live dir
+terraform/live/backend.tf
+terraform/live/provider.tf
