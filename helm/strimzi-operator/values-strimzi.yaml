@@ -22,6 +22,6 @@ strimzi-kafka-operator:
     annotations:
       grafana_folder: "Kafka"
 
-  # Generate cluster roles (required)
-  generateClusterRoles: true
+  # Create global resources (ClusterRoles, CRDs) — required
+  createGlobalResources: true
   generateNetworkPolicy: false  # We manage network policies via Cilium

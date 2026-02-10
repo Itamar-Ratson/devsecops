@@ -4,5 +4,5 @@ description: Strimzi Kafka Operator - Kubernetes-native Apache Kafka management
 version: 1.0.0
 dependencies:
   - name: strimzi-kafka-operator
-    version: "0.45.0"
+    version: "0.50.0"
     repository: "https://strimzi.io/charts/"
