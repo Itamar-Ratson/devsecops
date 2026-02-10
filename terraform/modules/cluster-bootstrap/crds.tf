@@ -53,3 +53,26 @@ resource "null_resource" "cert_manager_crds" {
     command = "kubectl apply --server-side -f https://github.com/cert-manager/cert-manager/releases/download/${var.cert_manager_version}/cert-manager.crds.yaml"
   }
 }
+
+# ============================================================================
+# ArgoCD CRDs
+# Pre-installed so ArgoCD helm chart can deploy Application CRs in one phase.
+# CRDs are templates in the subchart — Helm can't validate Application CRs
+# unless the CRD already exists on the cluster.
+# ============================================================================
+resource "null_resource" "argocd_crds" {
+  triggers = {
+    version = var.argocd_version
+  }
+
+  provisioner "local-exec" {
+    environment = {
+      KUBECONFIG = local_sensitive_file.kubeconfig.filename
+    }
+    command = <<-EOT
+      kubectl apply --server-side -f https://raw.githubusercontent.com/argoproj/argo-cd/${var.argocd_version}/manifests/crds/application-crd.yaml
+      kubectl apply --server-side -f https://raw.githubusercontent.com/argoproj/argo-cd/${var.argocd_version}/manifests/crds/appproject-crd.yaml
+      kubectl apply --server-side -f https://raw.githubusercontent.com/argoproj/argo-cd/${var.argocd_version}/manifests/crds/applicationset-crd.yaml
+    EOT
+  }
+}

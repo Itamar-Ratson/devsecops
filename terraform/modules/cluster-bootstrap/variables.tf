@@ -54,3 +54,9 @@ variable "cert_manager_version" {
   type        = string
   default     = "v1.19.3"
 }
+
+variable "argocd_version" {
+  description = "ArgoCD version for CRD installation"
+  type        = string
+  default     = "v3.3.0"
+}

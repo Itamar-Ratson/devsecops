@@ -65,11 +65,3 @@ resource "vault_transit_secret_backend_key" "autounseal" {
   backend = vault_mount.transit.path
   name    = "autounseal"
 }
-
-# Enable KV v2 for static secrets
-resource "vault_mount" "kv_v2" {
-  path = "secret"
-  type = "kv-v2"
-
-  depends_on = [docker_container.vault]
-}

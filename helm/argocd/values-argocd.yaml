@@ -114,9 +114,9 @@ argo-cd:
   dex:
     enabled: false
 
-  # CRDs - install via Helm
+  # CRDs - pre-installed by cluster-bootstrap Terraform module
   crds:
-    install: true
+    install: false
     keep: true
 
   # ConfigMaps for ArgoCD configuration
