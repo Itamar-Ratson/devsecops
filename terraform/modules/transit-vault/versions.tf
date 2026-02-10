@@ -6,9 +6,9 @@ terraform {
       source  = "kreuzwerker/docker"
       version = "~> 3.6"
     }
-    null = {
-      source  = "hashicorp/null"
-      version = "~> 3.2"
+    vault = {
+      source  = "hashicorp/vault"
+      version = "~> 5.7"
     }
   }
 }

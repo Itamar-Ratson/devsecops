@@ -9,6 +9,10 @@ gateway:
 vaultSecrets:
   enabled: false
 
+# Transit Vault IP on the KinD Docker network (dynamic, set by Terraform)
+# Default works for 172.18.x.x subnet; Terraform overrides with actual IP
+transitVaultIP: "172.18.0.100"
+
 # GitOps repository configuration
 # enabled: false during initial bootstrap (CRDs don't exist yet)
 # enabled: true after ArgoCD is running (second helm upgrade)

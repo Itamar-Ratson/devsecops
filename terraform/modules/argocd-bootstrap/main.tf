@@ -35,6 +35,7 @@ resource "helm_release" "argocd" {
     file("${var.helm_values_dir}/argocd/values.yaml"),
     file("${var.helm_values_dir}/argocd/values-argocd.yaml"),
     yamlencode({
+      transitVaultIP = var.vault_cluster_ip
       gitops = {
         enabled = false
         repoURL = var.git_repo_url
@@ -87,6 +88,7 @@ resource "null_resource" "enable_gitops" {
         -f ${var.helm_values_dir}/argocd/values-argocd.yaml \
         --set gitops.enabled=true \
         --set gitops.repoURL=${var.git_repo_url} \
+        --set transitVaultIP=${var.vault_cluster_ip} \
         --set vaultSecrets.enabled=false
     EOT
   }

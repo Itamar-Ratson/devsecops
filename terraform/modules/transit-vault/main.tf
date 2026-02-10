@@ -46,28 +46,30 @@ resource "docker_container" "vault" {
   }
 }
 
-# Enable transit engine, create autounseal key, and enable KV v2
-resource "null_resource" "vault_engines" {
+# Vault provider — connects to the transit vault container via host port
+provider "vault" {
+  address = "http://127.0.0.1:${var.host_port}"
+  token   = var.vault_root_token
+}
+
+# Enable transit engine for auto-unseal
+resource "vault_mount" "transit" {
+  path = "transit"
+  type = "transit"
+
   depends_on = [docker_container.vault]
+}
 
-  provisioner "local-exec" {
-    environment = {
-      VAULT_ADDR  = "http://127.0.0.1:${var.host_port}"
-      VAULT_TOKEN = var.vault_root_token
-    }
-    command = <<-EOT
-      # Wait for Vault to be ready
-      for i in $(seq 1 30); do
-        vault status && break
-        sleep 1
-      done
+# Create the autounseal key
+resource "vault_transit_secret_backend_key" "autounseal" {
+  backend = vault_mount.transit.path
+  name    = "autounseal"
+}
 
-      # Enable transit engine + autounseal key
-      vault secrets enable transit 2>/dev/null || true
-      vault write -f transit/keys/autounseal 2>/dev/null || true
+# Enable KV v2 for static secrets
+resource "vault_mount" "kv_v2" {
+  path = "secret"
+  type = "kv-v2"
 
-      # Enable KV v2 for static secrets
-      vault secrets enable -path=secret kv-v2 2>/dev/null || true
-    EOT
-  }
+  depends_on = [docker_container.vault]
 }

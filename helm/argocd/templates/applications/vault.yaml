@@ -19,6 +19,32 @@ spec:
       valueFiles:
         - ../ports.yaml
         - values.yaml
+      valuesObject:
+        vault:
+          server:
+            standalone:
+              config: |
+                ui = true
+                listener "tcp" {
+                  tls_disable = 1
+                  address = "[::]:8200"
+                  cluster_address = "[::]:8201"
+                  telemetry {
+                    unauthenticated_metrics_access = true
+                  }
+                }
+                storage "file" {
+                  path = "/vault/data"
+                }
+                seal "transit" {
+                  address = "http://{{ .Values.transitVaultIP }}:8200"
+                  key_name = "autounseal"
+                  mount_path = "transit/"
+                }
+                telemetry {
+                  prometheus_retention_time = "30s"
+                  disable_hostname = true
+                }
   destination:
     server: https://kubernetes.default.svc
     namespace: vault
