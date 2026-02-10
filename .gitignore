@@ -10,8 +10,20 @@
 !*.tsv
 !.env.example
 
+# Terraform / Terragrunt
+!*.tf
+!*.hcl
+!*.tfvars
+!*.example
+secrets.tfvars
+*.tfstate
+*.tfstate.backup
+
 # Ignore hidden directories (except .github)
 .*
 !.github
 !.gitignore
+!.gitkeep
 !.env.example
+.terraform/
+.terragrunt-cache/
