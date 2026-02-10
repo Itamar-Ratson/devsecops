@@ -71,7 +71,7 @@ vault:
         # Common values: 172.18.0.100, 172.19.0.100, 172.20.0.100
         # Token is injected via VAULT_TOKEN env var from K8s Secret
         seal "transit" {
-          address = "http://172.20.0.100:8200"
+          address = "http://172.18.0.100:8200"
           key_name = "autounseal"
           mount_path = "transit/"
         }
