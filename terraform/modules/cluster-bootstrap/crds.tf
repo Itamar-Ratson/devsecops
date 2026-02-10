@@ -1,5 +1,6 @@
 # ============================================================================
 # Gateway API CRDs (experimental channel for Cilium)
+# No official Helm chart — kubectl apply is the documented install method
 # ============================================================================
 resource "null_resource" "gateway_api_crds" {
   triggers = {
@@ -38,6 +39,7 @@ resource "null_resource" "prometheus_operator_crds" {
 
 # ============================================================================
 # cert-manager CRDs
+# No standalone CRDs chart — kubectl apply is the documented install method
 # ============================================================================
 resource "null_resource" "cert_manager_crds" {
   triggers = {

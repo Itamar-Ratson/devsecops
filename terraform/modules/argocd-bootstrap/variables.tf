@@ -26,12 +26,6 @@ variable "client_key" {
   sensitive   = true
 }
 
-variable "kubeconfig" {
-  description = "Raw kubeconfig YAML (for kubectl commands)"
-  type        = string
-  sensitive   = true
-}
-
 variable "helm_values_dir" {
   description = "Absolute path to the helm/ directory"
   type        = string
@@ -64,4 +58,3 @@ variable "vault_cluster_ip" {
   description = "Transit Vault IP on the KinD Docker network"
   type        = string
 }
-

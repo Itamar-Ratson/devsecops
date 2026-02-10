@@ -14,21 +14,18 @@ provider "helm" {
   }
 }
 
-resource "local_sensitive_file" "kubeconfig" {
-  content  = var.kubeconfig
-  filename = "${path.module}/.kubeconfig"
-}
-
 # ============================================================================
-# Phase 1: Install ArgoCD with GitOps DISABLED
-# (CRDs and VSO don't exist yet)
+# Install ArgoCD with GitOps enabled
+# ArgoCD CRDs are in the chart's crds/ directory, installed before templates.
+# Application CRs only use argoproj.io/v1alpha1 (ArgoCD's own CRD), so
+# template rendering succeeds even on a fresh cluster.
 # ============================================================================
 resource "helm_release" "argocd" {
   name      = "argocd"
   namespace = kubernetes_namespace.argocd.metadata[0].name
   chart     = "${var.helm_values_dir}/argocd"
   wait      = true
-  timeout   = 300
+  timeout   = 600
 
   values = [
     file("${var.helm_values_dir}/ports.yaml"),
@@ -37,7 +34,7 @@ resource "helm_release" "argocd" {
     yamlencode({
       transitVaultIP = var.vault_cluster_ip
       gitops = {
-        enabled = false
+        enabled = true
         repoURL = var.git_repo_url
       }
       vaultSecrets = {
@@ -47,49 +44,9 @@ resource "helm_release" "argocd" {
   ]
 
   depends_on = [
-    null_resource.argocd_repo_creds,
+    kubernetes_secret_v1.argocd_repo_creds,
     kubernetes_secret_v1.argocd_oidc,
     kubernetes_secret_v1.vault_transit_token,
     kubernetes_secret_v1.argocd_redis,
   ]
-}
-
-# Wait for ArgoCD server to be available
-resource "null_resource" "wait_argocd" {
-  depends_on = [helm_release.argocd]
-
-  provisioner "local-exec" {
-    environment = {
-      KUBECONFIG = local_sensitive_file.kubeconfig.filename
-    }
-    command = "kubectl wait --for=condition=Available deployment/argocd-server -n argocd --timeout=180s"
-  }
-}
-
-# ============================================================================
-# Phase 2: Enable GitOps — ArgoCD starts deploying all sync waves
-# ============================================================================
-resource "null_resource" "enable_gitops" {
-  depends_on = [null_resource.wait_argocd]
-
-  triggers = {
-    repo_url = var.git_repo_url
-  }
-
-  provisioner "local-exec" {
-    environment = {
-      KUBECONFIG = local_sensitive_file.kubeconfig.filename
-    }
-    command = <<-EOT
-      helm upgrade argocd ${var.helm_values_dir}/argocd \
-        -n argocd \
-        -f ${var.helm_values_dir}/ports.yaml \
-        -f ${var.helm_values_dir}/argocd/values.yaml \
-        -f ${var.helm_values_dir}/argocd/values-argocd.yaml \
-        --set gitops.enabled=true \
-        --set gitops.repoURL=${var.git_repo_url} \
-        --set transitVaultIP=${var.vault_cluster_ip} \
-        --set vaultSecrets.enabled=false
-    EOT
-  }
 }

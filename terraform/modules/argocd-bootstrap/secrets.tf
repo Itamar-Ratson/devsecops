@@ -48,39 +48,23 @@ resource "kubernetes_secret_v1" "vault_transit_token" {
 }
 
 # ============================================================================
-# ArgoCD Repository Credentials (sealed via kubeseal)
+# ArgoCD Repository Credentials
+# Plain K8s Secret with ArgoCD label — no need for SealedSecret since
+# Terraform manages this (not stored in git, encrypted in HCP Terraform state)
 # ============================================================================
-resource "null_resource" "argocd_repo_creds" {
-  depends_on = [kubernetes_namespace.argocd]
-
-  triggers = {
-    repo_url = var.git_repo_url
+resource "kubernetes_secret_v1" "argocd_repo_creds" {
+  metadata {
+    name      = "argocd-repo-creds"
+    namespace = kubernetes_namespace.argocd.metadata[0].name
+    labels = {
+      "argocd.argoproj.io/secret-type" = "repo-creds"
+    }
   }
 
-  provisioner "local-exec" {
-    environment = {
-      KUBECONFIG   = local_sensitive_file.kubeconfig.filename
-      SSH_PRIV_KEY = var.argocd_ssh_private_key
-      GIT_REPO_URL = var.git_repo_url
-    }
-    command = <<-EOT
-      # Write SSH key to temp file
-      TMPKEY=$(mktemp)
-      echo "$SSH_PRIV_KEY" > "$TMPKEY"
-
-      # Create secret, label it, seal it, apply it
-      kubectl create secret generic argocd-repo-creds \
-        --namespace argocd \
-        --from-literal=type=git \
-        --from-literal=url="$GIT_REPO_URL" \
-        --from-file=sshPrivateKey="$TMPKEY" \
-        --dry-run=client -o yaml | \
-      kubectl label --local -f - argocd.argoproj.io/secret-type=repo-creds -o yaml | \
-      kubeseal --controller-name=sealed-secrets --controller-namespace=sealed-secrets -o yaml | \
-      kubectl apply -f -
-
-      rm -f "$TMPKEY"
-    EOT
+  data = {
+    type          = "git"
+    url           = var.git_repo_url
+    sshPrivateKey = var.argocd_ssh_private_key
   }
 }
 
