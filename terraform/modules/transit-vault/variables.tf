@@ -1,8 +1,3 @@
-variable "project_name" {
-  description = "Project name for resource naming"
-  type        = string
-}
-
 variable "vault_version" {
   description = "Vault Docker image tag"
   type        = string

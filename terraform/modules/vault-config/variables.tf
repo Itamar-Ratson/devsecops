@@ -1,8 +1,3 @@
-variable "project_name" {
-  description = "Project name"
-  type        = string
-}
-
 variable "vault_address" {
   description = "Vault API address (host-accessible)"
   type        = string

@@ -56,7 +56,3 @@ terraform {
   }
 }
 
-# Common inputs inherited by all modules
-inputs = {
-  project_name = local.project_name
-}

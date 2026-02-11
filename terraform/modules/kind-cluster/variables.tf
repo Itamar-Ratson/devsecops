@@ -1,8 +1,3 @@
-variable "project_name" {
-  description = "Project name for resource naming"
-  type        = string
-}
-
 variable "cluster_name" {
   description = "KinD cluster name"
   type        = string

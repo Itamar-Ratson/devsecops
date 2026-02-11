@@ -1,8 +1,3 @@
-variable "project_name" {
-  description = "Project name"
-  type        = string
-}
-
 variable "kubeconfig" {
   description = "Raw kubeconfig YAML from KinD cluster"
   type        = string

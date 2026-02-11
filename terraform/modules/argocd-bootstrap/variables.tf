@@ -1,8 +1,3 @@
-variable "project_name" {
-  description = "Project name"
-  type        = string
-}
-
 variable "endpoint" {
   description = "Kubernetes API server endpoint"
   type        = string
