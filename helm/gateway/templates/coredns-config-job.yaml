@@ -47,6 +47,11 @@ spec:
                   rewrite name vault.localhost GATEWAY_SVC_PLACEHOLDER
                   rewrite name argocd.localhost GATEWAY_SVC_PLACEHOLDER
                   rewrite name hubble.localhost GATEWAY_SVC_PLACEHOLDER
+                  rewrite name headlamp.localhost GATEWAY_SVC_PLACEHOLDER
+                  rewrite name kafka-ui.localhost GATEWAY_SVC_PLACEHOLDER
+                  rewrite name juice-shop.localhost GATEWAY_SVC_PLACEHOLDER
+                  rewrite name echo.localhost GATEWAY_SVC_PLACEHOLDER
+                  rewrite name k8s-api.localhost GATEWAY_SVC_PLACEHOLDER
                   kubernetes cluster.local in-addr.arpa ip6.arpa {
                      pods insecure
                      fallthrough in-addr.arpa ip6.arpa
