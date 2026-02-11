@@ -39,7 +39,7 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![Alloy](https://img.shields.io/badge/Alloy-F46800?style=flat&logo=grafana&logoColor=white)
 ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-000000?style=flat&logo=opentelemetry&logoColor=white)
 ![Hubble](https://img.shields.io/badge/Hubble-F8C517?style=flat&logo=cilium&logoColor=black)
-![Headlamp](https://img.shields.io/badge/Headlamp-2563EB?style=flat&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik05IDIxYzAgLjUuNCAxIDEgMWg0Yy42IDAgMS0uNSAxLTF2LTFIOXYxem0zLTE5QzggMiA1IDUgNSA5YzAgMi4zIDEuMSA0LjMgMyA1LjdWMTdjMCAuNi40IDEgMSAxaDZjLjYgMCAxLS40IDEtMXYtMi4zYzEuOS0xLjQgMy0zLjQgMy01LjcgMC00LTMuMS03LTctN3oiLz48L3N2Zz4=&logoColor=white)
+![Headlamp](https://img.shields.io/badge/trust--manager-0A5CBF?style=flat&logo=letsencrypt&logoColor=white)
 ![PagerDuty](https://img.shields.io/badge/PagerDuty-06AC38?style=flat&logo=pagerduty&logoColor=white)
 
 **Messaging**<br>
