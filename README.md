@@ -39,7 +39,7 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![Alloy](https://img.shields.io/badge/Alloy-F46800?style=flat&logo=grafana&logoColor=white)
 ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-000000?style=flat&logo=opentelemetry&logoColor=white)
 ![Hubble](https://img.shields.io/badge/Hubble-F8C517?style=flat&logo=cilium&logoColor=black)
-![Headlamp](https://img.shields.io/badge/Headlamp-0A5CBF?style=flat&logo=letsencrypt&logoColor=white)
+![Headlamp](https://img.shields.io/badge/Headlamp-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![PagerDuty](https://img.shields.io/badge/PagerDuty-06AC38?style=flat&logo=pagerduty&logoColor=white)
 
 **Messaging**<br>
