@@ -23,15 +23,6 @@ generate "backend" {
   EOF
 }
 
-# Minimal provider stub — actual providers defined in each module
-generate "provider" {
-  path      = "provider.tf"
-  if_exists = "overwrite_terragrunt"
-  contents  = <<-EOF
-    # Provider configurations are defined in individual modules
-  EOF
-}
-
 # Load secrets.tfvars for all terraform commands that accept variables
 terraform {
   extra_arguments "secrets" {

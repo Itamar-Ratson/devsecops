@@ -17,8 +17,12 @@ dependency "transit_vault" {
   mock_outputs_merge_strategy_with_state  = "shallow"
 }
 
+locals {
+  shared_values = yamldecode(file("${get_repo_root()}/helm/ports.yaml"))
+}
+
 inputs = {
-  cluster_name         = "k8s-dev"
+  cluster_name         = local.shared_values.cluster.name
   vault_container_name = dependency.transit_vault.outputs.container_name
   vault_container_id   = dependency.transit_vault.outputs.container_id
 }

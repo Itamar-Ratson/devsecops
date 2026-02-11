@@ -1,5 +1,8 @@
-# Centralized port definitions for all charts
+# Centralized config for all charts
 # Pass this file to helm commands with: -f helm/ports.yaml
+
+cluster:
+  name: k8s-dev
 
 ports:
   # Monitoring stack

@@ -710,9 +710,9 @@
         "allValue": ".*",
         "current": {
           "selected": true,
-          "text": "k8s-dev",
+          "text": "",
           "value": [
-            "k8s-dev"
+            "$__all"
           ]
         },
         "datasource": {

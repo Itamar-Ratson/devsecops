@@ -69,7 +69,7 @@ alloy:
           // Add cluster label (required by Tetragon dashboards)
           rule {
             target_label  = "cluster"
-            replacement   = "k8s-dev"
+            replacement   = "{{ .Values.cluster.name }}"
           }
 
           // Set log path
@@ -103,7 +103,7 @@ alloy:
           path_targets = [{
             __path__ = "/var/run/cilium/tetragon/tetragon.log",
             job      = "tetragon",
-            cluster  = "k8s-dev",
+            cluster  = "{{ .Values.cluster.name }}",
           }]
         }
 
