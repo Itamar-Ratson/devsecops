@@ -1,9 +1,9 @@
 # Transit Vault configuration (external Docker container for static secrets)
 transitVault:
   enabled: true
-  # This IP is set by setup.sh based on the KinD network subnet
+  # This IP is set by Terraform based on the KinD network subnet
   # Note: KinD subnet varies (172.18.x.x, 172.19.x.x, 172.20.x.x)
-  # setup.sh sets transitVaultIP which ArgoCD uses via Application parameters
+  # Terraform sets transitVaultIP which ArgoCD uses via Application parameters
   address: "172.18.0.100"
 
 vault-secrets-operator:

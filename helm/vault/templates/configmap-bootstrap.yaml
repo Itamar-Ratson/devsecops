@@ -55,5 +55,5 @@ data:
     }
 
   # Note: Actual secrets are read from vault-bootstrap-secrets Secret
-  # which is created by setup.sh before ArgoCD deploys Vault
+  # which is created by Terraform (vault-config module) before ArgoCD deploys Vault
 {{- end }}

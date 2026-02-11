@@ -107,7 +107,7 @@ vault:
     serviceType: ClusterIP
 
 # Bootstrap configuration for automated Vault setup
-# Secrets are read from vault-bootstrap-secrets Secret created by setup.sh
+# Secrets are read from vault-bootstrap-secrets Secret created by Terraform (vault-config module)
 bootstrap:
   enabled: true
 

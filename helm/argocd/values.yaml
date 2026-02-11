@@ -5,7 +5,7 @@ gateway:
 
 # Vault Secrets - enables VaultStaticSecret for syncing secrets from Vault
 # Disabled: ArgoCD is Wave 0, before VSO (Wave 2) installs CRDs
-# setup.sh creates argocd-oidc-secret directly via kubectl
+# Terraform (argocd-bootstrap) creates argocd-oidc-secret via kubernetes_secret
 vaultSecrets:
   enabled: false
 

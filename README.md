@@ -50,14 +50,17 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![ArgoCD](https://img.shields.io/badge/ArgoCD-EF7B4D?style=flat&logo=argo&logoColor=white)
 ![Argo Rollouts](https://img.shields.io/badge/Argo_Rollouts-EF7B4D?style=flat&logo=argo&logoColor=white)
 
-**CI/CD**<br>
+**IaC & CI/CD**<br>
+![Terraform](https://img.shields.io/badge/Terraform-844FBA?style=flat&logo=terraform&logoColor=white)
+![Terragrunt](https://img.shields.io/badge/Terragrunt-844FBA?style=flat&logo=terraform&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat&logo=githubactions&logoColor=white)
 
 ## Prerequisites
 
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat&logo=linux&logoColor=black)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
-![docker-compose](https://img.shields.io/badge/docker--compose-2496ED?style=flat&logo=docker&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-844FBA?style=flat&logo=terraform&logoColor=white)
+![Terragrunt](https://img.shields.io/badge/Terragrunt-844FBA?style=flat&logo=terraform&logoColor=white)
 ![kubectl](https://img.shields.io/badge/kubectl-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![Helm](https://img.shields.io/badge/Helm-0F1689?style=flat&logo=helm&logoColor=white)
 ![KinD](https://img.shields.io/badge/KinD-326CE5?style=flat&logo=kubernetes&logoColor=white)
@@ -77,11 +80,11 @@ fs.inotify.max_user_watches=16384
 ## Quick Setup
 
 ```bash
-cp .env.example .env   # Configure secrets (see .env.example for details)
-./setup.sh             # Creates cluster and deploys everything via GitOps
+cp terraform/live/secrets.tfvars.example terraform/live/secrets.tfvars  # Configure secrets
+cd terraform/live && terragrunt run-all apply --terragrunt-non-interactive
 ```
 
-**What setup.sh does:** Creates Transit Vault, KinD cluster with Cilium, Sealed-Secrets, and ArgoCD. ArgoCD then deploys all remaining infrastructure via sync waves.
+**What this does:** Creates Transit Vault (Docker container), KinD cluster with Cilium, installs CRDs, Sealed-Secrets, and bootstraps ArgoCD. ArgoCD then deploys all remaining infrastructure via sync waves.
 
 | Wave | Components |
 |------|------------|
@@ -92,7 +95,7 @@ cp .env.example .env   # Configure secrets (see .env.example for details)
 | 4 | http-echo, juice-shop, Keycloak |
 | 5 | Monitoring, kube-oidc-proxy, Headlamp |
 
-After setup, add the SSH key shown in output as a [deploy key](https://github.com/YOUR-ORG/devsecops/settings/keys) (read-only).
+After setup, add the SSH deploy key as a [deploy key](https://github.com/YOUR-ORG/devsecops/settings/keys) (read-only).
 
 ## Access URLs
 
@@ -102,11 +105,11 @@ After setup, add the SSH key shown in output as a [deploy key](https://github.co
 | Juice Shop | https://juice-shop.localhost | - |
 | Hubble UI | https://hubble.localhost | - |
 | Headlamp | https://headlamp.localhost | SSO via Keycloak (testuser/testuser) |
-| Grafana | https://grafana.localhost | SSO via Keycloak or .env: GRAFANA_ADMIN_* |
+| Grafana | https://grafana.localhost | SSO via Keycloak or secrets.tfvars: grafana_admin |
 | Kafka UI | https://kafka-ui.localhost | - |
-| ArgoCD | https://argocd.localhost | SSO via Keycloak or admin/.env: ARGOCD_ADMIN_PASSWORD_HASH |
+| ArgoCD | https://argocd.localhost | SSO via Keycloak or admin/secrets.tfvars: argocd_admin |
 | Vault UI | https://vault.localhost | SSO via Keycloak (OIDC) or root token below |
-| Keycloak | https://keycloak.localhost | .env: KEYCLOAK_ADMIN_* |
+| Keycloak | https://keycloak.localhost | secrets.tfvars: keycloak_admin |
 
 **Vault root token:**
 ```bash
@@ -115,22 +118,29 @@ kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base6
 
 ## Alerting
 
-Add to `.env` (all optional):
-```bash
-SLACK_CRITICAL_WEBHOOK=https://hooks.slack.com/...  # critical -> #alerts-critical + PagerDuty
-SLACK_WARNING_WEBHOOK=https://hooks.slack.com/...   # warning -> #alerts-warning
-PAGERDUTY_ROUTING_KEY=your-integration-key
+Add to `terraform/live/secrets.tfvars` (all optional):
+```hcl
+alertmanager_webhooks = {
+  pagerduty_routing_key  = "your-integration-key"
+  slack_critical_webhook = "https://hooks.slack.com/..."
+  slack_warning_webhook  = "https://hooks.slack.com/..."
+}
 ```
 
 ## SSO with Keycloak
 
-Add to `.env`:
-```bash
-KEYCLOAK_ADMIN_USER=admin
-KEYCLOAK_ADMIN_PASSWORD=admin
-ARGOCD_OIDC_CLIENT_SECRET=$(openssl rand -hex 32)
-GRAFANA_OIDC_CLIENT_SECRET=$(openssl rand -hex 32)
-VAULT_OIDC_CLIENT_SECRET=$(openssl rand -hex 32)
+Add to `terraform/live/secrets.tfvars`:
+```hcl
+oidc_client_secrets = {
+  argocd   = "..."  # openssl rand -hex 32
+  grafana  = "..."
+  vault    = "..."
+  headlamp = "..."
+}
+keycloak_admin = {
+  username = "admin"
+  password = "admin"
+}
 ```
 
 Create users at https://keycloak.localhost (`devsecops` realm) and assign to groups:
@@ -171,7 +181,7 @@ vim helm/vault/values.yaml && git add . && git commit -m "update" && git push
 
 | Component | Deployed By |
 |-----------|-------------|
-| Cilium, Sealed-Secrets | setup.sh (re-run to change) |
+| Transit Vault, KinD, Cilium, Sealed-Secrets, ArgoCD | Terraform/Terragrunt |
 | Everything else | ArgoCD (commit to change) |
 
 ## Argo Rollouts
@@ -191,7 +201,8 @@ kubectl argo rollouts abort http-echo -n http-echo    # rollback
 
 ```bash
 # Full reset
-./setup.sh  # Automatically cleans up and starts fresh
+cd terraform/live && terragrunt run-all destroy --terragrunt-non-interactive
+cd terraform/live && terragrunt run-all apply --terragrunt-non-interactive
 
 # Check network policies
 kubectl get ciliumnetworkpolicies -A

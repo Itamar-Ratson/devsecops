@@ -121,9 +121,8 @@ argo-cd:
 
   # ConfigMaps for ArgoCD configuration
   configs:
-    # Repository credentials are automatically configured by setup.sh:
-    # - SSH key generated at ~/.ssh/argocd-deploy-key
-    # - Secret created, sealed, and applied as SealedSecret
+    # Repository credentials are configured by Terraform (argocd-bootstrap module):
+    # - SSH deploy key sealed and applied as SealedSecret
     # - Public key displayed for adding to GitHub as deploy key
     #
     # For manual setup or additional repos, create a SealedSecret:
