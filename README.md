@@ -99,10 +99,10 @@ cd terraform/live && terragrunt --all apply --non-interactive
 |---------|-----|-------------|
 | Echo | <https://echo.localhost> | - |
 | Juice Shop | <https://juice-shop.localhost> | - |
+| Kafka UI | <https://kafka-ui.localhost> | - |
 | Hubble UI | <https://hubble.localhost> | - |
 | Headlamp | <https://headlamp.localhost> | SSO via Keycloak (testuser/testuser) |
 | Grafana | <https://grafana.localhost> | SSO via Keycloak or secrets.tfvars: grafana_admin |
-| Kafka UI | <https://kafka-ui.localhost> | - |
 | ArgoCD | <https://argocd.localhost> | SSO via Keycloak or admin/secrets.tfvars: argocd_admin |
 | Vault UI | <https://vault.localhost> | SSO via Keycloak (OIDC) or root token below |
 | Keycloak | <https://keycloak.localhost> | secrets.tfvars: keycloak_admin |
