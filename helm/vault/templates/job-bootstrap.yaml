@@ -33,12 +33,29 @@ spec:
 
               echo "=== Vault Bootstrap Script ==="
 
-              # Install kubectl (not included in vault image)
-              echo "Installing kubectl..."
-              wget -q -O /tmp/kubectl "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl"
-              chmod +x /tmp/kubectl
-              mv /tmp/kubectl /usr/local/bin/kubectl
-              echo "kubectl installed"
+              # Kubernetes API helpers (replaces kubectl dependency)
+              SA_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+              cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt >> /etc/ssl/certs/ca-certificates.crt
+              KUBE_API="https://kubernetes.default.svc:443"
+
+              kube_get() {
+                wget -q -O - --header "Authorization: Bearer ${SA_TOKEN}" "${KUBE_API}${1}"
+              }
+
+              kube_post() {
+                wget -q -O - --header "Authorization: Bearer ${SA_TOKEN}" \
+                  --header "Content-Type: application/json" \
+                  --post-data "$2" "${KUBE_API}${1}"
+              }
+
+              kube_secret_field() {
+                kube_get "/api/v1/namespaces/$1/secrets/$2" | \
+                  awk -F'"' -v key="$3" '{for(i=1;i<=NF;i++) if($i==key){print $(i+2); exit}}'
+              }
+
+              kube_secret_exists() {
+                kube_get "/api/v1/namespaces/$1/secrets/$2" >/dev/null 2>&1
+              }
 
               # Wait for Vault to be responding (even if sealed/uninitialized)
               # Exit codes: 0=unsealed, 1=error, 2=sealed (includes uninitialized)
@@ -75,22 +92,14 @@ spec:
                 echo "Extracted root token: ${ROOT_TOKEN:0:10}..."
 
                 # Store root token in Kubernetes secret
-                cat <<EOSECRET | kubectl apply -f -
-              apiVersion: v1
-              kind: Secret
-              metadata:
-                name: vault-root-token
-                namespace: {{ .Release.Namespace }}
-              type: Opaque
-              stringData:
-                token: "${ROOT_TOKEN}"
-              EOSECRET
+                kube_post "/api/v1/namespaces/{{ .Release.Namespace }}/secrets" \
+                  "{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"vault-root-token\",\"namespace\":\"{{ .Release.Namespace }}\"},\"type\":\"Opaque\",\"stringData\":{\"token\":\"${ROOT_TOKEN}\"}}"
 
                 echo "Vault initialized and root token stored"
               else
                 echo "Vault already initialized"
                 # Get root token from secret
-                ROOT_TOKEN=$(kubectl get secret vault-root-token -n {{ .Release.Namespace }} -o jsonpath='{.data.token}' | base64 -d)
+                ROOT_TOKEN=$(kube_secret_field "{{ .Release.Namespace }}" "vault-root-token" "token" | base64 -d)
               fi
 
               # Wait for Vault to be unsealed (auto-unseal should handle this)
@@ -138,7 +147,7 @@ spec:
               echo "Waiting for vault-oidc-secret to be available..."
               OIDC_SECRET_RETRIES=30
               OIDC_SECRET_COUNT=0
-              while ! kubectl get secret vault-oidc-secret -n {{ .Release.Namespace }} >/dev/null 2>&1; do
+              while ! kube_secret_exists "{{ .Release.Namespace }}" "vault-oidc-secret"; do
                 OIDC_SECRET_COUNT=$((OIDC_SECRET_COUNT + 1))
                 if [ $OIDC_SECRET_COUNT -ge $OIDC_SECRET_RETRIES ]; then
                   echo "WARNING: vault-oidc-secret not found after $OIDC_SECRET_RETRIES attempts, skipping OIDC config"
@@ -148,8 +157,8 @@ spec:
                 sleep 5
               done
 
-              if kubectl get secret vault-oidc-secret -n {{ .Release.Namespace }} >/dev/null 2>&1; then
-                VAULT_OIDC_CLIENT_SECRET=$(kubectl get secret vault-oidc-secret -n {{ .Release.Namespace }} -o jsonpath='{.data.vault-client-secret}' | base64 -d)
+              if kube_secret_exists "{{ .Release.Namespace }}" "vault-oidc-secret"; then
+                VAULT_OIDC_CLIENT_SECRET=$(kube_secret_field "{{ .Release.Namespace }}" "vault-oidc-secret" "vault-client-secret" | base64 -d)
               fi
 
               # Configure OIDC auth method for Vault UI login
@@ -176,7 +185,7 @@ spec:
               if [ $OIDC_COUNT -lt $OIDC_RETRIES ] && [ -n "$VAULT_OIDC_CLIENT_SECRET" ]; then
                 # Fetch Gateway CA certificate for TLS verification
                 echo "Fetching Gateway TLS certificate..."
-                GATEWAY_CA_CERT=$(kubectl get secret gateway-tls -n gateway -o jsonpath='{.data.tls\.crt}' | base64 -d)
+                GATEWAY_CA_CERT=$(kube_secret_field "gateway" "gateway-tls" "tls.crt" | base64 -d)
 
                 if [ -n "$GATEWAY_CA_CERT" ]; then
                   vault write auth/oidc/config \
@@ -282,7 +291,7 @@ spec:
             - port: "{{ .Values.ports.dns }}"
               protocol: UDP
 
-    # Allow Kubernetes API access (for kubectl commands)
+    # Allow Kubernetes API access (for secret reads/creates)
     - toEntities:
         - kube-apiserver
 
@@ -294,16 +303,6 @@ spec:
       toPorts:
         - ports:
             - port: "{{ .Values.ports.vault.http }}"
-              protocol: TCP
-
-    # Allow downloading kubectl from the internet
-    - toEntities:
-        - world
-      toPorts:
-        - ports:
-            - port: "443"
-              protocol: TCP
-            - port: "80"
               protocol: TCP
 
     # Allow connection to Keycloak for OIDC discovery
