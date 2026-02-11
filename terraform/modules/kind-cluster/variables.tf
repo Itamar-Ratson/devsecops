@@ -1,7 +1,7 @@
 variable "cluster_name" {
   description = "KinD cluster name"
   type        = string
-  default     = "k8s-dev"
+  default     = "on-prem"
 }
 
 variable "vault_container_name" {

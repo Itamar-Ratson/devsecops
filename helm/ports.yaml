@@ -2,7 +2,7 @@
 # Pass this file to helm commands with: -f helm/ports.yaml
 
 cluster:
-  name: k8s-dev
+  name: on-prem
 
 ports:
   # Monitoring stack
