@@ -1,3 +1,14 @@
+locals {
+  git_url_parts = regex("git@github\\.com:([^/]+)/([^.]+)(?:\\.git)?$", var.git_repo_url)
+  github_owner  = local.git_url_parts[0]
+  github_repo   = local.git_url_parts[1]
+}
+
+provider "github" {
+  owner = local.github_owner
+  token = var.github_token
+}
+
 provider "kubernetes" {
   host                   = var.endpoint
   cluster_ca_certificate = var.cluster_ca_certificate

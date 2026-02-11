@@ -48,6 +48,6 @@ inputs = {
   vault_root_token       = dependency.transit_vault.outputs.vault_token
   vault_cluster_ip       = dependency.kind_cluster.outputs.vault_cluster_ip
   helm_values_dir        = "${get_repo_root()}/helm"
-  # git_repo_url, argocd_ssh_private_key, argocd_oidc_client_secret
+  # git_repo_url, github_token, argocd_oidc_client_secret
   # — loaded from secrets.tfvars via root extra_arguments
 }

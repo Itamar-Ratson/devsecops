@@ -31,8 +31,8 @@ variable "git_repo_url" {
   type        = string
 }
 
-variable "argocd_ssh_private_key" {
-  description = "SSH private key for ArgoCD deploy key"
+variable "github_token" {
+  description = "GitHub personal access token for managing deploy keys"
   type        = string
   sensitive   = true
 }

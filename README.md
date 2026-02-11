@@ -93,8 +93,6 @@ cd terraform/live && terragrunt --all apply --non-interactive
 | 4 | Keycloak, http-echo, juice-shop, Headlamp |
 | 5 | Monitoring, kube-oidc-proxy |
 
-After setup, add the SSH deploy key as a [deploy key](https://github.com/YOUR-ORG/devsecops/settings/keys) (read-only).
-
 ## Access URLs
 
 | Service | URL | Credentials |

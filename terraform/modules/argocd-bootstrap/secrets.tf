@@ -48,6 +48,20 @@ resource "kubernetes_secret_v1" "vault_transit_token" {
 }
 
 # ============================================================================
+# ArgoCD Deploy Key (auto-generated + registered on GitHub)
+# ============================================================================
+resource "tls_private_key" "argocd_deploy_key" {
+  algorithm = "ED25519"
+}
+
+resource "github_repository_deploy_key" "argocd" {
+  title      = "ArgoCD (Terraform-managed)"
+  repository = local.github_repo
+  key        = tls_private_key.argocd_deploy_key.public_key_openssh
+  read_only  = true
+}
+
+# ============================================================================
 # ArgoCD Repository Credentials
 # Plain K8s Secret with ArgoCD label — no need for SealedSecret since
 # Terraform manages this (not stored in git, encrypted in HCP Terraform state)
@@ -64,7 +78,7 @@ resource "kubernetes_secret_v1" "argocd_repo_creds" {
   data = {
     type          = "git"
     url           = var.git_repo_url
-    sshPrivateKey = var.argocd_ssh_private_key
+    sshPrivateKey = tls_private_key.argocd_deploy_key.private_key_openssh
   }
 }
 
