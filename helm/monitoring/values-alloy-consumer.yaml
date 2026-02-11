@@ -1,5 +1,9 @@
 # Grafana Alloy Consumer Configuration (Kafka to Loki)
 alloy-consumer:
+  # CRDs already installed by the primary alloy instance
+  crds:
+    create: false
+
   # Simplify resource names
   fullnameOverride: alloy-consumer
 
