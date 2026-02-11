@@ -74,9 +74,10 @@ resource "null_resource" "connect_vault_to_kind" {
   depends_on = [kind_cluster.this]
 
   triggers = {
-    vault_container = var.vault_container_name
-    cluster_name    = kind_cluster.this.name
-    vault_ip        = local.vault_cluster_ip
+    vault_container    = var.vault_container_name
+    vault_container_id = var.vault_container_id
+    cluster_name       = kind_cluster.this.name
+    vault_ip           = local.vault_cluster_ip
   }
 
   provisioner "local-exec" {

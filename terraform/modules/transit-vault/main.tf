@@ -28,7 +28,7 @@ resource "docker_container" "vault" {
   }
 
   capabilities {
-    add = ["IPC_LOCK"]
+    add = ["CAP_IPC_LOCK"]
   }
 
   command = ["server", "-dev"]

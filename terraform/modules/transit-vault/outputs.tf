@@ -14,6 +14,11 @@ output "container_name" {
   value       = docker_container.vault.name
 }
 
+output "container_id" {
+  description = "ID of the Vault Docker container (used to trigger network reconnect)"
+  value       = docker_container.vault.id
+}
+
 output "transit_mount_path" {
   description = "Mount path for transit engine"
   value       = "transit"

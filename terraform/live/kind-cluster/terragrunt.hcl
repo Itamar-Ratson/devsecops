@@ -11,6 +11,7 @@ dependency "transit_vault" {
 
   mock_outputs = {
     container_name = "vault-transit"
+    container_id   = "mock-container-id"
   }
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "destroy"]
   mock_outputs_merge_strategy_with_state  = "shallow"
@@ -19,4 +20,5 @@ dependency "transit_vault" {
 inputs = {
   cluster_name         = "k8s-dev"
   vault_container_name = dependency.transit_vault.outputs.container_name
+  vault_container_id   = dependency.transit_vault.outputs.container_id
 }
