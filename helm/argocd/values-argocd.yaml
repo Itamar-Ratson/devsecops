@@ -146,28 +146,6 @@ argo-cd:
       controller.diff.server.side: "true"
 
     cm:
-      # Gateway health check: hostNetwork mode means no address is ever assigned,
-      # so treat Accepted as healthy (Programmed requires an address)
-      resource.customizations.health.gateway.networking.k8s.io_Gateway: |
-        hs = {}
-        if obj.status ~= nil and obj.status.conditions ~= nil then
-          for i, condition in ipairs(obj.status.conditions) do
-            if condition.type == "Accepted" and condition.status == "True" then
-              hs.status = "Healthy"
-              hs.message = condition.message
-              return hs
-            end
-            if condition.type == "Accepted" and condition.status == "False" then
-              hs.status = "Degraded"
-              hs.message = condition.message
-              return hs
-            end
-          end
-        end
-        hs.status = "Progressing"
-        hs.message = "Waiting for Gateway to be accepted"
-        return hs
-
       # ArgoCD server URL (used for OIDC callbacks)
       url: https://argocd.localhost
 
