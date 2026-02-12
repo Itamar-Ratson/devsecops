@@ -86,11 +86,19 @@ cd terraform/live && terragrunt run --all apply --non-interactive
 | Wave | Components |
 |------|------------|
 | 0 | ArgoCD (self-managed) |
-| 1 | cert-manager, trust-manager, Tetragon, Kyverno, Trivy, Sealed-Secrets, Strimzi, Network-policies |
-| 2 | Kyverno-policies, Vault-Secrets-Operator, Kafka |
-| 3 | Vault, Gateway, Kafka-UI, Argo-Rollouts |
-| 4 | Keycloak, http-echo, juice-shop, Headlamp |
-| 5 | Monitoring, kube-oidc-proxy |
+| 1 | cert-manager |
+| 2 | trust-manager, Tetragon, Kyverno, Trivy, Sealed-Secrets, Strimzi, Network-policies |
+| 3 | Kyverno-policies, Vault-Secrets-Operator, Kafka |
+| 4 | Vault, Gateway, Kafka-UI, Argo-Rollouts |
+| 5 | Keycloak, http-echo, juice-shop |
+| 6 | Monitoring, kube-oidc-proxy |
+| 7 | Headlamp |
+
+## Cleanup
+
+```bash
+cd terraform/live && terragrunt run --all destroy --non-interactive
+```
 
 ## Access URLs
 
