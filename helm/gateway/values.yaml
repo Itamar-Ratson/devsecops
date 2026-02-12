@@ -1,8 +1,2 @@
 className: cilium
 controllerName: io.cilium/gateway-controller
-
-# CoreDNS configuration for *.localhost resolution
-coredns:
-  enabled: true
-  # Gateway service name (without namespace suffix)
-  gatewayService: cilium-gateway-main-gateway
