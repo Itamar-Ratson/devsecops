@@ -1,4 +1,4 @@
-# Wave 5: Monitoring stack (Prometheus, Grafana, Loki, Tempo)
+# Wave 6: Monitoring stack (Prometheus, Grafana, Loki, Tempo)
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -6,7 +6,7 @@ metadata:
   name: monitoring
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "6"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

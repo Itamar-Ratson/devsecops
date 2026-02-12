@@ -1,4 +1,4 @@
-# Wave 4: Headlamp (multi-cluster Kubernetes dashboard)
+# Wave 7: Headlamp (multi-cluster Kubernetes dashboard, after kube-oidc-proxy)
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -6,7 +6,7 @@ metadata:
   name: headlamp
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "7"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
