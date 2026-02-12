@@ -102,7 +102,7 @@ resource "terraform_data" "stop_argocd" {
 
 resource "helm_release" "argocd" {
   name      = "argocd"
-  namespace = kubernetes_namespace.argocd.metadata[0].name
+  namespace = kubernetes_namespace_v1.argocd.metadata[0].name
   chart     = "${var.helm_values_dir}/argocd"
   wait      = true
   timeout   = 600

@@ -2,7 +2,7 @@
 # Vault TokenReviewer ServiceAccount
 # Transit Vault (external) needs this to validate K8s JWTs
 # ============================================================================
-resource "kubernetes_service_account" "vault_auth" {
+resource "kubernetes_service_account_v1" "vault_auth" {
   metadata {
     name      = "vault-auth"
     namespace = "kube-system"
@@ -16,13 +16,13 @@ resource "kubernetes_secret_v1" "vault_auth_token" {
     name      = "vault-auth-token"
     namespace = "kube-system"
     annotations = {
-      "kubernetes.io/service-account.name" = kubernetes_service_account.vault_auth.metadata[0].name
+      "kubernetes.io/service-account.name" = kubernetes_service_account_v1.vault_auth.metadata[0].name
     }
   }
 
   type = "kubernetes.io/service-account-token"
 
-  depends_on = [kubernetes_service_account.vault_auth]
+  depends_on = [kubernetes_service_account_v1.vault_auth]
 }
 
 resource "kubernetes_cluster_role_binding" "vault_auth_tokenreview" {
@@ -38,7 +38,7 @@ resource "kubernetes_cluster_role_binding" "vault_auth_tokenreview" {
 
   subject {
     kind      = "ServiceAccount"
-    name      = kubernetes_service_account.vault_auth.metadata[0].name
+    name      = kubernetes_service_account_v1.vault_auth.metadata[0].name
     namespace = "kube-system"
   }
 }

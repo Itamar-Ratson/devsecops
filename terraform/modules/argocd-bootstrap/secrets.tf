@@ -9,7 +9,7 @@ resource "random_password" "redis" {
 resource "kubernetes_secret_v1" "argocd_redis" {
   metadata {
     name      = "argocd-redis"
-    namespace = kubernetes_namespace.argocd.metadata[0].name
+    namespace = kubernetes_namespace_v1.argocd.metadata[0].name
   }
 
   data = {
@@ -20,7 +20,7 @@ resource "kubernetes_secret_v1" "argocd_redis" {
 # ============================================================================
 # ArgoCD Namespace
 # ============================================================================
-resource "kubernetes_namespace" "argocd" {
+resource "kubernetes_namespace_v1" "argocd" {
   metadata {
     name = "argocd"
   }
@@ -30,7 +30,7 @@ resource "kubernetes_namespace" "argocd" {
 # Vault Namespace + Transit Token Secret
 # (ArgoCD Wave 2 deploys Vault — it needs this secret pre-created)
 # ============================================================================
-resource "kubernetes_namespace" "vault" {
+resource "kubernetes_namespace_v1" "vault" {
   metadata {
     name = "vault"
   }
@@ -39,7 +39,7 @@ resource "kubernetes_namespace" "vault" {
 resource "kubernetes_secret_v1" "vault_transit_token" {
   metadata {
     name      = "vault-transit-token"
-    namespace = kubernetes_namespace.vault.metadata[0].name
+    namespace = kubernetes_namespace_v1.vault.metadata[0].name
   }
 
   data = {
@@ -69,7 +69,7 @@ resource "github_repository_deploy_key" "argocd" {
 resource "kubernetes_secret_v1" "argocd_repo_creds" {
   metadata {
     name      = "argocd-repo-creds"
-    namespace = kubernetes_namespace.argocd.metadata[0].name
+    namespace = kubernetes_namespace_v1.argocd.metadata[0].name
     labels = {
       "argocd.argoproj.io/secret-type" = "repo-creds"
     }
@@ -88,7 +88,7 @@ resource "kubernetes_secret_v1" "argocd_repo_creds" {
 resource "kubernetes_secret_v1" "argocd_oidc" {
   metadata {
     name      = "argocd-oidc-secret"
-    namespace = kubernetes_namespace.argocd.metadata[0].name
+    namespace = kubernetes_namespace_v1.argocd.metadata[0].name
     labels = {
       "app.kubernetes.io/part-of" = "argocd"
     }
