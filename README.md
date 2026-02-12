@@ -78,7 +78,7 @@ fs.inotify.max_user_watches=16384
 
 ```bash
 cp terraform/live/secrets.tfvars.example terraform/live/secrets.tfvars  # Configure secrets
-cd terraform/live && terragrunt --all apply --non-interactive
+cd terraform/live && terragrunt run --all apply --non-interactive
 ```
 
 **What this does:** Creates Transit Vault (Docker container), KinD cluster with Cilium, installs CRDs, Sealed-Secrets, configures Vault auth/policies, and bootstraps ArgoCD. ArgoCD then deploys all remaining infrastructure via sync waves.
