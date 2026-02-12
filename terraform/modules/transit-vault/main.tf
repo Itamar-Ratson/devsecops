@@ -62,6 +62,7 @@ resource "vault_mount" "transit" {
 
 # Create the autounseal key
 resource "vault_transit_secret_backend_key" "autounseal" {
-  backend = vault_mount.transit.path
-  name    = "autounseal"
+  backend          = vault_mount.transit.path
+  name             = "autounseal"
+  deletion_allowed = true
 }

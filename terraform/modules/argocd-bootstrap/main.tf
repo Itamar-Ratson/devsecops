@@ -26,11 +26,35 @@ provider "helm" {
 }
 
 # ============================================================================
-# Install ArgoCD with GitOps enabled
-# ArgoCD CRDs are in the chart's crds/ directory, installed before templates.
-# Application CRs only use argoproj.io/v1alpha1 (ArgoCD's own CRD), so
-# template rendering succeeds even on a fresh cluster.
+# Strip ArgoCD Application finalizers before helm uninstall.
+# Without this, helm uninstall hangs forever — the finalizer controller
+# (ArgoCD itself) gets killed mid-delete and can't process the finalizers.
 # ============================================================================
+resource "terraform_data" "argocd_finalizer_cleanup" {
+  depends_on = [helm_release.argocd]
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      # 1. Strip finalizers from all ArgoCD Applications
+      kubectl get applications.argoproj.io -n argocd -o name 2>/dev/null | \
+        xargs -I{} kubectl patch {} -n argocd --type json \
+          -p '[{"op":"remove","path":"/metadata/finalizers"}]' 2>/dev/null || true
+
+      # 2. Delete all Application CRs so helm doesn't wait for them
+      kubectl delete applications.argoproj.io --all -n argocd --wait=false 2>/dev/null || true
+
+      # 3. Remove ArgoCD webhook configurations that block API server deletions
+      kubectl delete validatingwebhookconfigurations -l app.kubernetes.io/part-of=argocd 2>/dev/null || true
+      kubectl delete mutatingwebhookconfigurations -l app.kubernetes.io/part-of=argocd 2>/dev/null || true
+
+      # 4. Scale down ArgoCD to stop reconciliation during teardown
+      kubectl scale deploy --all -n argocd --replicas=0 --timeout=30s 2>/dev/null || true
+      kubectl delete pods -n argocd --all --force --grace-period=0 2>/dev/null || true
+    EOT
+  }
+}
+
 resource "helm_release" "argocd" {
   name      = "argocd"
   namespace = kubernetes_namespace.argocd.metadata[0].name
