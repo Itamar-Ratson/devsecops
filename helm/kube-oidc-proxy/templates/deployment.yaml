@@ -35,7 +35,7 @@ spec:
             - --oidc-client-id={{ .Values.oidc.clientId }}
             - --oidc-username-claim={{ .Values.oidc.usernameClaim }}
             - --oidc-groups-claim={{ .Values.oidc.groupsClaim }}
-            - --oidc-ca-file=/etc/ssl/certs/oidc-ca.crt
+            - --oidc-ca-file=/etc/ssl/certs/oidc-ca/ca.crt
           ports:
             - name: https
               containerPort: 8443
@@ -45,8 +45,7 @@ spec:
               mountPath: /etc/tls
               readOnly: true
             - name: oidc-ca
-              mountPath: /etc/ssl/certs/oidc-ca.crt
-              subPath: ca.crt
+              mountPath: /etc/ssl/certs/oidc-ca
               readOnly: true
           securityContext:
             allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}

@@ -82,8 +82,7 @@ headlamp:
 
   volumeMounts:
     - name: ca-bundle
-      mountPath: /etc/headlamp/certs/ca.crt
-      subPath: ca.crt
+      mountPath: /etc/headlamp/certs
       readOnly: true
     # Mount custom SA to the standard path
     - name: custom-sa
