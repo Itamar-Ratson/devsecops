@@ -26,29 +26,74 @@ provider "helm" {
 }
 
 # ============================================================================
-# Strip ArgoCD Application finalizers before helm uninstall.
-# Without this, helm uninstall hangs forever — the finalizer controller
-# (ArgoCD itself) gets killed mid-delete and can't process the finalizers.
+# Destroy-time cleanup for ArgoCD.
+# Without this, helm uninstall hangs — the finalizer controller (ArgoCD)
+# gets killed mid-delete and can't process its own finalizers.
+#
+# Destroy order (reverse of depends_on):
+#   stop_argocd → strip_app_finalizers + strip_job_finalizers + cleanup_webhooks
+#   → cleanup_app_crs → helm_release
 # ============================================================================
-resource "terraform_data" "argocd_finalizer_cleanup" {
+
+resource "terraform_data" "cleanup_app_crs" {
+  depends_on = [helm_release.argocd]
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "kubectl delete applications.argoproj.io --all -n argocd --wait=false 2>/dev/null || true"
+  }
+}
+
+resource "terraform_data" "strip_app_finalizers" {
+  depends_on = [terraform_data.cleanup_app_crs]
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      kubectl get applications.argoproj.io -n argocd -o name 2>/dev/null | \
+        xargs -r -I{} kubectl patch {} -n argocd \
+          --type merge -p '{"metadata":{"finalizers":null}}' 2>/dev/null || true
+    EOT
+  }
+}
+
+resource "terraform_data" "strip_job_finalizers" {
   depends_on = [helm_release.argocd]
 
   provisioner "local-exec" {
     when    = destroy
     command = <<-EOT
-      # 1. Strip finalizers from all ArgoCD Applications
-      kubectl get applications.argoproj.io -n argocd -o name 2>/dev/null | \
-        xargs -I{} kubectl patch {} -n argocd --type json \
-          -p '[{"op":"remove","path":"/metadata/finalizers"}]' 2>/dev/null || true
+      for ns in $(kubectl get ns -o jsonpath='{.items[*].metadata.name}' 2>/dev/null); do
+        kubectl get jobs -n "$ns" -o jsonpath='{range .items[?(@.metadata.finalizers)]}{.metadata.name}{"\n"}{end}' 2>/dev/null | \
+          xargs -r -I{} kubectl patch job {} -n "$ns" \
+            --type merge -p '{"metadata":{"finalizers":null}}' 2>/dev/null || true
+      done
+    EOT
+  }
+}
 
-      # 2. Delete all Application CRs so helm doesn't wait for them
-      kubectl delete applications.argoproj.io --all -n argocd --wait=false 2>/dev/null || true
+resource "terraform_data" "cleanup_webhooks" {
+  depends_on = [helm_release.argocd]
 
-      # 3. Remove ArgoCD webhook configurations that block API server deletions
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
       kubectl delete validatingwebhookconfigurations -l app.kubernetes.io/part-of=argocd 2>/dev/null || true
       kubectl delete mutatingwebhookconfigurations -l app.kubernetes.io/part-of=argocd 2>/dev/null || true
+    EOT
+  }
+}
 
-      # 4. Scale down ArgoCD to stop reconciliation during teardown
+resource "terraform_data" "stop_argocd" {
+  depends_on = [
+    terraform_data.strip_app_finalizers,
+    terraform_data.strip_job_finalizers,
+    terraform_data.cleanup_webhooks,
+  ]
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
       kubectl scale deploy --all -n argocd --replicas=0 --timeout=30s 2>/dev/null || true
       kubectl delete pods -n argocd --all --force --grace-period=0 2>/dev/null || true
     EOT

@@ -47,24 +47,10 @@ resource "kind_cluster" "this" {
       }
 
       extra_port_mappings {
-        container_port = 80
-        host_port      = 80
-        protocol       = "TCP"
-        listen_address = "::"
-      }
-
-      extra_port_mappings {
         container_port = 443
         host_port      = 443
         protocol       = "TCP"
         listen_address = "0.0.0.0"
-      }
-
-      extra_port_mappings {
-        container_port = 443
-        host_port      = 443
-        protocol       = "TCP"
-        listen_address = "::"
       }
     }
   }
