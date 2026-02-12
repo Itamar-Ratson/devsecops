@@ -63,7 +63,7 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![kubeseal](https://img.shields.io/badge/kubeseal-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![GitHub CLI](https://img.shields.io/badge/gh-181717?style=flat&logo=github&logoColor=white)
 
-Increase inotify limits (required for monitoring stack):
+Increase inotify limits:
 
 ```bash
 # Temporary
@@ -94,12 +94,6 @@ cd terraform/live && terragrunt run --all apply --non-interactive
 | 6 | Monitoring, kube-oidc-proxy |
 | 7 | Headlamp |
 
-## Cleanup
-
-```bash
-cd terraform/live && terragrunt run --all destroy --non-interactive
-```
-
 ## Access URLs
 
 | Service | URL | Credentials |
@@ -118,4 +112,10 @@ cd terraform/live && terragrunt run --all destroy --non-interactive
 
 ```bash
 kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base64 -d
+```
+
+## Cleanup
+
+```bash
+cd terraform/live && terragrunt run --all destroy --non-interactive
 ```
