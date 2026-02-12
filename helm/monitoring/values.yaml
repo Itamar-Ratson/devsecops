@@ -1,3 +1,7 @@
+# Cluster identity (used by Alloy for labeling logs/metrics)
+cluster:
+  name: on-prem
+
 # Gateway configuration for Grafana HTTPRoute
 gateway:
   name: main-gateway

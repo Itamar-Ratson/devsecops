@@ -1,5 +1,9 @@
 # Grafana Alloy Configuration (Unified Observability Agent)
 alloy:
+  # Cluster identity (used in log/metric labels)
+  cluster:
+    name: on-prem
+
   # Simplify resource names (remove redundant 'monitoring-' prefix)
   fullnameOverride: alloy
 
