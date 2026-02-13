@@ -8,13 +8,16 @@ spec:
       targetPort: {{ .Values.ports.zot }}
       protocol: TCP
 ---
-apiVersion: v1
-kind: Endpoints
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
 metadata:
   name: zot-registry-cache
-subsets:
+  labels:
+    kubernetes.io/service-name: zot-registry-cache
+addressType: IPv4
+ports:
+  - port: {{ .Values.ports.zot }}
+    protocol: TCP
+endpoints:
   - addresses:
-      - ip: {{ .Values.cacheRegistryIP }}
-    ports:
-      - port: {{ .Values.ports.zot }}
-        protocol: TCP
+      - {{ .Values.cacheRegistryIP }}
