@@ -1,6 +1,7 @@
-variable "cache_cluster_ip" {
-  description = "Registry cache IP on the KinD Docker network"
-  type        = string
+variable "cache_host_port" {
+  description = "Host port for the registry cache (Zot)"
+  type        = number
+  default     = 5050
 }
 
 variable "cluster_name" {

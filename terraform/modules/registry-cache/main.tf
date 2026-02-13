@@ -34,6 +34,7 @@ resource "docker_container" "zot" {
       http = {
         address = "0.0.0.0"
         port    = "5000"
+        compat  = ["docker2s2"]
       }
       extensions = {
         search = {
