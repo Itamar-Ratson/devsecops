@@ -1,0 +1,16 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: zot-proxy
+spec:
+  description: "Allow zot-proxy to reach external registry cache on Docker network"
+  endpointSelector:
+    matchLabels:
+      app: zot-proxy
+  egress:
+    - toCIDR:
+        - 172.16.0.0/12
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.zot }}"
+              protocol: TCP
