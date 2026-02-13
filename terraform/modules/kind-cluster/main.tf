@@ -127,6 +127,7 @@ resource "null_resource" "configure_registry_mirrors" {
 
   triggers = {
     cache_container = var.cache_container_name
+    cache_ip        = local.cache_cluster_ip
     cluster_name    = kind_cluster.this.name
   }
 
@@ -138,7 +139,7 @@ resource "null_resource" "configure_registry_mirrors" {
           docker exec "$node" sh -c "cat > /etc/containerd/certs.d/$registry/hosts.toml <<TOML
 server = \"https://$registry\"
 
-[host.\"http://${var.cache_container_name}:5000\"]
+[host.\"http://${local.cache_cluster_ip}:5000\"]
   capabilities = [\"pull\", \"resolve\"]
 TOML"
         done
