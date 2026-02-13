@@ -19,8 +19,8 @@ resource "null_resource" "warm_cache" {
       set -uo pipefail
 
       # --- Wait for ArgoCD applications to be healthy ---
-      TIMEOUT=900
-      INTERVAL=60
+      TIMEOUT=1200
+      INTERVAL=30
       ELAPSED=0
 
       echo "Waiting for ArgoCD applications to sync and become healthy..."
@@ -44,17 +44,21 @@ resource "null_resource" "warm_cache" {
         echo "Warning: Timed out after $${TIMEOUT}s. Proceeding with currently pulled images."
       fi
 
-      # --- Copy images into Zot ---
-      NODE=$(kind get nodes --name ${var.cluster_name} | head -1)
+      # --- Copy images from ALL nodes into Zot ---
       DEST="localhost:${var.cache_host_port}"
       CRANE="docker run --rm --network host gcr.io/go-containerregistry/crane"
 
-      echo "Warming cache: images from $NODE → $DEST"
-
-      IMAGES=$(docker exec "$NODE" ctr -n k8s.io images ls -q \
-        | grep -v '@sha256:' \
-        | grep -v '^172\.' \
-        | sort -u)
+      echo "Collecting images from all KinD nodes..."
+      IMAGES=""
+      for NODE in $(kind get nodes --name ${var.cluster_name}); do
+        echo "  Listing images on $NODE"
+        NODE_IMAGES=$(docker exec "$NODE" ctr -n k8s.io images ls -q \
+          | grep -v '@sha256:' \
+          | grep -v '^172\.')
+        IMAGES="$IMAGES
+$NODE_IMAGES"
+      done
+      IMAGES=$(echo "$IMAGES" | sort -u | sed '/^$/d')
 
       for img in $IMAGES; do
         case "$img" in

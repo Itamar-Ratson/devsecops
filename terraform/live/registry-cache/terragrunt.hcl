@@ -6,6 +6,13 @@ include "root" {
   path = find_in_parent_folders("root.hcl")
 }
 
+# Preserve the image cache across destroy/apply cycles.
+# To destroy explicitly: cd terraform/live/registry-cache && terragrunt destroy --non-interactive
+exclude {
+  if      = true
+  actions = ["destroy"]
+}
+
 dependency "hcp_workspaces" {
   config_path = "../hcp-workspaces"
   mock_outputs = {
