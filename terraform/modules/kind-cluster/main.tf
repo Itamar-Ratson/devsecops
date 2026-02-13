@@ -142,7 +142,6 @@ server = \"https://$registry\"
   capabilities = [\"pull\", \"resolve\"]
 TOML"
         done
-        docker exec "$node" systemctl restart containerd
       done
     EOT
   }
