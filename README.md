@@ -99,8 +99,6 @@ Edit `terraform/live/secrets.tfvars` with:
 | `argocd_admin.server_secret_key` | `openssl rand -base64 32` |
 | `alertmanager_webhooks` (optional) | PagerDuty/Slack webhook URLs |
 
-**What this does:** Creates Transit Vault (Docker container), KinD cluster with Cilium, installs CRDs, Sealed-Secrets, configures Vault auth/policies, and bootstraps ArgoCD. ArgoCD then deploys all remaining infrastructure via sync waves.
-
 | Wave | Components |
 |------|------------|
 | 0 | ArgoCD (self-managed) |
@@ -120,7 +118,7 @@ Edit `terraform/live/secrets.tfvars` with:
 | Juice Shop | <https://juice-shop.localhost> | - |
 | Kafka UI | <https://kafka-ui.localhost> | - |
 | Hubble UI | <https://hubble.localhost> | - |
-| Zot Registry | <http://localhost:5050> | - |
+| Zot Registry | <http://zot.localhost> | - |
 | Headlamp | <https://headlamp.localhost> | SSO via Keycloak (testuser/testuser) |
 | Grafana | <https://grafana.localhost> | SSO via Keycloak or secrets.tfvars: grafana_admin |
 | ArgoCD | <https://argocd.localhost> | SSO via Keycloak or admin/secrets.tfvars: argocd_admin |
