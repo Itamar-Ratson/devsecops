@@ -55,3 +55,8 @@ variable "argocd_version" {
   type        = string
   default     = "v3.3.0"
 }
+
+variable "cache_cluster_ip" {
+  description = "Registry cache IP on the KinD Docker network"
+  type        = string
+}
