@@ -72,4 +72,3 @@ spec:
         - name: oidc-ca
           configMap:
             name: gateway-ca-bundle
-            optional: true
