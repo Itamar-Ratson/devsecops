@@ -1,32 +1,27 @@
+# Ignore everything
 *
+
+# Allow directory traversal
 !**/
-!.gitignore
-!Chart.lock
-!README.md
-!Dockerfile
+
+# General file patterns
 !*.yaml
 !*.json
 !*.sh
 !*.tsv
-!.env.example
-
-# Terraform / Terragrunt
-!*.tf
 !*.hcl
-!*.tfvars
 !*.example
-secrets.tfvars
-*.tfstate
-*.tfstate.backup
+!Dockerfile
+!Chart.lock
+!README.md
 
-# Ignore hidden directories (except .github)
+# Terraform (scoped to prevent auto-generated files in terraform/live/)
+!terraform/modules/*/*.tf
+
+# Keep hidden files and directories ignored
 .*
-!.github
+
+# Whitelist specific hidden items
 !.gitignore
 !.gitkeep
-!.env.example
-.terraform/
-.terragrunt-cache/
-# Terragrunt auto-generated files in root live dir
-terraform/live/backend.tf
-terraform/live/provider.tf
+!.github
