@@ -13,6 +13,19 @@ resource "kind_cluster" "this" {
       disable_default_cni = true
     }
 
+    containerd_config_patches = [
+      <<-TOML
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
+        endpoint = ["http://${var.cache_container_name}:5000"]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."ghcr.io"]
+        endpoint = ["http://${var.cache_container_name}:5000"]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."quay.io"]
+        endpoint = ["http://${var.cache_container_name}:5000"]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.k8s.io"]
+        endpoint = ["http://${var.cache_container_name}:5000"]
+      TOML
+    ]
+
     node {
       role = "control-plane"
 
@@ -24,19 +37,6 @@ resource "kind_cluster" "this" {
             - key: "node-role.kubernetes.io/control-plane"
               effect: "NoSchedule"
         PATCH
-      ]
-
-      containerd_config_patches = [
-        <<-TOML
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
-          endpoint = ["http://${var.cache_container_name}:5000"]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."ghcr.io"]
-          endpoint = ["http://${var.cache_container_name}:5000"]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."quay.io"]
-          endpoint = ["http://${var.cache_container_name}:5000"]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.k8s.io"]
-          endpoint = ["http://${var.cache_container_name}:5000"]
-        TOML
       ]
     }
 
@@ -50,19 +50,6 @@ resource "kind_cluster" "this" {
           kubeletExtraArgs:
             node-labels: "ingress-ready=true"
         PATCH
-      ]
-
-      containerd_config_patches = [
-        <<-TOML
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
-          endpoint = ["http://${var.cache_container_name}:5000"]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."ghcr.io"]
-          endpoint = ["http://${var.cache_container_name}:5000"]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."quay.io"]
-          endpoint = ["http://${var.cache_container_name}:5000"]
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.k8s.io"]
-          endpoint = ["http://${var.cache_container_name}:5000"]
-        TOML
       ]
 
       extra_port_mappings {
