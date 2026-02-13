@@ -35,7 +35,7 @@ resource "null_resource" "warm_cache" {
           break
         fi
 
-        echo "  $HEALTHY/$TOTAL healthy, waiting... ($${ELAPSED}s/${TIMEOUT}s)"
+        echo "  $HEALTHY/$TOTAL healthy, waiting... ($${ELAPSED}s/$${TIMEOUT}s)"
         sleep $INTERVAL
         ELAPSED=$((ELAPSED + INTERVAL))
       done
