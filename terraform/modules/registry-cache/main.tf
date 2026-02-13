@@ -36,6 +36,12 @@ resource "docker_container" "zot" {
         port    = "5000"
       }
       extensions = {
+        search = {
+          enable = true
+        }
+        ui = {
+          enable = true
+        }
         sync = {
           enable = true
           registries = [
