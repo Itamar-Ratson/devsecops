@@ -14,7 +14,8 @@ resource "null_resource" "warm_cache" {
   }
 
   provisioner "local-exec" {
-    command = <<-EOT
+    interpreter = ["bash", "-c"]
+    command     = <<-EOT
       set -euo pipefail
       NODE=$(kind get nodes --name ${var.cluster_name} | head -1)
       echo "Warming cache from node: $NODE → ${var.cache_cluster_ip}:5000"
