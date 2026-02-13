@@ -134,12 +134,19 @@ resource "null_resource" "configure_registry_mirrors" {
   }
 
   provisioner "local-exec" {
-    command = <<-EOT
+    interpreter = ["bash", "-c"]
+    command     = <<-EOT
+      declare -A UPSTREAM=(
+        [docker.io]="https://registry-1.docker.io"
+        [ghcr.io]="https://ghcr.io"
+        [quay.io]="https://quay.io"
+        [registry.k8s.io]="https://registry.k8s.io"
+      )
       for node in $(kind get nodes --name ${kind_cluster.this.name}); do
-        for registry in docker.io ghcr.io quay.io registry.k8s.io; do
+        for registry in "$${!UPSTREAM[@]}"; do
           docker exec "$node" mkdir -p "/etc/containerd/certs.d/$registry"
           docker exec "$node" sh -c "cat > /etc/containerd/certs.d/$registry/hosts.toml <<TOML
-server = \"https://$registry\"
+server = \"$${UPSTREAM[$registry]}\"
 
 [host.\"http://${local.cache_cluster_ip}:5000\"]
   capabilities = [\"pull\", \"resolve\"]
