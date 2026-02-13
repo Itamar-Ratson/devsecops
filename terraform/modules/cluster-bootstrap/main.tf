@@ -103,40 +103,6 @@ resource "null_resource" "coredns_restart" {
 }
 
 # ============================================================================
-# Zot registry cache EndpointSlice
-# (ArgoCD excludes EndpointSlice globally, so we create it here via Terraform)
-# ============================================================================
-resource "kubernetes_namespace_v1" "gateway" {
-  metadata {
-    name = "gateway"
-  }
-
-  depends_on = [null_resource.wait_nodes_ready]
-}
-
-resource "kubernetes_manifest" "zot_endpointslice" {
-  manifest = {
-    apiVersion = "discovery.k8s.io/v1"
-    kind       = "EndpointSlice"
-    metadata = {
-      name      = "zot-registry-cache"
-      namespace = kubernetes_namespace_v1.gateway.metadata[0].name
-      labels = {
-        "kubernetes.io/service-name" = "zot-registry-cache"
-      }
-    }
-    addressType = "IPv4"
-    ports = [{
-      port     = 5000
-      protocol = "TCP"
-    }]
-    endpoints = [{
-      addresses = [var.cache_cluster_ip]
-    }]
-  }
-}
-
-# ============================================================================
 # Sealed-Secrets
 # ============================================================================
 resource "helm_release" "sealed_secrets" {
