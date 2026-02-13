@@ -18,24 +18,26 @@ resource "null_resource" "warm_cache" {
     command     = <<-EOT
       set -uo pipefail
 
-      # --- Wait for ArgoCD applications to be healthy ---
+      # --- Wait for ArgoCD applications to be ready ---
+      # Count Healthy + Progressing as ready (gateway stays Progressing
+      # because Cilium hostNetwork Gateway never gets an external address).
       TIMEOUT=1200
       INTERVAL=30
       ELAPSED=0
 
-      echo "Waiting for ArgoCD applications to sync and become healthy..."
+      echo "Waiting for ArgoCD applications to sync and become ready..."
       while [ $ELAPSED -lt $TIMEOUT ]; do
         TOTAL=$(kubectl get applications -n argocd --no-headers 2>/dev/null | wc -l)
-        HEALTHY=$(kubectl get applications -n argocd \
+        READY=$(kubectl get applications -n argocd \
           -o jsonpath='{range .items[*]}{.status.health.status}{"\n"}{end}' 2>/dev/null \
-          | grep -c "^Healthy$" || true)
+          | grep -cE "^(Healthy|Progressing)$" || true)
 
-        if [ "$TOTAL" -gt 0 ] && [ "$HEALTHY" -eq "$TOTAL" ]; then
-          echo "All $TOTAL ArgoCD applications are healthy."
+        if [ "$TOTAL" -gt 0 ] && [ "$READY" -eq "$TOTAL" ]; then
+          echo "All $TOTAL ArgoCD applications are ready."
           break
         fi
 
-        echo "  $HEALTHY/$TOTAL healthy, waiting... ($${ELAPSED}s/$${TIMEOUT}s)"
+        echo "  $READY/$TOTAL ready, waiting... ($${ELAPSED}s/$${TIMEOUT}s)"
         sleep $INTERVAL
         ELAPSED=$((ELAPSED + INTERVAL))
       done
