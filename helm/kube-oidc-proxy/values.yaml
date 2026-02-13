@@ -4,11 +4,6 @@ image:
   tag: "v0.3.0"
   pullPolicy: IfNotPresent
 
-# Init container image (waits for TLS cert + CA bundle)
-initImage:
-  repository: busybox
-  tag: "1.37"
-
 replicaCount: 1
 
 # OIDC configuration

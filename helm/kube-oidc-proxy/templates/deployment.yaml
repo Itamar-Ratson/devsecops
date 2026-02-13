@@ -21,37 +21,6 @@ spec:
         runAsUser: {{ .Values.securityContext.runAsUser }}
         seccompProfile:
           type: {{ .Values.securityContext.seccompProfile.type }}
-      initContainers:
-        - name: wait-for-certs
-          image: "{{ .Values.initImage.repository }}:{{ .Values.initImage.tag }}"
-          command:
-            - sh
-            - -c
-            - |
-              echo "Waiting for TLS cert and CA bundle..."
-              until [ -f /etc/tls/tls.crt ] && [ -f /etc/ssl/certs/oidc-ca/ca.crt ]; do
-                sleep 2
-              done
-              echo "Certificates ready."
-          volumeMounts:
-            - name: tls
-              mountPath: /etc/tls
-              readOnly: true
-            - name: oidc-ca
-              mountPath: /etc/ssl/certs/oidc-ca
-              readOnly: true
-          resources:
-            requests:
-              cpu: 5m
-              memory: 8Mi
-            limits:
-              cpu: 10m
-              memory: 16Mi
-          securityContext:
-            allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
-            capabilities:
-              drop:
-                {{- toYaml .Values.securityContext.capabilities.drop | nindent 16 }}
       containers:
         - name: kube-oidc-proxy
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
