@@ -26,6 +26,7 @@ inputs = {
 
   workspace_names = [
     "registry-cache",
+    "registry-cache-warm",
     "transit-vault",
     "kind-cluster",
     "cluster-bootstrap",

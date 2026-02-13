@@ -25,7 +25,7 @@ resource "docker_container" "zot" {
   }
 
   upload {
-    file    = "/etc/zot/config.json"
+    file = "/etc/zot/config.json"
     content = jsonencode({
       distSpecVersion = "1.1.1"
       storage = {
@@ -41,39 +41,6 @@ resource "docker_container" "zot" {
         }
         ui = {
           enable = true
-        }
-        sync = {
-          enable = true
-          registries = [
-            {
-              urls       = ["https://index.docker.io"]
-              onDemand   = true
-              tlsVerify  = true
-              maxRetries = 3
-              retryDelay = "15s"
-            },
-            {
-              urls       = ["https://ghcr.io"]
-              onDemand   = true
-              tlsVerify  = true
-              maxRetries = 3
-              retryDelay = "15s"
-            },
-            {
-              urls       = ["https://quay.io"]
-              onDemand   = true
-              tlsVerify  = true
-              maxRetries = 3
-              retryDelay = "15s"
-            },
-            {
-              urls       = ["https://registry.k8s.io"]
-              onDemand   = true
-              tlsVerify  = true
-              maxRetries = 3
-              retryDelay = "15s"
-            },
-          ]
         }
       }
     })

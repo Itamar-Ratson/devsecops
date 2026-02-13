@@ -121,6 +121,35 @@ resource "null_resource" "connect_cache_to_kind" {
   }
 }
 
+# Configure containerd on each KinD node to use Zot as a pull-through mirror.
+# Zot runs as a plain registry (no on-demand sync), so uncached images get a
+# fast 404 and containerd falls back to the upstream registry instantly.
+# Run the registry-cache-warm module after a successful apply to populate the cache.
+resource "null_resource" "configure_registry_mirrors" {
+  depends_on = [null_resource.connect_cache_to_kind]
+
+  triggers = {
+    cache_ip     = local.cache_cluster_ip
+    cluster_name = kind_cluster.this.name
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      for node in $(kind get nodes --name ${kind_cluster.this.name}); do
+        for registry in docker.io ghcr.io quay.io registry.k8s.io; do
+          docker exec "$node" mkdir -p "/etc/containerd/certs.d/$registry"
+          docker exec "$node" sh -c "cat > /etc/containerd/certs.d/$registry/hosts.toml <<TOML
+server = \"https://$registry\"
+
+[host.\"http://${local.cache_cluster_ip}:5000\"]
+  capabilities = [\"pull\", \"resolve\"]
+TOML"
+        done
+      done
+    EOT
+  }
+}
+
 # Get control plane internal IP for Vault K8s auth config
 data "external" "control_plane_ip" {
   program = ["bash", "-c", <<-EOT
