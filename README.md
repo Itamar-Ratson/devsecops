@@ -11,10 +11,12 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![KinD](https://img.shields.io/badge/KinD-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![cert-manager](https://img.shields.io/badge/cert--manager-0A5CBF?style=flat&logo=letsencrypt&logoColor=white)
 ![trust-manager](https://img.shields.io/badge/trust--manager-0A5CBF?style=flat&logo=letsencrypt&logoColor=white)
+![Zot](https://img.shields.io/badge/Zot-4A154B?style=flat&logo=oci&logoColor=white)
 
 **Networking**<br>
 ![Cilium](https://img.shields.io/badge/Cilium-F8C517?style=flat&logo=cilium&logoColor=black)
 ![Envoy](https://img.shields.io/badge/Envoy-AC6199?style=flat&logo=envoyproxy&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=flat&logo=nginx&logoColor=white)
 ![WireGuard](https://img.shields.io/badge/WireGuard-88171A?style=flat&logo=wireguard&logoColor=white)
 ![Gateway API](https://img.shields.io/badge/Gateway_API-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![Cilium Network Policies](https://img.shields.io/badge/Network_Policies-F8C517?style=flat&logo=cilium&logoColor=black)
@@ -81,6 +83,22 @@ cp terraform/live/secrets.tfvars.example terraform/live/secrets.tfvars  # Config
 cd terraform/live && terragrunt run --all apply --non-interactive
 ```
 
+### Secrets Configuration
+
+Edit `terraform/live/secrets.tfvars` with:
+
+| Secret | How to Generate |
+|--------|-----------------|
+| `vault_root_token` | `openssl rand -base64 32` |
+| `git_repo_url` | SSH URL of this repo |
+| `github_token` | GitHub token with `admin:repo_key` scope |
+| `oidc_client_secrets` (argocd, grafana, vault, headlamp) | `openssl rand -hex 32` each |
+| `keycloak_admin` | Choose username/password |
+| `grafana_admin` | Choose username/password |
+| `argocd_admin.password_hash` | `htpasswd -nbBC 10 "" 'your-password' \| tr -d ':\n'` |
+| `argocd_admin.server_secret_key` | `openssl rand -base64 32` |
+| `alertmanager_webhooks` (optional) | PagerDuty/Slack webhook URLs |
+
 **What this does:** Creates Transit Vault (Docker container), KinD cluster with Cilium, installs CRDs, Sealed-Secrets, configures Vault auth/policies, and bootstraps ArgoCD. ArgoCD then deploys all remaining infrastructure via sync waves.
 
 | Wave | Components |
@@ -102,6 +120,7 @@ cd terraform/live && terragrunt run --all apply --non-interactive
 | Juice Shop | <https://juice-shop.localhost> | - |
 | Kafka UI | <https://kafka-ui.localhost> | - |
 | Hubble UI | <https://hubble.localhost> | - |
+| Zot Registry | <http://localhost:5050> | - |
 | Headlamp | <https://headlamp.localhost> | SSO via Keycloak (testuser/testuser) |
 | Grafana | <https://grafana.localhost> | SSO via Keycloak or secrets.tfvars: grafana_admin |
 | ArgoCD | <https://argocd.localhost> | SSO via Keycloak or admin/secrets.tfvars: argocd_admin |
@@ -119,3 +138,5 @@ kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base6
 ```bash
 cd terraform/live && terragrunt run --all destroy --non-interactive
 ```
+
+> **Note:** The registry cache is protected from `run --all destroy` to preserve cached images. To destroy it manually: `cd terraform/live/registry-cache && terragrunt destroy --non-interactive`
