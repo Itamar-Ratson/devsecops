@@ -16,6 +16,7 @@ resource "tfe_workspace" "this" {
 
   name         = "${var.project_name}-${each.key}"
   organization = var.organization
+  force_delete = true
 
   lifecycle {
     ignore_changes = [
