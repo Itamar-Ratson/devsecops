@@ -13,19 +13,6 @@ resource "kind_cluster" "this" {
       disable_default_cni = true
     }
 
-    containerd_config_patches = [
-      <<-TOML
-      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
-        endpoint = ["http://${var.cache_container_name}:5000"]
-      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."ghcr.io"]
-        endpoint = ["http://${var.cache_container_name}:5000"]
-      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."quay.io"]
-        endpoint = ["http://${var.cache_container_name}:5000"]
-      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.k8s.io"]
-        endpoint = ["http://${var.cache_container_name}:5000"]
-      TOML
-    ]
-
     node {
       role = "control-plane"
 
@@ -131,6 +118,33 @@ resource "null_resource" "connect_cache_to_kind" {
   provisioner "local-exec" {
     when    = destroy
     command = "docker network disconnect kind ${self.triggers.cache_container} 2>/dev/null || true"
+  }
+}
+
+# Configure containerd on each KinD node to use Zot as a pull-through mirror
+resource "null_resource" "configure_registry_mirrors" {
+  depends_on = [null_resource.connect_cache_to_kind]
+
+  triggers = {
+    cache_container = var.cache_container_name
+    cluster_name    = kind_cluster.this.name
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      for node in $(kind get nodes --name ${kind_cluster.this.name}); do
+        for registry in docker.io ghcr.io quay.io registry.k8s.io; do
+          docker exec "$node" mkdir -p "/etc/containerd/certs.d/$registry"
+          docker exec "$node" sh -c "cat > /etc/containerd/certs.d/$registry/hosts.toml <<TOML
+server = \"https://$registry\"
+
+[host.\"http://${var.cache_container_name}:5000\"]
+  capabilities = [\"pull\", \"resolve\"]
+TOML"
+        done
+        docker exec "$node" systemctl restart containerd
+      done
+    EOT
   }
 }
 
