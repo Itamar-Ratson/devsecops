@@ -19,6 +19,8 @@ spec:
       valueFiles:
         - ../ports.yaml
         - values.yaml
+      valuesObject:
+        cacheRegistryIP: {{ .Values.cacheRegistryIP | quote }}
   destination:
     server: https://kubernetes.default.svc
     namespace: gateway

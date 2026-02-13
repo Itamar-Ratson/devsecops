@@ -25,6 +25,7 @@ inputs = {
   project_name = "devsecops"
 
   workspace_names = [
+    "registry-cache",
     "transit-vault",
     "kind-cluster",
     "cluster-bootstrap",

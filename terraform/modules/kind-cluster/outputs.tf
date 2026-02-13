@@ -37,6 +37,11 @@ output "vault_cluster_ip" {
   value       = local.vault_cluster_ip
 }
 
+output "cache_cluster_ip" {
+  description = "Registry cache IP on the KinD Docker network"
+  value       = local.cache_cluster_ip
+}
+
 output "control_plane_ip" {
   description = "KinD control plane node IP on the Docker network"
   value       = data.external.control_plane_ip.result["ip"]

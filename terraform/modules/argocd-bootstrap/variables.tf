@@ -53,3 +53,8 @@ variable "vault_cluster_ip" {
   description = "Transit Vault IP on the KinD Docker network"
   type        = string
 }
+
+variable "cache_cluster_ip" {
+  description = "Registry cache IP on the KinD Docker network"
+  type        = string
+}

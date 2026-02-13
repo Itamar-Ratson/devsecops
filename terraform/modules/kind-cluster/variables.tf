@@ -13,3 +13,13 @@ variable "vault_container_id" {
   description = "Docker container ID of Transit Vault (triggers network reconnect on replacement)"
   type        = string
 }
+
+variable "cache_container_name" {
+  description = "Name of the registry cache Docker container to connect to the KinD network"
+  type        = string
+}
+
+variable "cache_container_id" {
+  description = "Docker container ID of registry cache (triggers network reconnect on replacement)"
+  type        = string
+}

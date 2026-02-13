@@ -25,6 +25,19 @@ resource "kind_cluster" "this" {
               effect: "NoSchedule"
         PATCH
       ]
+
+      containerd_config_patches = [
+        <<-TOML
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
+          endpoint = ["http://${var.cache_container_name}:5000"]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."ghcr.io"]
+          endpoint = ["http://${var.cache_container_name}:5000"]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."quay.io"]
+          endpoint = ["http://${var.cache_container_name}:5000"]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.k8s.io"]
+          endpoint = ["http://${var.cache_container_name}:5000"]
+        TOML
+      ]
     }
 
     node {
@@ -37,6 +50,19 @@ resource "kind_cluster" "this" {
           kubeletExtraArgs:
             node-labels: "ingress-ready=true"
         PATCH
+      ]
+
+      containerd_config_patches = [
+        <<-TOML
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
+          endpoint = ["http://${var.cache_container_name}:5000"]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."ghcr.io"]
+          endpoint = ["http://${var.cache_container_name}:5000"]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."quay.io"]
+          endpoint = ["http://${var.cache_container_name}:5000"]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.k8s.io"]
+          endpoint = ["http://${var.cache_container_name}:5000"]
+        TOML
       ]
 
       extra_port_mappings {
@@ -70,6 +96,7 @@ locals {
   kind_subnet       = [for s in data.docker_network.kind.ipam_config : s.subnet if can(regex("^172\\.", s.subnet))][0]
   kind_subnet_parts = split(".", local.kind_subnet)
   vault_cluster_ip  = "${local.kind_subnet_parts[0]}.${local.kind_subnet_parts[1]}.0.100"
+  cache_cluster_ip  = "${local.kind_subnet_parts[0]}.${local.kind_subnet_parts[1]}.0.101"
 }
 
 resource "null_resource" "connect_vault_to_kind" {
@@ -94,6 +121,29 @@ resource "null_resource" "connect_vault_to_kind" {
   provisioner "local-exec" {
     when    = destroy
     command = "docker network disconnect kind ${self.triggers.vault_container} 2>/dev/null || true"
+  }
+}
+
+resource "null_resource" "connect_cache_to_kind" {
+  depends_on = [kind_cluster.this]
+
+  triggers = {
+    cache_container = var.cache_container_name
+    cache_id        = var.cache_container_id
+    cluster_name    = kind_cluster.this.name
+    cache_ip        = local.cache_cluster_ip
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      docker network disconnect kind ${var.cache_container_name} 2>/dev/null || true
+      docker network connect --ip ${local.cache_cluster_ip} kind ${var.cache_container_name}
+    EOT
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = "docker network disconnect kind ${self.triggers.cache_container} 2>/dev/null || true"
   }
 }
 

@@ -122,6 +122,9 @@ ports:
   argoRollouts:
     metrics: 8090
 
+  # Registry Cache
+  zot: 5000
+
   # Vault
   vault:
     http: 8200

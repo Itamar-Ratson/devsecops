@@ -1,2 +1,5 @@
 className: cilium
 controllerName: io.cilium/gateway-controller
+
+# Registry cache (Zot) IP on the KinD Docker network (dynamic, set via ArgoCD valuesObject)
+cacheRegistryIP: "172.18.0.101"

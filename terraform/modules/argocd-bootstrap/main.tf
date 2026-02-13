@@ -112,7 +112,8 @@ resource "helm_release" "argocd" {
     file("${var.helm_values_dir}/argocd/values.yaml"),
     file("${var.helm_values_dir}/argocd/values-argocd.yaml"),
     yamlencode({
-      transitVaultIP = var.vault_cluster_ip
+      transitVaultIP  = var.vault_cluster_ip
+      cacheRegistryIP = var.cache_cluster_ip
       gitops = {
         enabled = true
         repoURL = var.git_repo_url

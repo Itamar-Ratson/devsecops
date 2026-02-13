@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: zot-registry
+spec:
+  parentRefs:
+    - name: main-gateway
+      namespace: gateway
+      sectionName: https
+  hostnames:
+    - zot.localhost
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: zot-registry-cache
+          port: {{ .Values.ports.zot }}
