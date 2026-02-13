@@ -1,23 +1,60 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zot-proxy-config
+data:
+  default.conf: |
+    server {
+      listen {{ .Values.ports.zot }};
+      location / {
+        proxy_pass http://{{ .Values.cacheRegistryIP }}:{{ .Values.ports.zot }};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zot-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zot-proxy
+  template:
+    metadata:
+      labels:
+        app: zot-proxy
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: {{ .Values.ports.zot }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/conf.d
+          resources:
+            limits:
+              cpu: 50m
+              memory: 32Mi
+            requests:
+              cpu: 10m
+              memory: 16Mi
+      volumes:
+        - name: config
+          configMap:
+            name: zot-proxy-config
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: zot-registry-cache
 spec:
+  selector:
+    app: zot-proxy
   ports:
     - port: {{ .Values.ports.zot }}
       targetPort: {{ .Values.ports.zot }}
       protocol: TCP
----
-apiVersion: discovery.k8s.io/v1
-kind: EndpointSlice
-metadata:
-  name: zot-registry-cache
-  labels:
-    kubernetes.io/service-name: zot-registry-cache
-addressType: IPv4
-ports:
-  - port: {{ .Values.ports.zot }}
-    protocol: TCP
-endpoints:
-  - addresses:
-      - {{ .Values.cacheRegistryIP }}
