@@ -365,8 +365,7 @@ jobs:
       - name: Configure kubectl
         run: |
           mkdir -p ~/.kube
-          cd terraform/live/kind-cluster
-          terragrunt output -raw kubeconfig > ~/.kube/config
+          kind get kubeconfig --name on-prem > ~/.kube/config
           chmod 600 ~/.kube/config
 
       - name: Install Argo Rollouts
@@ -479,8 +478,7 @@ jobs:
       - name: Configure kubectl
         run: |
           mkdir -p ~/.kube
-          cd terraform/live/kind-cluster
-          terragrunt output -raw kubeconfig > ~/.kube/config
+          kind get kubeconfig --name on-prem > ~/.kube/config
           chmod 600 ~/.kube/config
 
       - name: Install Argo Rollouts
