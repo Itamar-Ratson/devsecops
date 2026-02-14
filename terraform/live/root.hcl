@@ -5,17 +5,14 @@ locals {
   project_name = "devsecops"
   hcp_org_name = "itamar-ratson-hcp-org"
   is_ci        = get_env("CI", "") != ""
-}
 
-# HCP Terraform backend (production) or local backend (CI)
-generate "backend" {
-  path      = "backend.tf"
-  if_exists = "overwrite_terragrunt"
-  contents = local.is_ci ? <<-EOF
+  ci_backend = <<-EOF
     terraform {
       backend "local" {}
     }
-  EOF : <<-EOF
+  EOF
+
+  hcp_backend = <<-EOF
     terraform {
       cloud {
         organization = "${local.hcp_org_name}"
@@ -26,6 +23,13 @@ generate "backend" {
       }
     }
   EOF
+}
+
+# HCP Terraform backend (production) or local backend (CI)
+generate "backend" {
+  path      = "backend.tf"
+  if_exists = "overwrite_terragrunt"
+  contents  = local.is_ci ? local.ci_backend : local.hcp_backend
 }
 
 # Load secrets.tfvars for all terraform commands that accept variables
