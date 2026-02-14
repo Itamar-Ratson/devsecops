@@ -7,11 +7,8 @@ include "root" {
 }
 
 dependency "hcp_workspaces" {
-  config_path = "../hcp-workspaces"
-  mock_outputs = {
-    workspace_ids = {}
-  }
-  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "destroy"]
+  config_path  = "../hcp-workspaces"
+  skip_outputs = true
 }
 
 dependency "kind_cluster" {
@@ -23,13 +20,10 @@ dependency "kind_cluster" {
   mock_outputs_merge_strategy_with_state  = "shallow"
 }
 
+# Ordering only — ensures ArgoCD is deployed before warming the cache
 dependency "argocd" {
-  config_path = "../argocd"
-  mock_outputs = {
-    argocd_namespace = "argocd"
-  }
-  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "destroy"]
-  mock_outputs_merge_strategy_with_state  = "shallow"
+  config_path  = "../argocd"
+  skip_outputs = true
 }
 
 inputs = {
