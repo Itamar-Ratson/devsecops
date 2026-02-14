@@ -368,6 +368,11 @@ jobs:
           kind get kubeconfig --name on-prem > ~/.kube/config
           chmod 600 ~/.kube/config
 
+      - name: Wait for cluster to stabilize
+        run: |
+          kubectl wait --for=condition=Ready nodes --all --timeout=120s
+          sleep 10
+
       - name: Install Argo Rollouts
         run: |
           helm dependency build helm/argo-rollouts/
@@ -375,8 +380,9 @@ jobs:
             -n argo-rollouts \
             --create-namespace \
             -f helm/ports.yaml \
-            --wait \
-            --timeout 5m
+            --timeout 5m \
+            --burst-limit 200
+          kubectl -n argo-rollouts wait --for=condition=Ready pod --all --timeout=180s
 
       - name: Deploy juice-shop with Helm
         run: |
@@ -481,6 +487,11 @@ jobs:
           kind get kubeconfig --name on-prem > ~/.kube/config
           chmod 600 ~/.kube/config
 
+      - name: Wait for cluster to stabilize
+        run: |
+          kubectl wait --for=condition=Ready nodes --all --timeout=120s
+          sleep 10
+
       - name: Install Argo Rollouts
         run: |
           helm dependency build helm/argo-rollouts/
@@ -488,8 +499,9 @@ jobs:
             -n argo-rollouts \
             --create-namespace \
             -f helm/ports.yaml \
-            --wait \
-            --timeout 5m
+            --timeout 5m \
+            --burst-limit 200
+          kubectl -n argo-rollouts wait --for=condition=Ready pod --all --timeout=180s
 
       - name: Deploy juice-shop
         run: |
