@@ -1,16 +1,21 @@
 # Root Terragrunt configuration
-# Configures HCP Terraform backend, secrets, and terrascan for all modules
+# Configures backend, secrets, and terrascan for all modules
 
 locals {
   project_name = "devsecops"
   hcp_org_name = "itamar-ratson-hcp-org"
+  is_ci        = get_env("CI", "") != ""
 }
 
-# HCP Terraform backend — one workspace per module
+# HCP Terraform backend (production) or local backend (CI)
 generate "backend" {
   path      = "backend.tf"
   if_exists = "overwrite_terragrunt"
-  contents  = <<-EOF
+  contents = local.is_ci ? <<-EOF
+    terraform {
+      backend "local" {}
+    }
+  EOF : <<-EOF
     terraform {
       cloud {
         organization = "${local.hcp_org_name}"
@@ -33,10 +38,16 @@ terraform {
     ]
   }
 
-  # Terrascan security scan before every plan
+  # Auto-approve in CI (local backend requires explicit -auto-approve)
+  extra_arguments "ci_auto_approve" {
+    commands  = ["apply", "destroy"]
+    arguments = local.is_ci ? ["-auto-approve"] : []
+  }
+
+  # Terrascan security scan before every plan (skip in CI — Trivy handles IaC scanning)
   before_hook "terrascan" {
     commands = ["plan"]
-    execute = [
+    execute = local.is_ci ? ["echo", "Skipping terrascan in CI"] : [
       "terrascan", "scan",
       "--iac-type", "terraform",
       "--iac-dir", "${get_terragrunt_dir()}",
