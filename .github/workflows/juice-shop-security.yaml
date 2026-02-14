@@ -345,6 +345,10 @@ jobs:
 
       - name: Build Helm chart dependencies
         run: |
+          helm repo add cilium https://helm.cilium.io
+          helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+          helm repo add argo https://argoproj.github.io/argo-helm
+          helm repo update
           helm dependency build helm/cilium/
           helm dependency build helm/sealed-secrets/
 
@@ -455,6 +459,10 @@ jobs:
 
       - name: Build Helm chart dependencies
         run: |
+          helm repo add cilium https://helm.cilium.io
+          helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+          helm repo add argo https://argoproj.github.io/argo-helm
+          helm repo update
           helm dependency build helm/cilium/
           helm dependency build helm/sealed-secrets/
 
