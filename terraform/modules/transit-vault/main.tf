@@ -35,7 +35,7 @@ resource "docker_container" "vault" {
   restart = "unless-stopped"
 
   # Resource limits - actual usage ~73 MiB / <1% CPU
-  memory = 256
+  memory     = 256
   cpu_shares = 256
 
   must_run = true
