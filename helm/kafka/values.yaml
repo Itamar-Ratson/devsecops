@@ -22,10 +22,10 @@ kafka:
   resources:
     limits:
       cpu: 500m
-      memory: 1152Mi
+      memory: 768Mi
     requests:
       cpu: 100m
-      memory: 768Mi
+      memory: 512Mi
 
 # Entity Operator (Topic + User operators)
 entityOperator:

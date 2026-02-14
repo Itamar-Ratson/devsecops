@@ -110,13 +110,15 @@ loki:
       limits:
         memory: 384Mi
 
+  # Results cache disabled — only 35KB used in dev (single user, 24h retention,
+  # filesystem storage is fast enough). Re-enable for multi-user or production.
   resultsCache:
-    enabled: true
-    allocatedMemory: 48  # MB - reduced based on metrics (only 35KB used)
-    resources:
-      requests:
-        cpu: 10m
-        memory: 64Mi
-      limits:
-        memory: 96Mi
+    enabled: false
+    # allocatedMemory: 48
+    # resources:
+    #   requests:
+    #     cpu: 10m
+    #     memory: 64Mi
+    #   limits:
+    #     memory: 96Mi
 

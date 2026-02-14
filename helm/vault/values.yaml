@@ -42,7 +42,7 @@ vault:
     # Storage configuration - File storage (not HA)
     dataStorage:
       enabled: true
-      size: 10Gi
+      size: 2Gi
       storageClass: null  # Use default storage class
       accessMode: ReadWriteOnce
 

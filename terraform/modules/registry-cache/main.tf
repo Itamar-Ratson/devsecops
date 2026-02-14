@@ -47,5 +47,9 @@ resource "docker_container" "zot" {
     })
   }
 
+  # Resource limits - actual usage ~32 MiB / <1% CPU
+  memory = 256
+  cpu_shares = 256
+
   command = ["serve", "/etc/zot/config.json"]
 }

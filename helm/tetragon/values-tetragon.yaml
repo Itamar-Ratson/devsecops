@@ -28,11 +28,11 @@ tetragon:
     # Resource limits - actual usage ~290Mi
     resources:
       limits:
-        cpu: 500m
-        memory: 768Mi
+        cpu: 300m
+        memory: 512Mi
       requests:
-        cpu: 100m
-        memory: 400Mi
+        cpu: 50m
+        memory: 300Mi
 
     # Enable policy filtering for namespace/pod-based policies
     enablePolicyFilter: true
