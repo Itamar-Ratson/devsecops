@@ -343,6 +343,11 @@ jobs:
       - name: Create CI secrets
         run: echo 'vault_root_token = "ci-test-token"' > terraform/live/secrets.tfvars
 
+      - name: Build Helm chart dependencies
+        run: |
+          helm dependency build helm/cilium/
+          helm dependency build helm/sealed-secrets/
+
       - name: Deploy infrastructure with Terragrunt
         run: |
           cd terraform/live
@@ -447,6 +452,11 @@ jobs:
 
       - name: Create CI secrets
         run: echo 'vault_root_token = "ci-test-token"' > terraform/live/secrets.tfvars
+
+      - name: Build Helm chart dependencies
+        run: |
+          helm dependency build helm/cilium/
+          helm dependency build helm/sealed-secrets/
 
       - name: Deploy infrastructure with Terragrunt
         run: |
