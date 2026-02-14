@@ -1,5 +1,12 @@
 terraform {
   source = "../../modules/registry-cache"
+
+  # Cloud backend doesn't auto-approve with --non-interactive,
+  # so pass -auto-approve explicitly for apply/destroy.
+  extra_arguments "auto_approve" {
+    commands  = ["apply", "destroy"]
+    arguments = ["-auto-approve"]
+  }
 }
 
 include "root" {
@@ -9,7 +16,7 @@ include "root" {
 # Preserve the image cache across destroy/apply cycles.
 # To destroy explicitly: cd terraform/live/registry-cache && terragrunt destroy --non-interactive
 exclude {
-  if      = true
+  if      = get_terragrunt_dir() != get_original_terragrunt_dir()
   actions = ["destroy"]
 }
 
