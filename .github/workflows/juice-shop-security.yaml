@@ -382,7 +382,15 @@ jobs:
             -f helm/ports.yaml \
             --timeout 5m \
             --burst-limit 200
-          kubectl -n argo-rollouts wait --for=condition=Ready pod --all --timeout=180s
+          kubectl -n argo-rollouts wait --for=condition=Ready pod --all --timeout=300s || {
+            echo "--- Pod status ---"
+            kubectl -n argo-rollouts get pods -o wide
+            echo "--- Pod describe ---"
+            kubectl -n argo-rollouts describe pods
+            echo "--- Pod logs ---"
+            kubectl -n argo-rollouts logs -l app.kubernetes.io/name=argo-rollouts --tail=50
+            exit 1
+          }
 
       - name: Deploy juice-shop with Helm
         run: |
@@ -501,7 +509,15 @@ jobs:
             -f helm/ports.yaml \
             --timeout 5m \
             --burst-limit 200
-          kubectl -n argo-rollouts wait --for=condition=Ready pod --all --timeout=180s
+          kubectl -n argo-rollouts wait --for=condition=Ready pod --all --timeout=300s || {
+            echo "--- Pod status ---"
+            kubectl -n argo-rollouts get pods -o wide
+            echo "--- Pod describe ---"
+            kubectl -n argo-rollouts describe pods
+            echo "--- Pod logs ---"
+            kubectl -n argo-rollouts logs -l app.kubernetes.io/name=argo-rollouts --tail=50
+            exit 1
+          }
 
       - name: Deploy juice-shop
         run: |
