@@ -1,6 +1,7 @@
 name: Juice Shop Security Pipeline
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
