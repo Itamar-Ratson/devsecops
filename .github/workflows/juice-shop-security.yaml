@@ -376,7 +376,7 @@ jobs:
             --create-namespace \
             -f helm/ports.yaml \
             --wait \
-            --timeout 3m
+            --timeout 5m
 
       - name: Deploy juice-shop with Helm
         run: |
@@ -489,7 +489,7 @@ jobs:
             --create-namespace \
             -f helm/ports.yaml \
             --wait \
-            --timeout 3m
+            --timeout 5m
 
       - name: Deploy juice-shop
         run: |
