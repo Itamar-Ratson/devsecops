@@ -137,4 +137,9 @@ kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base6
 cd terraform/live && terragrunt run --all destroy --non-interactive
 ```
 
-> **Note:** The registry cache is protected from `run --all destroy` to preserve cached images. To destroy it manually: `cd terraform/live/registry-cache && terragrunt destroy --non-interactive`
+> **Note:** The registry cache is excluded from `run --all destroy` to preserve cached images across rebuild cycles. To destroy everything including the cache, destroy it first while its HCP workspace still exists:
+>
+> ```bash
+> cd terraform/live/registry-cache && terragrunt destroy --non-interactive
+> cd terraform/live && terragrunt run --all destroy --non-interactive
+> ```

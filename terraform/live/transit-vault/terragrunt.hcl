@@ -7,8 +7,12 @@ include "root" {
 }
 
 dependency "hcp_workspaces" {
-  config_path  = "../hcp-workspaces"
-  skip_outputs = true
+  config_path = "../hcp-workspaces"
+  mock_outputs = {
+    workspace_ids = {}
+  }
+  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "destroy"]
+  mock_outputs_merge_strategy_with_state  = "shallow"
 }
 
 inputs = {
