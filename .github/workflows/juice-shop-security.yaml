@@ -380,10 +380,15 @@ jobs:
             -n argo-rollouts \
             --create-namespace \
             -f helm/ports.yaml \
-            --set argo-rollouts.controller.trafficRouterPlugins=null \
+            --set-json 'argo-rollouts.controller.trafficRouterPlugins=[]' \
             --timeout 5m \
             --burst-limit 200
-          kubectl -n argo-rollouts wait --for=condition=Ready pod --all --timeout=300s
+          kubectl -n argo-rollouts wait --for=condition=Ready pod --all --timeout=300s || {
+            kubectl -n argo-rollouts get pods -o wide
+            kubectl -n argo-rollouts logs -l app.kubernetes.io/name=argo-rollouts --tail=100 --previous || true
+            kubectl -n argo-rollouts logs -l app.kubernetes.io/name=argo-rollouts --tail=100
+            exit 1
+          }
 
       - name: Deploy juice-shop with Helm
         run: |
@@ -500,10 +505,15 @@ jobs:
             -n argo-rollouts \
             --create-namespace \
             -f helm/ports.yaml \
-            --set argo-rollouts.controller.trafficRouterPlugins=null \
+            --set-json 'argo-rollouts.controller.trafficRouterPlugins=[]' \
             --timeout 5m \
             --burst-limit 200
-          kubectl -n argo-rollouts wait --for=condition=Ready pod --all --timeout=300s
+          kubectl -n argo-rollouts wait --for=condition=Ready pod --all --timeout=300s || {
+            kubectl -n argo-rollouts get pods -o wide
+            kubectl -n argo-rollouts logs -l app.kubernetes.io/name=argo-rollouts --tail=100 --previous || true
+            kubectl -n argo-rollouts logs -l app.kubernetes.io/name=argo-rollouts --tail=100
+            exit 1
+          }
 
       - name: Deploy juice-shop
         run: |
