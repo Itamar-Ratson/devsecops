@@ -99,16 +99,18 @@ loki:
   test:
     enabled: false
 
-  # Memcached caches (reduced for local dev - defaults are way too large)
+  # Chunks cache disabled — saves ~300Mi on constrained hardware. Queries hit
+  # local filesystem directly (still fast for dev). Re-enable when storage moves
+  # to S3/remote, or for multi-user setups where cache prevents repeated disk reads.
   chunksCache:
-    enabled: true
-    allocatedMemory: 256  # MB - reduced for dev (329MB was used with 512MB)
-    resources:
-      requests:
-        cpu: 10m
-        memory: 300Mi
-      limits:
-        memory: 384Mi
+    enabled: false
+    # allocatedMemory: 256  # MB - reduced for dev (329MB was used with 512MB)
+    # resources:
+    #   requests:
+    #     cpu: 10m
+    #     memory: 300Mi
+    #   limits:
+    #     memory: 384Mi
 
   # Results cache disabled — only 35KB used in dev (single user, 24h retention,
   # filesystem storage is fast enough). Re-enable for multi-user or production.
