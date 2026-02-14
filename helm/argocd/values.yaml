@@ -23,3 +23,14 @@ gitops:
   enabled: true
   repoURL: "git@github.com:Itamar-Ratson/devsecops.git"
   targetRevision: HEAD
+
+# Per-application toggles (disable to save resources on constrained hardware)
+applications:
+  # Kafka UI — disabled to save ~256Mi. Kafka broker + Strimzi are the CV-relevant
+  # components; re-enable for visual debugging of topics/consumers.
+  kafkaUi:
+    enabled: false
+  # Juice Shop — disabled to save ~256Mi. OWASP vulnerable app for security demos;
+  # re-enable when running Trivy/Kyverno demonstrations.
+  juiceShop:
+    enabled: false

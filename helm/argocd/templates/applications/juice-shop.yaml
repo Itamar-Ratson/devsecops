@@ -1,5 +1,5 @@
 # Wave 5: Demo app - OWASP Juice Shop
-{{- if .Values.gitops.enabled }}
+{{- if and .Values.gitops.enabled .Values.applications.juiceShop.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

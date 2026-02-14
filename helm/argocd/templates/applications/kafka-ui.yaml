@@ -1,5 +1,5 @@
 # Wave 4: Kafka UI (depends on Kafka)
-{{- if .Values.gitops.enabled }}
+{{- if and .Values.gitops.enabled .Values.applications.kafkaUi.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
