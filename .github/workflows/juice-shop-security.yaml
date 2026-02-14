@@ -347,10 +347,10 @@ jobs:
         run: |
           cd terraform/live
           terragrunt run --all apply --non-interactive \
-            --terragrunt-exclude-dir hcp-workspaces \
-            --terragrunt-exclude-dir vault-config \
-            --terragrunt-exclude-dir argocd \
-            --terragrunt-exclude-dir registry-cache-warm
+            --exclude-dir hcp-workspaces \
+            --exclude-dir vault-config \
+            --exclude-dir argocd \
+            --exclude-dir registry-cache-warm
         timeout-minutes: 20
 
       - name: Configure kubectl
@@ -404,10 +404,10 @@ jobs:
         run: |
           cd terraform/live
           terragrunt run --all destroy --non-interactive \
-            --terragrunt-exclude-dir hcp-workspaces \
-            --terragrunt-exclude-dir vault-config \
-            --terragrunt-exclude-dir argocd \
-            --terragrunt-exclude-dir registry-cache-warm
+            --exclude-dir hcp-workspaces \
+            --exclude-dir vault-config \
+            --exclude-dir argocd \
+            --exclude-dir registry-cache-warm
         timeout-minutes: 10
 
       - name: Upload deployment artifacts
@@ -452,10 +452,10 @@ jobs:
         run: |
           cd terraform/live
           terragrunt run --all apply --non-interactive \
-            --terragrunt-exclude-dir hcp-workspaces \
-            --terragrunt-exclude-dir vault-config \
-            --terragrunt-exclude-dir argocd \
-            --terragrunt-exclude-dir registry-cache-warm
+            --exclude-dir hcp-workspaces \
+            --exclude-dir vault-config \
+            --exclude-dir argocd \
+            --exclude-dir registry-cache-warm
         timeout-minutes: 20
 
       - name: Configure kubectl
@@ -515,8 +515,8 @@ jobs:
         run: |
           cd terraform/live
           terragrunt run --all destroy --non-interactive \
-            --terragrunt-exclude-dir hcp-workspaces \
-            --terragrunt-exclude-dir vault-config \
-            --terragrunt-exclude-dir argocd \
-            --terragrunt-exclude-dir registry-cache-warm
+            --exclude-dir hcp-workspaces \
+            --exclude-dir vault-config \
+            --exclude-dir argocd \
+            --exclude-dir registry-cache-warm
         timeout-minutes: 10
