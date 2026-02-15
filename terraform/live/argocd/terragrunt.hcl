@@ -31,14 +31,11 @@ dependency "kind_cluster" {
   mock_outputs_merge_strategy_with_state  = "shallow"
 }
 
-dependency "vault_config" {
-  config_path = "../vault-config"
-
-  mock_outputs = {
-    kubernetes_auth_configured = true
-  }
-  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "apply", "destroy"]
-  mock_outputs_merge_strategy_with_state  = "shallow"
+# Ordering-only: argocd must deploy after vault-config configures Vault auth.
+# Uses dependencies (not dependency) because argocd doesn't reference
+# vault-config outputs — avoids evaluation failures when vault-config is filtered.
+dependencies {
+  paths = ["../vault-config"]
 }
 
 inputs = {
