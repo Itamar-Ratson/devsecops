@@ -1,4 +1,9 @@
 keycloakx:
+  # Disable SA token mount — Keycloak doesn't need K8s API access
+  serviceAccount:
+    create: true
+    automountServiceAccountToken: false
+
   # Use Quarkus-based Keycloak (keycloakx)
   image:
     repository: quay.io/keycloak/keycloak

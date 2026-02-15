@@ -13,6 +13,7 @@ spec:
       labels:
         app: http-echo
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: http-echo
           image: hashicorp/http-echo:latest

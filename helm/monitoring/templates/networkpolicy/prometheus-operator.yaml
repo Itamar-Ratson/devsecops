@@ -26,9 +26,11 @@ spec:
     matchLabels:
       app: kube-prometheus-stack-operator-webhook
   ingress:
-    # Allow webhook calls from kube-apiserver
+    # Allow webhook calls from kube-apiserver (host/remote-node needed for KinD)
     - fromEntities:
         - kube-apiserver
+        - host
+        - remote-node
   egress:
     # Allow API server access for lookups
     - toEntities:

@@ -69,17 +69,3 @@ variable "alertmanager_webhooks" {
   default   = {}
   sensitive = true
 }
-
-variable "vso_allowed_namespaces" {
-  description = "K8s namespaces allowed to authenticate via VSO role"
-  type        = list(string)
-  default = [
-    "vault-secrets-operator",
-    "monitoring",
-    "argocd",
-    "keycloak",
-    "vault",
-    "headlamp",
-    "kube-oidc-proxy",
-  ]
-}

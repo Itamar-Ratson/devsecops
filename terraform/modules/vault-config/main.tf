@@ -31,12 +31,12 @@ resource "vault_policy" "vso_reader" {
   EOT
 }
 
-# Role for VSO — allow default SA from namespaces that need secrets
+# Role for VSO — only the controller SA in its own namespace
 resource "vault_kubernetes_auth_backend_role" "vso" {
   backend                          = vault_auth_backend.kubernetes.path
   role_name                        = "vso"
-  bound_service_account_names      = ["default"]
-  bound_service_account_namespaces = var.vso_allowed_namespaces
+  bound_service_account_names      = ["vault-secrets-operator-controller-manager"]
+  bound_service_account_namespaces = ["vault-secrets-operator"]
   token_policies                   = [vault_policy.vso_reader.name]
   token_ttl                        = 3600
 }
