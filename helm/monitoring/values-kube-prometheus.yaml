@@ -192,11 +192,11 @@ kube-prometheus-stack:
         - alertmanager-slack-webhooks
       resources:
         requests:
-          cpu: 10m
-          memory: 64Mi  # Reduced based on metrics (27Mi used, 30Mi max)
+          cpu: 50m
+          memory: 64Mi
         limits:
-          cpu: 100m
-          memory: 128Mi
+          cpu: 250m
+          memory: 256Mi
       storage:
         volumeClaimTemplate:
           spec:
@@ -255,42 +255,43 @@ kube-prometheus-stack:
             - api_url_file: /etc/alertmanager/secrets/alertmanager-slack-webhooks/slack-warning-webhook
               channel: '#alerts-warning'
               send_resolved: true
-              title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
-              text: '{{ .CommonAnnotations.summary }}'
+              title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }} ({{ .CommonLabels.namespace }})'
+              text: '{{ if .CommonAnnotations.summary }}{{ .CommonAnnotations.summary }}{{ else }}{{ .CommonLabels.alertname }} - {{ .Alerts | len }} alert(s) in {{ .CommonLabels.namespace }}{{ end }}'
 
         - name: 'slack-critical'
           slack_configs:
             - api_url_file: /etc/alertmanager/secrets/alertmanager-slack-webhooks/slack-critical-webhook
               channel: '#alerts-critical'
               send_resolved: true
-              title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+              title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }} ({{ .CommonLabels.namespace }})'
               text: |-
-                *Summary:* {{ .CommonAnnotations.summary }}
-                *Description:* {{ .CommonAnnotations.description }}
+                *Alert:* {{ .CommonLabels.alertname }} — {{ .Alerts | len }} alert(s)
                 *Namespace:* {{ .CommonLabels.namespace }}
-                *Resource:* {{ .CommonLabels.resource_name }}
+                {{ range .Alerts }}• {{ .Annotations.summary }}
+                {{ end }}
 
         - name: 'slack-warnings'
           slack_configs:
             - api_url_file: /etc/alertmanager/secrets/alertmanager-slack-webhooks/slack-warning-webhook
               channel: '#alerts-warning'
               send_resolved: true
-              title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}'
+              title: '[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }} ({{ .CommonLabels.namespace }})'
               text: |-
-                *Summary:* {{ .CommonAnnotations.summary }}
+                *Alert:* {{ .CommonLabels.alertname }} — {{ .Alerts | len }} alert(s)
                 *Namespace:* {{ .CommonLabels.namespace }}
-                *Resource:* {{ .CommonLabels.resource_name }}
+                {{ range .Alerts }}• {{ .Annotations.summary }}
+                {{ end }}
 
         - name: 'pagerduty-critical'
           pagerduty_configs:
             - routing_key_file: /etc/alertmanager/secrets/alertmanager-slack-webhooks/pagerduty-routing-key
               severity: '{{ if eq .Status "firing" }}critical{{ else }}info{{ end }}'
               send_resolved: true
-              description: '{{ .CommonAnnotations.summary }}'
+              description: '{{ .CommonLabels.alertname }} in {{ .CommonLabels.namespace }} ({{ .Alerts | len }} alert(s))'
               details:
                 alertname: '{{ .CommonLabels.alertname }}'
                 namespace: '{{ .CommonLabels.namespace }}'
-                description: '{{ .CommonAnnotations.description }}'
+                alerts: '{{ range .Alerts }}{{ .Annotations.summary }}; {{ end }}'
 
   # Node Exporter (useful for cluster-level metrics)
   nodeExporter:
