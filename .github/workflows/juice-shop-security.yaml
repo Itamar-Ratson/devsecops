@@ -383,21 +383,23 @@ jobs:
       - name: Wait for ArgoCD sync
         run: |
           kubectl -n argocd wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server --timeout=300s
+          kubectl -n argocd wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-repo-server --timeout=300s
           for app in network-policies argo-rollouts juice-shop; do
             echo "Waiting for $app to sync..."
             SECONDS=0
-            until kubectl get application "$app" -n argocd \
-              -o jsonpath='{.status.health.status}' 2>/dev/null | grep -q Healthy; do
+            until [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null)" = "Synced" ] \
+               && [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.health.status}' 2>/dev/null)" = "Healthy" ]; do
               if [ $SECONDS -ge 600 ]; then
                 echo "Timed out waiting for $app"
                 kubectl get applications -n argocd 2>/dev/null || true
+                kubectl get application "$app" -n argocd -o yaml 2>/dev/null || true
                 exit 1
               fi
               echo "  $app: $(kubectl get application "$app" -n argocd \
                 -o jsonpath='{.status.sync.status}/{.status.health.status}' 2>/dev/null || echo 'not found')"
               sleep 15
             done
-            echo "$app is healthy"
+            echo "$app is Synced/Healthy"
           done
 
       - name: Verify rollout
@@ -515,21 +517,23 @@ jobs:
       - name: Wait for ArgoCD sync
         run: |
           kubectl -n argocd wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server --timeout=300s
+          kubectl -n argocd wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-repo-server --timeout=300s
           for app in network-policies argo-rollouts juice-shop; do
             echo "Waiting for $app to sync..."
             SECONDS=0
-            until kubectl get application "$app" -n argocd \
-              -o jsonpath='{.status.health.status}' 2>/dev/null | grep -q Healthy; do
+            until [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null)" = "Synced" ] \
+               && [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.health.status}' 2>/dev/null)" = "Healthy" ]; do
               if [ $SECONDS -ge 600 ]; then
                 echo "Timed out waiting for $app"
                 kubectl get applications -n argocd 2>/dev/null || true
+                kubectl get application "$app" -n argocd -o yaml 2>/dev/null || true
                 exit 1
               fi
               echo "  $app: $(kubectl get application "$app" -n argocd \
                 -o jsonpath='{.status.sync.status}/{.status.health.status}' 2>/dev/null || echo 'not found')"
               sleep 15
             done
-            echo "$app is healthy"
+            echo "$app is Synced/Healthy"
           done
 
       - name: Wait for application readiness
