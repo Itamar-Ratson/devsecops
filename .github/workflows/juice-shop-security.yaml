@@ -523,7 +523,17 @@ jobs:
 
       - name: Wait for application readiness
         run: |
-          kubectl -n juice-shop wait --for=condition=Ready pod -l app=juice-shop --timeout=120s
+          echo "Waiting for juice-shop pods..."
+          SECONDS=0
+          until kubectl -n juice-shop wait --for=condition=Ready pod -l app=juice-shop --timeout=10s 2>/dev/null; do
+            if [ $SECONDS -ge 180 ]; then
+              echo "Timed out waiting for juice-shop pods"
+              kubectl -n juice-shop get pods -o wide 2>/dev/null || true
+              kubectl get application juice-shop -n argocd -o yaml 2>/dev/null || true
+              exit 1
+            fi
+            sleep 5
+          done
           kubectl port-forward -n juice-shop svc/juice-shop-stable 3000:80 &
           sleep 15
           curl -sf http://localhost:3000/ || exit 1
