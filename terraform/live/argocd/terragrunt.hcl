@@ -31,11 +31,13 @@ dependency "kind_cluster" {
   mock_outputs_merge_strategy_with_state  = "shallow"
 }
 
-# Ordering-only: argocd must deploy after vault-config configures Vault auth.
-# Uses dependencies (not dependency) because argocd doesn't reference
-# vault-config outputs — avoids evaluation failures when vault-config is filtered.
+# Ordering-only deps whose outputs argocd doesn't reference.
+# Uses dependencies (not dependency) to avoid evaluation failures
+# when vault-config is filtered in CI.
+# - cluster-bootstrap: CRDs (ArgoCD Application, CiliumNetworkPolicy, etc.)
+# - vault-config: Vault auth backend setup
 dependencies {
-  paths = ["../vault-config"]
+  paths = ["../cluster-bootstrap", "../vault-config"]
 }
 
 inputs = {
