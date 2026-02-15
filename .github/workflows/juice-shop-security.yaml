@@ -7,6 +7,8 @@ on:
     paths:
       - 'helm/juice-shop/**'
       - 'helm/argo-rollouts/**'
+      - 'helm/argocd/**'
+      - 'helm/network-policies/**'
       - 'helm/ports.yaml'
       - 'docker/juice-shop/**'
       - '.github/workflows/juice-shop-security.yaml'
@@ -18,6 +20,8 @@ on:
     paths:
       - 'helm/juice-shop/**'
       - 'helm/argo-rollouts/**'
+      - 'helm/argocd/**'
+      - 'helm/network-policies/**'
       - 'helm/ports.yaml'
       - 'docker/juice-shop/**'
       - '.github/workflows/juice-shop-security.yaml'
@@ -341,7 +345,14 @@ jobs:
           version: 'v3.14.0'
 
       - name: Create CI secrets
-        run: echo 'vault_root_token = "ci-test-token"' > terraform/live/secrets.tfvars
+        run: |
+          cat > terraform/live/secrets.tfvars << EOF
+          vault_root_token          = "ci-test-token"
+          git_repo_url              = "git@github.com:${{ github.repository }}.git"
+          github_token              = "${{ secrets.ARGOCD_GITHUB_TOKEN }}"
+          argocd_oidc_client_secret = "ci-dummy-oidc-secret"
+          juice_shop_enabled        = true
+          EOF
 
       - name: Build Helm chart dependencies
         run: |
@@ -351,6 +362,7 @@ jobs:
           helm repo update
           helm dependency build helm/cilium/
           helm dependency build helm/sealed-secrets/
+          helm dependency build helm/argocd/
 
       - name: Deploy infrastructure with Terragrunt
         run: |
@@ -358,7 +370,6 @@ jobs:
           terragrunt run --all apply --non-interactive \
             --filter '!hcp-workspaces' \
             --filter '!vault-config' \
-            --filter '!argocd' \
             --filter '!registry-cache-warm'
         timeout-minutes: 20
 
@@ -368,38 +379,21 @@ jobs:
           kind get kubeconfig --name on-prem > ~/.kube/config
           chmod 600 ~/.kube/config
 
-      - name: Deploy cluster-wide network policies
+      - name: Wait for ArgoCD sync
         run: |
-          helm upgrade --install network-policies helm/network-policies/ \
-            -n kube-system \
-            -f helm/ports.yaml \
-            --timeout 2m
-
-      - name: Install Argo Rollouts
-        run: |
-          helm dependency build helm/argo-rollouts/
-          helm upgrade --install argo-rollouts helm/argo-rollouts/ \
-            -n argo-rollouts \
-            --create-namespace \
-            -f helm/ports.yaml \
-            --set-json 'argo-rollouts.controller.trafficRouterPlugins=[]' \
-            --timeout 5m \
-            --burst-limit 200
-          kubectl -n argo-rollouts wait --for=condition=Ready pod --all --timeout=300s || {
-            kubectl -n argo-rollouts get pods -o wide
-            kubectl -n argo-rollouts logs -l app.kubernetes.io/name=argo-rollouts --tail=100 --previous || true
-            kubectl -n argo-rollouts logs -l app.kubernetes.io/name=argo-rollouts --tail=100
-            exit 1
-          }
-
-      - name: Deploy juice-shop with Helm
-        run: |
-          kubectl create namespace juice-shop
-          helm upgrade --install juice-shop helm/juice-shop/ \
-            -n juice-shop \
-            -f helm/ports.yaml \
-            -f helm/juice-shop/values.yaml \
-            --timeout 5m
+          kubectl -n argocd wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server --timeout=300s
+          for app in network-policies argo-rollouts juice-shop; do
+            echo "Waiting for $app to sync..."
+            timeout 600 bash -c "
+              until kubectl get application \$app -n argocd \
+                -o jsonpath='{.status.health.status}' 2>/dev/null | grep -q Healthy; do
+                echo \"  \$app: \$(kubectl get application \$app -n argocd \
+                  -o jsonpath='{.status.sync.status}/{.status.health.status}' 2>/dev/null || echo 'not found')\"
+                sleep 15
+              done
+            "
+            echo "$app is healthy"
+          done
 
       - name: Verify rollout
         run: |
@@ -428,7 +422,6 @@ jobs:
           terragrunt run --all destroy --non-interactive \
             --filter '!hcp-workspaces' \
             --filter '!vault-config' \
-            --filter '!argocd' \
             --filter '!registry-cache-warm'
         timeout-minutes: 10
 
@@ -468,7 +461,14 @@ jobs:
           version: 'v3.14.0'
 
       - name: Create CI secrets
-        run: echo 'vault_root_token = "ci-test-token"' > terraform/live/secrets.tfvars
+        run: |
+          cat > terraform/live/secrets.tfvars << EOF
+          vault_root_token          = "ci-test-token"
+          git_repo_url              = "git@github.com:${{ github.repository }}.git"
+          github_token              = "${{ secrets.ARGOCD_GITHUB_TOKEN }}"
+          argocd_oidc_client_secret = "ci-dummy-oidc-secret"
+          juice_shop_enabled        = true
+          EOF
 
       - name: Build Helm chart dependencies
         run: |
@@ -478,6 +478,7 @@ jobs:
           helm repo update
           helm dependency build helm/cilium/
           helm dependency build helm/sealed-secrets/
+          helm dependency build helm/argocd/
 
       - name: Deploy infrastructure with Terragrunt
         run: |
@@ -485,7 +486,6 @@ jobs:
           terragrunt run --all apply --non-interactive \
             --filter '!hcp-workspaces' \
             --filter '!vault-config' \
-            --filter '!argocd' \
             --filter '!registry-cache-warm'
         timeout-minutes: 20
 
@@ -495,38 +495,21 @@ jobs:
           kind get kubeconfig --name on-prem > ~/.kube/config
           chmod 600 ~/.kube/config
 
-      - name: Deploy cluster-wide network policies
+      - name: Wait for ArgoCD sync
         run: |
-          helm upgrade --install network-policies helm/network-policies/ \
-            -n kube-system \
-            -f helm/ports.yaml \
-            --timeout 2m
-
-      - name: Install Argo Rollouts
-        run: |
-          helm dependency build helm/argo-rollouts/
-          helm upgrade --install argo-rollouts helm/argo-rollouts/ \
-            -n argo-rollouts \
-            --create-namespace \
-            -f helm/ports.yaml \
-            --set-json 'argo-rollouts.controller.trafficRouterPlugins=[]' \
-            --timeout 5m \
-            --burst-limit 200
-          kubectl -n argo-rollouts wait --for=condition=Ready pod --all --timeout=300s || {
-            kubectl -n argo-rollouts get pods -o wide
-            kubectl -n argo-rollouts logs -l app.kubernetes.io/name=argo-rollouts --tail=100 --previous || true
-            kubectl -n argo-rollouts logs -l app.kubernetes.io/name=argo-rollouts --tail=100
-            exit 1
-          }
-
-      - name: Deploy juice-shop
-        run: |
-          kubectl create namespace juice-shop
-          helm upgrade --install juice-shop helm/juice-shop/ \
-            -n juice-shop \
-            -f helm/ports.yaml \
-            -f helm/juice-shop/values.yaml \
-            --timeout 5m
+          kubectl -n argocd wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server --timeout=300s
+          for app in network-policies argo-rollouts juice-shop; do
+            echo "Waiting for $app to sync..."
+            timeout 600 bash -c "
+              until kubectl get application \$app -n argocd \
+                -o jsonpath='{.status.health.status}' 2>/dev/null | grep -q Healthy; do
+                echo \"  \$app: \$(kubectl get application \$app -n argocd \
+                  -o jsonpath='{.status.sync.status}/{.status.health.status}' 2>/dev/null || echo 'not found')\"
+                sleep 15
+              done
+            "
+            echo "$app is healthy"
+          done
 
       - name: Wait for application readiness
         run: |
@@ -561,6 +544,5 @@ jobs:
           terragrunt run --all destroy --non-interactive \
             --filter '!hcp-workspaces' \
             --filter '!vault-config' \
-            --filter '!argocd' \
             --filter '!registry-cache-warm'
         timeout-minutes: 10

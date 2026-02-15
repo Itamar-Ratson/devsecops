@@ -58,3 +58,9 @@ variable "cache_cluster_ip" {
   description = "Registry cache IP on the KinD Docker network"
   type        = string
 }
+
+variable "juice_shop_enabled" {
+  description = "Enable the Juice Shop ArgoCD application (CI sets true, local defaults false to save resources)"
+  type        = bool
+  default     = false
+}

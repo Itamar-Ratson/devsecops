@@ -121,6 +121,11 @@ resource "helm_release" "argocd" {
       vaultSecrets = {
         enabled = false
       }
+      applications = {
+        juiceShop = {
+          enabled = var.juice_shop_enabled
+        }
+      }
     }),
   ]
 
