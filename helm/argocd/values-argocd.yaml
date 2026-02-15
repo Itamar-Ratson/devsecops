@@ -65,7 +65,7 @@ argo-cd:
     resources:
       limits:
         cpu: "1"
-        memory: 1024Mi  # Trimmed: 542Mi actual, was 1536Mi
+        memory: 1536Mi  # Reverted: 542Mi steady-state but spikes >1Gi during monitoring app sync
       requests:
         cpu: 250m
         memory: 512Mi
