@@ -368,34 +368,12 @@ jobs:
           kind get kubeconfig --name on-prem > ~/.kube/config
           chmod 600 ~/.kube/config
 
-      - name: Wait for Cilium and cluster networking
+      - name: Deploy cluster-wide network policies
         run: |
-          echo "=== Waiting for Cilium pods ==="
-          kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=cilium --timeout=300s
-          kubectl -n kube-system wait --for=condition=Ready pod -l app.kubernetes.io/name=cilium-operator --timeout=120s
-
-          echo "=== Waiting for CoreDNS rollout ==="
-          kubectl -n kube-system rollout status deployment coredns --timeout=300s
-
-          echo "=== Verifying API server connectivity from pods ==="
-          for i in $(seq 1 30); do
-            if kubectl run --rm -i --restart=Never --image=curlimages/curl:8.11.0 api-check-$i -- \
-              curl -sSk --max-time 10 https://kubernetes.default.svc/version 2>/dev/null; then
-              echo ""
-              echo "API server reachable from pods"
-              break
-            fi
-            echo "Attempt $i/30: API server not reachable yet, waiting 10s..."
-            kubectl delete pod api-check-$i --ignore-not-found 2>/dev/null || true
-            sleep 10
-            if [ "$i" -eq 30 ]; then
-              echo "FATAL: API server not reachable from pods after 5 minutes"
-              kubectl -n kube-system get pods -o wide
-              kubectl -n kube-system logs -l k8s-app=cilium --tail=50
-              kubectl -n kube-system logs -l k8s-app=kube-dns --tail=50
-              exit 1
-            fi
-          done
+          helm upgrade --install network-policies helm/network-policies/ \
+            -n kube-system \
+            -f helm/ports.yaml \
+            --timeout 2m
 
       - name: Install Argo Rollouts
         run: |
@@ -517,34 +495,12 @@ jobs:
           kind get kubeconfig --name on-prem > ~/.kube/config
           chmod 600 ~/.kube/config
 
-      - name: Wait for Cilium and cluster networking
+      - name: Deploy cluster-wide network policies
         run: |
-          echo "=== Waiting for Cilium pods ==="
-          kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=cilium --timeout=300s
-          kubectl -n kube-system wait --for=condition=Ready pod -l app.kubernetes.io/name=cilium-operator --timeout=120s
-
-          echo "=== Waiting for CoreDNS rollout ==="
-          kubectl -n kube-system rollout status deployment coredns --timeout=300s
-
-          echo "=== Verifying API server connectivity from pods ==="
-          for i in $(seq 1 30); do
-            if kubectl run --rm -i --restart=Never --image=curlimages/curl:8.11.0 api-check-$i -- \
-              curl -sSk --max-time 10 https://kubernetes.default.svc/version 2>/dev/null; then
-              echo ""
-              echo "API server reachable from pods"
-              break
-            fi
-            echo "Attempt $i/30: API server not reachable yet, waiting 10s..."
-            kubectl delete pod api-check-$i --ignore-not-found 2>/dev/null || true
-            sleep 10
-            if [ "$i" -eq 30 ]; then
-              echo "FATAL: API server not reachable from pods after 5 minutes"
-              kubectl -n kube-system get pods -o wide
-              kubectl -n kube-system logs -l k8s-app=cilium --tail=50
-              kubectl -n kube-system logs -l k8s-app=kube-dns --tail=50
-              exit 1
-            fi
-          done
+          helm upgrade --install network-policies helm/network-policies/ \
+            -n kube-system \
+            -f helm/ports.yaml \
+            --timeout 2m
 
       - name: Install Argo Rollouts
         run: |
