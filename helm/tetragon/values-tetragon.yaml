@@ -25,14 +25,14 @@ tetragon:
         enabled: true
         labelsOverride: {}
 
-    # Resource limits - actual usage ~290Mi
+    # Resource limits - actual usage 335-405Mi (exceeds previous request)
     resources:
       limits:
         cpu: 300m
-        memory: 512Mi
+        memory: 768Mi
       requests:
         cpu: 50m
-        memory: 300Mi
+        memory: 384Mi
 
     # Enable policy filtering for namespace/pod-based policies
     enablePolicyFilter: true

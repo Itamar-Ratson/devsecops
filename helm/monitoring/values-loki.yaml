@@ -57,7 +57,7 @@ loki:
     resources:
       requests:
         cpu: 100m
-        memory: 768Mi  # Increased based on metrics (472Mi used, 728Mi max)
+        memory: 512Mi  # Right-sized: 424Mi actual, 728Mi max
       limits:
         cpu: 500m
         memory: 1Gi

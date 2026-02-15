@@ -45,10 +45,10 @@ trivy-operator:
   resources:
     requests:
       cpu: 100m
-      memory: 300Mi  # Increased from 128Mi - actual usage ~230Mi
+      memory: 224Mi  # Right-sized: 193Mi actual
     limits:
       cpu: 500m
-      memory: 512Mi
+      memory: 384Mi
 
   # Resources for scan jobs
   scanJob:

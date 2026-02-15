@@ -15,7 +15,7 @@ keycloakx:
       memory: 512Mi
     limits:
       cpu: "1"
-      memory: 1Gi
+      memory: 768Mi  # Trimmed: 491Mi actual, was 1Gi
 
   # Use embedded dev-file database for dev (no PostgreSQL dependency)
   database:

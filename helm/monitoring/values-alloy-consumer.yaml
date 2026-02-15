@@ -58,7 +58,7 @@ alloy-consumer:
   resources:
     requests:
       cpu: 50m
-      memory: 192Mi
+      memory: 128Mi  # Right-sized: ~80Mi actual
     limits:
       cpu: 300m
-      memory: 384Mi
+      memory: 256Mi

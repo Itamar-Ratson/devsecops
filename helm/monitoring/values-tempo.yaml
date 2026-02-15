@@ -14,8 +14,8 @@ tempo:
     # Disable multi-tenancy (not needed for local dev)
     multitenancyEnabled: false
 
-    # Memory ballast for stable GC performance (128MB for local dev)
-    memBallastSizeMbs: 128
+    # Memory ballast for stable GC performance (64MB for local dev)
+    memBallastSizeMbs: 64
 
     # Server configuration
     server:

@@ -6,10 +6,10 @@ argo-rollouts:
     resources:
       limits:
         cpu: 200m
-        memory: 256Mi
+        memory: 128Mi
       requests:
         cpu: 50m
-        memory: 128Mi
+        memory: 64Mi  # Right-sized: ~30Mi actual
 
     # Enable metrics for Prometheus
     metrics:
