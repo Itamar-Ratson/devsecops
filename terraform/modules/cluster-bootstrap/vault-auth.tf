@@ -25,7 +25,7 @@ resource "kubernetes_secret_v1" "vault_auth_token" {
   depends_on = [kubernetes_service_account_v1.vault_auth]
 }
 
-resource "kubernetes_cluster_role_binding" "vault_auth_tokenreview" {
+resource "kubernetes_cluster_role_binding_v1" "vault_auth_tokenreview" {
   metadata {
     name = "vault-auth-tokenreview"
   }
