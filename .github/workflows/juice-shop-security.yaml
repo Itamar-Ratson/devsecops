@@ -374,22 +374,24 @@ jobs:
           kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=cilium --timeout=300s
           kubectl -n kube-system wait --for=condition=Ready pod -l app.kubernetes.io/name=cilium-operator --timeout=120s
 
-          echo "=== Verifying cluster DNS ==="
-          kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=kube-dns --timeout=120s
+          echo "=== Waiting for CoreDNS rollout ==="
+          kubectl -n kube-system rollout status deployment coredns --timeout=300s
 
           echo "=== Verifying API server connectivity from pods ==="
           for i in $(seq 1 30); do
             if kubectl run --rm -i --restart=Never --image=busybox:1.36 api-check-$i -- \
-              wget -q -O - --timeout=5 https://kubernetes.default.svc/version --no-check-certificate 2>/dev/null; then
+              wget -q -O - --timeout=10 https://kubernetes.default.svc/version --no-check-certificate 2>/dev/null; then
               echo "API server reachable from pods"
               break
             fi
             echo "Attempt $i/30: API server not reachable yet, waiting 10s..."
+            kubectl delete pod api-check-$i --ignore-not-found 2>/dev/null || true
             sleep 10
             if [ "$i" -eq 30 ]; then
               echo "FATAL: API server not reachable from pods after 5 minutes"
               kubectl -n kube-system get pods -o wide
               kubectl -n kube-system logs -l k8s-app=cilium --tail=50
+              kubectl -n kube-system logs -l k8s-app=kube-dns --tail=50
               exit 1
             fi
           done
@@ -520,22 +522,24 @@ jobs:
           kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=cilium --timeout=300s
           kubectl -n kube-system wait --for=condition=Ready pod -l app.kubernetes.io/name=cilium-operator --timeout=120s
 
-          echo "=== Verifying cluster DNS ==="
-          kubectl -n kube-system wait --for=condition=Ready pod -l k8s-app=kube-dns --timeout=120s
+          echo "=== Waiting for CoreDNS rollout ==="
+          kubectl -n kube-system rollout status deployment coredns --timeout=300s
 
           echo "=== Verifying API server connectivity from pods ==="
           for i in $(seq 1 30); do
             if kubectl run --rm -i --restart=Never --image=busybox:1.36 api-check-$i -- \
-              wget -q -O - --timeout=5 https://kubernetes.default.svc/version --no-check-certificate 2>/dev/null; then
+              wget -q -O - --timeout=10 https://kubernetes.default.svc/version --no-check-certificate 2>/dev/null; then
               echo "API server reachable from pods"
               break
             fi
             echo "Attempt $i/30: API server not reachable yet, waiting 10s..."
+            kubectl delete pod api-check-$i --ignore-not-found 2>/dev/null || true
             sleep 10
             if [ "$i" -eq 30 ]; then
               echo "FATAL: API server not reachable from pods after 5 minutes"
               kubectl -n kube-system get pods -o wide
               kubectl -n kube-system logs -l k8s-app=cilium --tail=50
+              kubectl -n kube-system logs -l k8s-app=kube-dns --tail=50
               exit 1
             fi
           done
