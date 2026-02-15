@@ -27,7 +27,7 @@ variable "helm_values_dir" {
 }
 
 variable "git_repo_url" {
-  description = "Git repository URL (SSH format)"
+  description = "Git repository URL (SSH or HTTPS)"
   type        = string
 }
 
@@ -57,6 +57,12 @@ variable "vault_cluster_ip" {
 variable "cache_cluster_ip" {
   description = "Registry cache IP on the KinD Docker network"
   type        = string
+}
+
+variable "create_deploy_key" {
+  description = "Create GitHub deploy key and SSH repo credentials (set false in CI)"
+  type        = bool
+  default     = true
 }
 
 variable "juice_shop_enabled" {

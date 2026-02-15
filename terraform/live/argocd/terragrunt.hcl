@@ -49,6 +49,6 @@ inputs = {
   vault_cluster_ip       = dependency.kind_cluster.outputs.vault_cluster_ip
   cache_cluster_ip       = dependency.kind_cluster.outputs.cache_cluster_ip
   helm_values_dir        = "${get_repo_root()}/helm"
-  # git_repo_url, github_token, argocd_oidc_client_secret
+  # git_repo_url, argocd_oidc_client_secret
   # — loaded from secrets.tfvars via root extra_arguments
 }

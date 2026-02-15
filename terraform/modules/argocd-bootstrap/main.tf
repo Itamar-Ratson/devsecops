@@ -1,7 +1,10 @@
 locals {
-  git_url_parts = regex("git@github\\.com:([^/]+)/([^.]+)(?:\\.git)?$", var.git_repo_url)
-  github_owner  = local.git_url_parts[0]
-  github_repo   = local.git_url_parts[1]
+  git_url_parts = try(
+    regex("git@github\\.com:([^/]+)/([^.]+)(?:\\.git)?$", var.git_repo_url),
+    regex("https://github\\.com/([^/]+)/([^/.]+?)(?:\\.git)?$", var.git_repo_url),
+  )
+  github_owner = local.git_url_parts[0]
+  github_repo  = local.git_url_parts[1]
 }
 
 provider "github" {

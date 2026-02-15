@@ -49,24 +49,29 @@ resource "kubernetes_secret_v1" "vault_transit_token" {
 
 # ============================================================================
 # ArgoCD Deploy Key (auto-generated + registered on GitHub)
+# Skipped in CI (create_deploy_key = false) — public repo uses HTTPS.
 # ============================================================================
 resource "tls_private_key" "argocd_deploy_key" {
+  count     = var.create_deploy_key ? 1 : 0
   algorithm = "ED25519"
 }
 
 resource "github_repository_deploy_key" "argocd" {
+  count      = var.create_deploy_key ? 1 : 0
   title      = "ArgoCD (Terraform-managed)"
   repository = local.github_repo
-  key        = tls_private_key.argocd_deploy_key.public_key_openssh
+  key        = tls_private_key.argocd_deploy_key[0].public_key_openssh
   read_only  = true
 }
 
 # ============================================================================
-# ArgoCD Repository Credentials
-# Plain K8s Secret with ArgoCD label — no need for SealedSecret since
-# Terraform manages this (not stored in git, encrypted in HCP Terraform state)
+# ArgoCD Repository Credentials (SSH — local only)
+# In CI (create_deploy_key = false), repo is public so ArgoCD clones via
+# HTTPS without credentials.
 # ============================================================================
 resource "kubernetes_secret_v1" "argocd_repo_creds" {
+  count = var.create_deploy_key ? 1 : 0
+
   metadata {
     name      = "argocd-repo-creds"
     namespace = kubernetes_namespace_v1.argocd.metadata[0].name
@@ -78,7 +83,7 @@ resource "kubernetes_secret_v1" "argocd_repo_creds" {
   data = {
     type          = "git"
     url           = var.git_repo_url
-    sshPrivateKey = tls_private_key.argocd_deploy_key.private_key_openssh
+    sshPrivateKey = tls_private_key.argocd_deploy_key[0].private_key_openssh
   }
 }
 

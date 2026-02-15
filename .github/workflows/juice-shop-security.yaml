@@ -348,9 +348,10 @@ jobs:
         run: |
           cat > terraform/live/secrets.tfvars << EOF
           vault_root_token          = "ci-test-token"
-          git_repo_url              = "git@github.com:${{ github.repository }}.git"
-          github_token              = "${{ secrets.ARGOCD_GITHUB_TOKEN }}"
+          git_repo_url              = "https://github.com/${{ github.repository }}"
+          github_token              = "unused"
           argocd_oidc_client_secret = "ci-dummy-oidc-secret"
+          create_deploy_key         = false
           juice_shop_enabled        = true
           EOF
 
@@ -464,9 +465,10 @@ jobs:
         run: |
           cat > terraform/live/secrets.tfvars << EOF
           vault_root_token          = "ci-test-token"
-          git_repo_url              = "git@github.com:${{ github.repository }}.git"
-          github_token              = "${{ secrets.ARGOCD_GITHUB_TOKEN }}"
+          git_repo_url              = "https://github.com/${{ github.repository }}"
+          github_token              = "unused"
           argocd_oidc_client_secret = "ci-dummy-oidc-secret"
+          create_deploy_key         = false
           juice_shop_enabled        = true
           EOF
 
