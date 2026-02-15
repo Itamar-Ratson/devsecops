@@ -31,12 +31,15 @@ resource "vault_policy" "vso_reader" {
   EOT
 }
 
-# Role for VSO — only the controller SA in its own namespace
+# Role for VSO — default SA from namespaces that need secrets
+# Note: VSO resolves serviceAccount in VaultStaticSecret's namespace (not its own),
+# so we must use "default" SA. automountServiceAccountToken: false on workloads
+# prevents pods from exploiting this token.
 resource "vault_kubernetes_auth_backend_role" "vso" {
   backend                          = vault_auth_backend.kubernetes.path
   role_name                        = "vso"
-  bound_service_account_names      = ["vault-secrets-operator-controller-manager"]
-  bound_service_account_namespaces = ["vault-secrets-operator"]
+  bound_service_account_names      = ["default"]
+  bound_service_account_namespaces = var.vso_allowed_namespaces
   token_policies                   = [vault_policy.vso_reader.name]
   token_ttl                        = 3600
 }
