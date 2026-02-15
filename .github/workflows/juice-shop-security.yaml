@@ -420,6 +420,17 @@ jobs:
           kubectl get all -n juice-shop -o yaml > /tmp/deployment-state.yaml 2>/dev/null || true
           kubectl logs -n juice-shop -l app=juice-shop --tail=100 > /tmp/app-logs.txt 2>/dev/null || true
 
+      - name: Pre-destroy cleanup
+        if: always()
+        run: |
+          echo "Stripping ArgoCD finalizers to prevent destroy hangs..."
+          kubectl delete applications -n argocd --all --wait=false 2>/dev/null || true
+          kubectl get applications -n argocd -o name 2>/dev/null | \
+            xargs -r -I{} kubectl patch {} -n argocd \
+              --type merge -p '{"metadata":{"finalizers":null}}' 2>/dev/null || true
+          kubectl scale deploy --all -n argocd --replicas=0 --timeout=30s 2>/dev/null || true
+          kubectl delete pods -n argocd --all --force --grace-period=0 2>/dev/null || true
+
       - name: Destroy infrastructure
         if: always()
         run: |
@@ -556,6 +567,17 @@ jobs:
           cmd_options: '-a -j -l WARN -T 60'
           allow_issue_writing: false
           artifact_name: 'zap-full-report'
+
+      - name: Pre-destroy cleanup
+        if: always()
+        run: |
+          echo "Stripping ArgoCD finalizers to prevent destroy hangs..."
+          kubectl delete applications -n argocd --all --wait=false 2>/dev/null || true
+          kubectl get applications -n argocd -o name 2>/dev/null | \
+            xargs -r -I{} kubectl patch {} -n argocd \
+              --type merge -p '{"metadata":{"finalizers":null}}' 2>/dev/null || true
+          kubectl scale deploy --all -n argocd --replicas=0 --timeout=30s 2>/dev/null || true
+          kubectl delete pods -n argocd --all --force --grace-period=0 2>/dev/null || true
 
       - name: Destroy infrastructure
         if: always()
