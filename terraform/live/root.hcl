@@ -1,5 +1,5 @@
 # Root Terragrunt configuration
-# Configures backend, secrets, and terrascan for all modules
+# Configures backend, CI auto-approve, and terrascan for all modules
 
 locals {
   project_name   = "devsecops"
@@ -33,16 +33,7 @@ generate "backend" {
   contents  = local.is_ci ? local.ci_backend : local.hcp_backend
 }
 
-# Load secrets.tfvars for all terraform commands that accept variables
 terraform {
-  extra_arguments "secrets" {
-    commands = get_terraform_commands_that_need_vars()
-
-    optional_var_files = [
-      "${get_repo_root()}/terraform/live/secrets.tfvars"
-    ]
-  }
-
   # Auto-approve in CI (local backend requires explicit -auto-approve)
   extra_arguments "ci_auto_approve" {
     commands  = ["apply", "destroy"]

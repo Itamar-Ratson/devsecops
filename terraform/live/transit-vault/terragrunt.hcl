@@ -1,5 +1,13 @@
 terraform {
   source = "../../modules/transit-vault"
+
+  extra_arguments "secrets" {
+    commands = get_terraform_commands_that_need_vars()
+
+    optional_var_files = [
+      "${get_repo_root()}/terraform/live/secrets.tfvars"
+    ]
+  }
 }
 
 include "root" {

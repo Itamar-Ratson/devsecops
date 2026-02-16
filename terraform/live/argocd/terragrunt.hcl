@@ -1,5 +1,13 @@
 terraform {
   source = "../../modules/argocd-bootstrap"
+
+  extra_arguments "secrets" {
+    commands = get_terraform_commands_that_need_vars()
+
+    optional_var_files = [
+      "${get_repo_root()}/terraform/live/secrets.tfvars"
+    ]
+  }
 }
 
 include "root" {
@@ -49,6 +57,6 @@ inputs = {
   vault_cluster_ip       = dependency.kind_cluster.outputs.vault_cluster_ip
   cache_cluster_ip       = dependency.kind_cluster.outputs.cache_cluster_ip
   helm_values_dir        = "${get_repo_root()}/helm"
-  # git_repo_url, argocd_oidc_client_secret
-  # — loaded from secrets.tfvars via root extra_arguments
+  # git_repo_url, github_token, argocd_oidc_client_secret
+  # — loaded from secrets.tfvars via extra_arguments above
 }
