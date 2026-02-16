@@ -14,9 +14,11 @@ include "root" {
 }
 
 # Preserve the image cache across destroy/apply cycles.
-# To destroy explicitly: cd terraform/live/registry-cache && terragrunt destroy --non-interactive
+# get_original_terragrunt_dir() is broken in Terragrunt v0.99 run --all
+# (returns module dir instead of invocation dir), so use env var toggle.
+# To destroy explicitly: DESTROY_REGISTRY_CACHE=1 terragrunt run -- destroy --non-interactive
 exclude {
-  if      = get_terragrunt_dir() != get_original_terragrunt_dir()
+  if      = get_env("DESTROY_REGISTRY_CACHE", "") == ""
   actions = ["destroy"]
 }
 
