@@ -65,7 +65,7 @@ argo-cd:
     resources:
       limits:
         cpu: "1"
-        memory: 1536Mi  # Reverted: 542Mi steady-state but spikes >1Gi during monitoring app sync
+        memory: 2Gi  # OOMKilled at 1536Mi during initial sync storm (19 apps)
       requests:
         cpu: 250m
         memory: 512Mi
