@@ -311,7 +311,7 @@ jobs:
 
       - name: Validate Terraform modules
         run: |
-          for module in terraform/modules/*/; do
+          for module in $(find terraform/modules -name "*.tf" -not -path "*/.terraform/*" -exec dirname {} \; | sort -u); do
             echo "=== Validating $module ==="
             terraform -chdir="$module" init -backend=false
             terraform -chdir="$module" validate
@@ -372,7 +372,7 @@ jobs:
           terragrunt run --all apply --non-interactive \
             --filter '!hcp-workspaces' \
             --filter '!vault-config' \
-            --filter '!registry-cache-warm'
+            --filter '!registry/warm'
         timeout-minutes: 20
 
       - name: Configure kubectl
@@ -471,7 +471,7 @@ jobs:
           terragrunt run --all destroy --non-interactive \
             --filter '!hcp-workspaces' \
             --filter '!vault-config' \
-            --filter '!registry-cache-warm'
+            --filter '!registry/warm'
         timeout-minutes: 10
 
       - name: Upload deployment artifacts

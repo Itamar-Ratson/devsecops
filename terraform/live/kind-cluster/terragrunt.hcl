@@ -18,7 +18,7 @@ dependency "transit_vault" {
 }
 
 dependency "registry_cache" {
-  config_path = "../registry-cache"
+  config_path = "../registry/cache"
 
   mock_outputs = {
     container_name = "registry-cache"

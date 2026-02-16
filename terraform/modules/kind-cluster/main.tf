@@ -124,7 +124,7 @@ resource "null_resource" "connect_cache_to_kind" {
 # Configure containerd on each KinD node to use Zot as a pull-through mirror.
 # Zot runs as a plain registry (no on-demand sync), so uncached images get a
 # fast 404 and containerd falls back to the upstream registry instantly.
-# Run the registry-cache-warm module after a successful apply to populate the cache.
+# Run the registry/warm module after a successful apply to populate the cache.
 resource "null_resource" "configure_registry_mirrors" {
   depends_on = [null_resource.connect_cache_to_kind]
 

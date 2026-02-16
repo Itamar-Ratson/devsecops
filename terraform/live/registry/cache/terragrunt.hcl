@@ -1,5 +1,5 @@
 terraform {
-  source = "../../modules/registry-cache"
+  source = "../../../modules/registry/cache"
 
   # Cloud backend doesn't auto-approve with --non-interactive,
   # so pass -auto-approve explicitly for apply/destroy.
@@ -14,7 +14,7 @@ include "root" {
 }
 
 dependency "hcp_workspaces" {
-  config_path = "../hcp-workspaces"
+  config_path = "../../hcp-workspaces"
   mock_outputs = {
     workspace_ids = {}
   }
@@ -25,7 +25,7 @@ dependency "hcp_workspaces" {
 # Serialize after transit-vault to avoid plugin cache race condition
 # (both modules use kreuzwerker/docker provider)
 dependency "transit_vault" {
-  config_path = "../transit-vault"
+  config_path = "../../transit-vault"
   mock_outputs = {
     container_name = "vault-transit"
     container_id   = "mock-id"

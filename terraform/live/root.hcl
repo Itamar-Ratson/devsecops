@@ -2,9 +2,10 @@
 # Configures backend, secrets, and terrascan for all modules
 
 locals {
-  project_name = "devsecops"
-  hcp_org_name = "itamar-ratson-hcp-org"
-  is_ci        = get_env("CI", "") != ""
+  project_name   = "devsecops"
+  hcp_org_name   = "itamar-ratson-hcp-org"
+  is_ci          = get_env("CI", "") != ""
+  workspace_name = replace(path_relative_to_include(), "/", "-")
 
   ci_backend = <<-EOF
     terraform {
@@ -18,7 +19,7 @@ locals {
         organization = "${local.hcp_org_name}"
 
         workspaces {
-          name = "${local.project_name}-${path_relative_to_include()}"
+          name = "${local.project_name}-${local.workspace_name}"
         }
       }
     }
@@ -38,7 +39,7 @@ terraform {
     commands = get_terraform_commands_that_need_vars()
 
     optional_var_files = [
-      "${get_terragrunt_dir()}/../secrets.tfvars"
+      "${get_repo_root()}/terraform/live/secrets.tfvars"
     ]
   }
 

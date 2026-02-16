@@ -1,5 +1,5 @@
 terraform {
-  source = "../../modules/registry-cache-warm"
+  source = "../../../modules/registry/warm"
 }
 
 include "root" {
@@ -7,7 +7,7 @@ include "root" {
 }
 
 dependency "hcp_workspaces" {
-  config_path = "../hcp-workspaces"
+  config_path = "../../hcp-workspaces"
   mock_outputs = {
     workspace_ids = {}
   }
@@ -16,7 +16,7 @@ dependency "hcp_workspaces" {
 }
 
 dependency "kind_cluster" {
-  config_path = "../kind-cluster"
+  config_path = "../../kind-cluster"
   mock_outputs = {
     cluster_name = "on-prem"
   }
@@ -25,7 +25,7 @@ dependency "kind_cluster" {
 }
 
 dependency "argocd" {
-  config_path = "../argocd"
+  config_path = "../../argocd"
   mock_outputs = {
     argocd_namespace = "argocd"
   }
