@@ -13,15 +13,6 @@ include "root" {
   path = find_in_parent_folders("root.hcl")
 }
 
-# Preserve the image cache across destroy/apply cycles.
-# get_original_terragrunt_dir() is broken in Terragrunt v0.99 run --all
-# (returns module dir instead of invocation dir), so use env var toggle.
-# To destroy explicitly: DESTROY_REGISTRY_CACHE=1 terragrunt run -- destroy --non-interactive
-exclude {
-  if      = get_env("DESTROY_REGISTRY_CACHE", "") == ""
-  actions = ["destroy"]
-}
-
 dependency "hcp_workspaces" {
   config_path = "../hcp-workspaces"
   mock_outputs = {

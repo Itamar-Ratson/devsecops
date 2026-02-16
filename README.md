@@ -149,9 +149,8 @@ The following components are disabled to fit within 16GB RAM. Code is preserved 
 cd terraform/live && terragrunt run --all destroy --non-interactive
 ```
 
-> **Note:** The registry cache is excluded from `run --all destroy` to preserve cached images across rebuild cycles. To destroy everything including the cache:
+> **Tip:** To preserve the registry cache across rebuild cycles:
 >
 > ```bash
-> cd terraform/live/registry-cache && DESTROY_REGISTRY_CACHE=1 terragrunt destroy --non-interactive
-> cd terraform/live && terragrunt run --all destroy --non-interactive
+> cd terraform/live && terragrunt run --all --queue-exclude-dir registry-cache --queue-exclude-dir registry-cache-warm -- destroy --non-interactive
 > ```
