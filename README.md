@@ -99,16 +99,17 @@ Edit `terraform/live/secrets.tfvars` with:
 | `argocd_admin.server_secret_key` | `openssl rand -base64 32` |
 | `alertmanager_webhooks` (optional) | PagerDuty/Slack webhook URLs |
 
-| Wave | Components |
-|------|------------|
-| 0 | ArgoCD (self-managed) |
-| 1 | cert-manager |
-| 2 | trust-manager, Tetragon, Kyverno, Trivy, Sealed-Secrets, Strimzi, Network-policies |
-| 3 | Kyverno-policies, Vault-Secrets-Operator, Kafka |
-| 4 | Vault, Gateway, Kafka-UI, Argo-Rollouts |
-| 5 | Keycloak, http-echo, juice-shop |
-| 6 | Monitoring, kube-oidc-proxy |
-| 7 | Headlamp |
+| Wave | Role | Components |
+|------|------|------------|
+| 0 | Self-management | ArgoCD |
+| 1 | Security: enforcement | Network-policies, Kyverno, Tetragon, Trivy |
+| 2 | Security: policies | Kyverno-policies |
+| 3 | Infrastructure foundations | cert-manager, VSO, Sealed-Secrets, Argo-Rollouts, Strimzi |
+| 4 | Infrastructure services | trust-manager, Gateway, Kafka |
+| 5 | Identity & secrets | Keycloak, Vault |
+| 6 | OIDC proxy | kube-oidc-proxy |
+| 7 | Observability | Monitoring, Kafka-UI, Headlamp |
+| 8 | Demo apps | http-echo, juice-shop |
 
 ## Access URLs
 
@@ -151,6 +152,6 @@ cd terraform/live && terragrunt run --all destroy --non-interactive
 > **Note:** The registry cache is excluded from `run --all destroy` to preserve cached images across rebuild cycles. To destroy everything including the cache:
 >
 > ```bash
-> cd terraform/live/registry-cache && DESTROY_REGISTRY_CACHE=1 terragrunt run -- destroy --non-interactive
+> cd terraform/live/registry-cache && DESTROY_REGISTRY_CACHE=1 terragrunt destroy --non-interactive
 > cd terraform/live && terragrunt run --all destroy --non-interactive
 > ```
