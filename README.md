@@ -152,5 +152,5 @@ cd terraform/live && terragrunt run --all destroy --non-interactive
 > **Tip:** To preserve the registry cache across rebuild cycles:
 >
 > ```bash
-> cd terraform/live && terragrunt run --all --queue-exclude-dir registry-cache --queue-exclude-dir registry-cache-warm -- destroy --non-interactive
+> cd terraform/live && terragrunt run --all --queue-exclude-dir registry-cache --queue-exclude-dir registry-cache-warm --non-interactive -- destroy 
 > ```
