@@ -21,6 +21,9 @@ spec:
         - ../ports.yaml
         - values.yaml
         - values-argocd.yaml
+      parameters:
+        - name: gitops.repoURL
+          value: "{{ .Values.gitops.repoURL }}"
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
