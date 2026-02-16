@@ -1,4 +1,5 @@
-# Wave 5: Identity - Keycloak OIDC/SSO Provider (after VSO for VaultStaticSecret CRDs)
+# Wave 5 — Identity & secrets: Keycloak OIDC/SSO provider
+# Dependencies: VSO (wave 3), gateway (wave 4)
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application

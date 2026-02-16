@@ -1,3 +1,5 @@
+# Wave 6 — OIDC proxy: kube-oidc-proxy
+# Dependencies: keycloak (wave 5)
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application

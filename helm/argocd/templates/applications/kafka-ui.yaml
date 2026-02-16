@@ -1,4 +1,5 @@
-# Wave 4: Kafka UI (depends on Kafka)
+# Wave 7 — Observability: Kafka UI
+# Dependencies: kafka (wave 4), gateway (wave 4)
 {{- if and .Values.gitops.enabled .Values.applications.kafkaUi.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -6,7 +7,7 @@ metadata:
   name: kafka-ui
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "7"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

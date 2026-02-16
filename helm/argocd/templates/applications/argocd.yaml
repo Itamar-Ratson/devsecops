@@ -1,4 +1,5 @@
-# Wave 0: ArgoCD Self-Management
+# Wave 0 — Self-management: ArgoCD
+# Dependencies: none
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application

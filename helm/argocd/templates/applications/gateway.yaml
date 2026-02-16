@@ -1,4 +1,5 @@
-# Wave 4: Gateway API (depends on cert-manager)
+# Wave 4 — Infrastructure services: Gateway API
+# Dependencies: cert-manager (wave 3)
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -37,5 +38,4 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
-      - SkipHealthCheck=true
 {{- end }}

@@ -1,4 +1,5 @@
-# Wave 3: Messaging - Kafka cluster (depends on Strimzi)
+# Wave 4 — Infrastructure services: Kafka cluster
+# Dependencies: strimzi-operator (wave 3)
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -6,7 +7,7 @@ metadata:
   name: kafka
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "4"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

@@ -1,4 +1,5 @@
-# Wave 2: Network - Cilium network policies
+# Wave 1 — Security: enforcement — Cilium network policies
+# Dependencies: none (Cilium CRDs pre-installed by Terraform)
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -6,7 +7,7 @@ metadata:
   name: network-policies
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "1"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

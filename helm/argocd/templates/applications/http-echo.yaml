@@ -1,4 +1,5 @@
-# Wave 5: Demo app - HTTP Echo
+# Wave 8 — Demo apps: HTTP Echo
+# Dependencies: gateway (wave 4), argo-rollouts (wave 3)
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -6,7 +7,7 @@ metadata:
   name: http-echo
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "8"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

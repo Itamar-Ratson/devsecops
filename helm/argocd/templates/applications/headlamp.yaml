@@ -1,4 +1,5 @@
-# Wave 7: Headlamp (multi-cluster Kubernetes dashboard, after kube-oidc-proxy)
+# Wave 7 — Observability: Headlamp Kubernetes dashboard
+# Dependencies: kube-oidc-proxy (wave 6), trust-manager (wave 4)
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application

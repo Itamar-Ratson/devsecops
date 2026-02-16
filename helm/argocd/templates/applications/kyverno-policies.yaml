@@ -1,4 +1,5 @@
-# Wave 3: Kyverno policies (depends on Kyverno)
+# Wave 2 — Security: policies — Kyverno policies
+# Dependencies: kyverno (wave 1)
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -6,7 +7,7 @@ metadata:
   name: kyverno-policies
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "2"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
