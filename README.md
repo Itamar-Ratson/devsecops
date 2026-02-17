@@ -138,10 +138,10 @@ The following components are disabled to fit within 16GB RAM. Code is preserved 
 
 | Component | File | How to Re-enable |
 |-----------|------|------------------|
-| Kafka UI | `helm/argocd/values.yaml` | `applications.kafkaUi.enabled: true` |
-| Juice Shop | `helm/argocd/values.yaml` | `applications.juiceShop.enabled: true` |
-| Loki chunks cache | `helm/monitoring/values-loki.yaml` | `chunksCache.enabled: true` + uncomment resources |
-| Loki results cache | `helm/monitoring/values-loki.yaml` | `resultsCache.enabled: true` + uncomment resources |
+| Kafka UI | `helm/argo/cd/values.yaml` | `applications.kafkaUi.enabled: true` |
+| Juice Shop | `helm/argo/cd/values.yaml` | `applications.juiceShop.enabled: true` |
+| Loki chunks cache | `helm/observability/monitoring/values-loki.yaml` | `chunksCache.enabled: true` + uncomment resources |
+| Loki results cache | `helm/observability/monitoring/values-loki.yaml` | `resultsCache.enabled: true` + uncomment resources |
 
 ## Cleanup
 
