@@ -391,9 +391,9 @@ jobs:
 
       - name: Warm Zot cache from GHCR
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PACKAGES_PAT }}
         run: |
-          echo "$GH_TOKEN" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
           ./.github/scripts/ci-warm-zot.sh
 
       - name: Wait for ArgoCD sync
@@ -457,9 +457,9 @@ jobs:
       - name: Save images to GHCR cache
         if: always()
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PACKAGES_PAT }}
         run: |
-          echo "$GH_TOKEN" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
           ./.github/scripts/ci-save-images.sh
 
       # --- Cleanup ---

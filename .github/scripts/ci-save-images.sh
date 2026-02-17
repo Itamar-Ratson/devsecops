@@ -39,8 +39,7 @@ done
 echo "Push complete. $(wc -l < "$PUSHED_FILE") images cached."
 
 # --- Phase 2: Clean up stale images ---
-# /user/packages requires a user token; GITHUB_TOKEN is a repo installation
-# token, so use /users/{owner}/packages instead.
+# Uses GH_TOKEN (PAT with read:packages + delete:packages) set by the workflow.
 echo "Cleaning stale images from GHCR..."
 OWNER="${GITHUB_REPOSITORY_OWNER}"
 MIRROR_PREFIX="devsecops/mirror/"

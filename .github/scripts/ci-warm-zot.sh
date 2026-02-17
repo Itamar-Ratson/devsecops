@@ -11,8 +11,7 @@ MIRROR_PREFIX="devsecops/mirror/"
 ZOT="${ZOT:-localhost:5050}"
 
 # List all mirror packages via GitHub API
-# /user/packages requires a user token; GITHUB_TOKEN is a repo installation
-# token, so use /users/{owner}/packages instead.
+# Uses GH_TOKEN (PAT with read:packages) set by the workflow.
 PACKAGES=$(gh api "/users/${OWNER}/packages?package_type=container&per_page=100" -q '.[].name' \
   | grep "^${MIRROR_PREFIX}" || true)
 
