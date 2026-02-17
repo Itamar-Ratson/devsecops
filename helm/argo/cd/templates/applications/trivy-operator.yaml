@@ -15,10 +15,10 @@ spec:
   source:
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/trivy-operator
+    path: helm/security/trivy-operator
     helm:
       valueFiles:
-        - ../ports.yaml
+        - ../../ports.yaml
         - values.yaml
   destination:
     server: https://kubernetes.default.svc

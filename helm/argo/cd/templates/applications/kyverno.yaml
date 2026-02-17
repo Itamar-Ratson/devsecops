@@ -15,10 +15,10 @@ spec:
   source:
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/kyverno
+    path: helm/security/kyverno/engine
     helm:
       valueFiles:
-        - ../ports.yaml
+        - ../../../ports.yaml
         - values.yaml
         - values-kyverno.yaml
   destination:
