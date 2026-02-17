@@ -26,7 +26,7 @@ resource "local_sensitive_file" "kubeconfig" {
 resource "helm_release" "cilium" {
   name          = "cilium"
   namespace     = "kube-system"
-  chart         = "${var.helm_values_dir}/cilium"
+  chart         = "${var.helm_values_dir}/networking/cilium"
   wait          = true
   wait_for_jobs = true
   timeout       = 600

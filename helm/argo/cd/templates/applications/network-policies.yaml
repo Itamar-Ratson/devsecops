@@ -15,10 +15,10 @@ spec:
   source:
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/network-policies
+    path: helm/networking/policies
     helm:
       valueFiles:
-        - ../ports.yaml
+        - ../../ports.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
