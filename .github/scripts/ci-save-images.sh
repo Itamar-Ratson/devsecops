@@ -42,16 +42,21 @@ echo "Push complete. $(wc -l < "$PUSHED_FILE") images cached."
 echo "Cleaning stale images from GHCR..."
 MIRROR_PREFIX="devsecops/mirror/"
 
-gh api "/user/packages?package_type=container&per_page=100" --paginate -q '.[].name' \
-  | grep "^${MIRROR_PREFIX}" | while read -r pkg; do
-    # pkg = "devsecops/mirror/argoproj/argo-rollouts"
+PACKAGES=$(gh api "/user/packages?package_type=container&per_page=100" -q '.[].name')
+MIRROR_PKGS=$(echo "$PACKAGES" | grep "^${MIRROR_PREFIX}" || true)
+
+if [ -z "$MIRROR_PKGS" ]; then
+  echo "  No mirror packages found."
+else
+  echo "$MIRROR_PKGS" | while read -r pkg; do
     local_path="${pkg#"${MIRROR_PREFIX}"}"
     if ! grep -qF "$local_path" "$PUSHED_FILE" 2>/dev/null; then
       echo "  Deleting stale package: $pkg"
       encoded=$(printf '%s' "$pkg" | jq -sRr @uri)
-      gh api -X DELETE "/user/packages/container/${encoded}" 2>/dev/null || true
+      gh api -X DELETE "/user/packages/container/${encoded}"
     fi
-done
+  done
+fi
 
 rm -f "$PUSHED_FILE"
 echo "Cleanup complete."
