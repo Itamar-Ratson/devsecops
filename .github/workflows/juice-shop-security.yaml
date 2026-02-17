@@ -12,6 +12,7 @@ on:
       - 'helm/ports.yaml'
       - 'docker/juice-shop/**'
       - '.github/workflows/juice-shop-security.yaml'
+      - '.github/scripts/**'
       - '.github/zap/**'
       - 'terraform/modules/**'
       - 'terraform/live/**'
@@ -25,6 +26,7 @@ on:
       - 'helm/ports.yaml'
       - 'docker/juice-shop/**'
       - '.github/workflows/juice-shop-security.yaml'
+      - '.github/scripts/**'
       - '.github/zap/**'
       - 'terraform/modules/**'
       - 'terraform/live/**'
@@ -343,6 +345,12 @@ jobs:
         with:
           version: 'v3.14.0'
 
+      - name: Install crane
+        run: |
+          curl -sL "https://github.com/google/go-containerregistry/releases/download/v0.20.2/go-containerregistry_Linux_x86_64.tar.gz" \
+            | tar -xzf - crane
+          sudo mv crane /usr/local/bin/
+
       - name: Create CI secrets
         run: |
           cat > terraform/live/secrets.tfvars << 'EOF'
@@ -380,6 +388,11 @@ jobs:
           mkdir -p ~/.kube
           kind get kubeconfig --name on-prem > ~/.kube/config
           chmod 600 ~/.kube/config
+
+      - name: Warm Zot cache from GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
+          ./.github/scripts/ci-warm-zot.sh
 
       - name: Wait for ArgoCD sync
         run: |
@@ -437,6 +450,13 @@ jobs:
           cmd_options: '-a -j -l WARN -T 60'
           allow_issue_writing: false
           artifact_name: 'zap-full-report'
+
+      # --- Cache images for next run ---
+      - name: Save images to GHCR cache
+        if: always()
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
+          ./.github/scripts/ci-save-images.sh
 
       # --- Cleanup ---
       - name: Export deployment artifacts
