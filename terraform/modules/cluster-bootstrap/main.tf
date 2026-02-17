@@ -109,7 +109,7 @@ resource "helm_release" "sealed_secrets" {
   name             = "sealed-secrets"
   namespace        = "sealed-secrets"
   create_namespace = true
-  chart            = "${var.helm_values_dir}/sealed-secrets"
+  chart            = "${var.helm_values_dir}/secrets/sealed-secrets"
   wait             = true
   timeout          = 120
 
