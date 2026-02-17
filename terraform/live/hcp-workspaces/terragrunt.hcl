@@ -27,10 +27,10 @@ inputs = {
   workspace_names = [
     "registry-cache",
     "registry-warm",
-    "transit-vault",
-    "kind-cluster",
-    "cluster-bootstrap",
+    "vault-transit",
     "vault-config",
-    "argocd",
+    "k8s-kind",
+    "k8s-bootstrap-cluster",
+    "k8s-bootstrap-argocd",
   ]
 }

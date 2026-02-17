@@ -5,10 +5,10 @@ on:
   push:
     branches: [main]
     paths:
-      - 'helm/juice-shop/**'
-      - 'helm/argo-rollouts/**'
-      - 'helm/argocd/**'
-      - 'helm/network-policies/**'
+      - 'helm/apps/juice-shop/**'
+      - 'helm/argo/rollouts/**'
+      - 'helm/argo/cd/**'
+      - 'helm/networking/policies/**'
       - 'helm/ports.yaml'
       - 'docker/juice-shop/**'
       - '.github/workflows/juice-shop-security.yaml'
@@ -19,10 +19,10 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'helm/juice-shop/**'
-      - 'helm/argo-rollouts/**'
-      - 'helm/argocd/**'
-      - 'helm/network-policies/**'
+      - 'helm/apps/juice-shop/**'
+      - 'helm/argo/rollouts/**'
+      - 'helm/argo/cd/**'
+      - 'helm/networking/policies/**'
       - 'helm/ports.yaml'
       - 'docker/juice-shop/**'
       - '.github/workflows/juice-shop-security.yaml'
@@ -33,7 +33,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # Keep in sync with terraform/modules/cluster-bootstrap/variables.tf
+  # Keep in sync with terraform/modules/k8s/bootstrap/cluster/variables.tf
   GATEWAY_API_VERSION: v1.4.0
   CILIUM_VERSION: v1.18.5
 
@@ -211,7 +211,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'config'
-          scan-ref: 'helm/juice-shop/'
+          scan-ref: 'helm/apps/juice-shop/'
           format: 'table'
           severity: 'CRITICAL,HIGH,MEDIUM'
 
@@ -229,15 +229,15 @@ jobs:
 
       - name: Helm lint juice-shop chart
         run: |
-          helm lint helm/juice-shop/ \
+          helm lint helm/apps/juice-shop/ \
             -f helm/ports.yaml \
-            -f helm/juice-shop/values.yaml
+            -f helm/apps/juice-shop/values.yaml
 
       - name: Helm template validation
         run: |
-          helm template juice-shop helm/juice-shop/ \
+          helm template juice-shop helm/apps/juice-shop/ \
             -f helm/ports.yaml \
-            -f helm/juice-shop/values.yaml \
+            -f helm/apps/juice-shop/values.yaml \
             --namespace juice-shop \
             > /tmp/rendered.yaml
           cat /tmp/rendered.yaml
@@ -270,9 +270,9 @@ jobs:
 
       - name: Render Helm templates
         run: |
-          helm template juice-shop helm/juice-shop/ \
+          helm template juice-shop helm/apps/juice-shop/ \
             -f helm/ports.yaml \
-            -f helm/juice-shop/values.yaml \
+            -f helm/apps/juice-shop/values.yaml \
             --namespace juice-shop \
             > /tmp/juice-shop-rendered.yaml
 
@@ -356,7 +356,7 @@ jobs:
           cat > terraform/live/secrets.tfvars << 'EOF'
           vault_root_token = "ci-test-token"
           EOF
-          cat > terraform/live/argocd/ci.auto.tfvars << EOF
+          cat > terraform/live/k8s/bootstrap/argocd/ci.auto.tfvars << EOF
           git_repo_url              = "https://github.com/${{ github.repository }}"
           github_token              = "unused"
           argocd_oidc_client_secret = "ci-dummy-oidc-secret"
@@ -370,16 +370,16 @@ jobs:
           helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
           helm repo add argo https://argoproj.github.io/argo-helm
           helm repo update
-          helm dependency build helm/cilium/
-          helm dependency build helm/sealed-secrets/
-          helm dependency build helm/argocd/
+          helm dependency build helm/networking/cilium/
+          helm dependency build helm/secrets/sealed-secrets/
+          helm dependency build helm/argo/cd/
 
       - name: Deploy infrastructure with Terragrunt
         run: |
           cd terraform/live
           terragrunt run --all apply --non-interactive \
             --filter '!hcp-workspaces' \
-            --filter '!vault-config' \
+            --filter '!vault/config' \
             --filter '!registry/warm'
         timeout-minutes: 20
 
@@ -494,7 +494,7 @@ jobs:
           cd terraform/live
           terragrunt run --all destroy --non-interactive \
             --filter '!hcp-workspaces' \
-            --filter '!vault-config' \
+            --filter '!vault/config' \
             --filter '!registry/warm'
         timeout-minutes: 10
 
