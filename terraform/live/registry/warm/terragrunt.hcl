@@ -16,7 +16,7 @@ dependency "hcp_workspaces" {
 }
 
 dependency "kind_cluster" {
-  config_path = "../../kind-cluster"
+  config_path = "../../k8s/kind"
   mock_outputs = {
     cluster_name = "on-prem"
   }
@@ -25,7 +25,7 @@ dependency "kind_cluster" {
 }
 
 dependency "argocd" {
-  config_path = "../../argocd"
+  config_path = "../../k8s/bootstrap/argocd"
   mock_outputs = {
     argocd_namespace = "argocd"
   }

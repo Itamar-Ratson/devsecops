@@ -1,5 +1,5 @@
 terraform {
-  source = "../../modules/argocd-bootstrap"
+  source = "../../../../modules/k8s/bootstrap/argocd"
 
   extra_arguments "secrets" {
     commands = get_terraform_commands_that_need_vars()
@@ -15,7 +15,7 @@ include "root" {
 }
 
 dependency "transit_vault" {
-  config_path = "../transit-vault"
+  config_path = "../../../vault/transit"
 
   mock_outputs = {
     vault_token = "mock-token"
@@ -25,7 +25,7 @@ dependency "transit_vault" {
 }
 
 dependency "kind_cluster" {
-  config_path = "../kind-cluster"
+  config_path = "../../kind"
 
   mock_outputs = {
     endpoint               = "https://127.0.0.1:6443"
@@ -45,7 +45,7 @@ dependency "kind_cluster" {
 # - cluster-bootstrap: CRDs (ArgoCD Application, CiliumNetworkPolicy, etc.)
 # - vault-config: Vault auth backend setup
 dependencies {
-  paths = ["../cluster-bootstrap", "../vault-config"]
+  paths = ["../cluster", "../../../vault/config"]
 }
 
 inputs = {

@@ -1,5 +1,5 @@
 terraform {
-  source = "../../modules/cluster-bootstrap"
+  source = "../../../../modules/k8s/bootstrap/cluster"
 }
 
 include "root" {
@@ -7,7 +7,7 @@ include "root" {
 }
 
 dependency "kind_cluster" {
-  config_path = "../kind-cluster"
+  config_path = "../../kind"
 
   mock_outputs = {
     kubeconfig             = "mock"

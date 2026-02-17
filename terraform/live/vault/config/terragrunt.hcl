@@ -26,7 +26,7 @@ dependency "transit_vault" {
 }
 
 dependency "kind_cluster" {
-  config_path = "../../kind-cluster"
+  config_path = "../../k8s/kind"
 
   mock_outputs = {
     control_plane_ip       = "172.18.0.2"
@@ -37,7 +37,7 @@ dependency "kind_cluster" {
 }
 
 dependency "cluster_bootstrap" {
-  config_path = "../../cluster-bootstrap"
+  config_path = "../../k8s/bootstrap/cluster"
 
   mock_outputs = {
     token_reviewer_jwt = "mock-jwt"

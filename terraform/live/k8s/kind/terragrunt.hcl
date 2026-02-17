@@ -1,5 +1,5 @@
 terraform {
-  source = "../../modules/kind-cluster"
+  source = "../../../modules/k8s/kind"
 }
 
 include "root" {
@@ -7,7 +7,7 @@ include "root" {
 }
 
 dependency "transit_vault" {
-  config_path = "../transit-vault"
+  config_path = "../../vault/transit"
 
   mock_outputs = {
     container_name = "vault-transit"
@@ -18,7 +18,7 @@ dependency "transit_vault" {
 }
 
 dependency "registry_cache" {
-  config_path = "../registry/cache"
+  config_path = "../../registry/cache"
 
   mock_outputs = {
     container_name = "registry-cache"
