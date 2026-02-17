@@ -1,5 +1,5 @@
 terraform {
-  source = "../../modules/vault-config"
+  source = "../../../modules/vault/config"
 
   extra_arguments "secrets" {
     commands = get_terraform_commands_that_need_vars()
@@ -15,7 +15,7 @@ include "root" {
 }
 
 dependency "transit_vault" {
-  config_path = "../transit-vault"
+  config_path = "../transit"
 
   mock_outputs = {
     vault_address = "http://127.0.0.1:8100"
@@ -26,7 +26,7 @@ dependency "transit_vault" {
 }
 
 dependency "kind_cluster" {
-  config_path = "../kind-cluster"
+  config_path = "../../kind-cluster"
 
   mock_outputs = {
     control_plane_ip       = "172.18.0.2"
@@ -37,7 +37,7 @@ dependency "kind_cluster" {
 }
 
 dependency "cluster_bootstrap" {
-  config_path = "../cluster-bootstrap"
+  config_path = "../../cluster-bootstrap"
 
   mock_outputs = {
     token_reviewer_jwt = "mock-jwt"

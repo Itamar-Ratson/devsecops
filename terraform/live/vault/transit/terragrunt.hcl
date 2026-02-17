@@ -1,5 +1,5 @@
 terraform {
-  source = "../../modules/transit-vault"
+  source = "../../../modules/vault/transit"
 
   extra_arguments "secrets" {
     commands = get_terraform_commands_that_need_vars()
@@ -15,7 +15,7 @@ include "root" {
 }
 
 dependency "hcp_workspaces" {
-  config_path = "../hcp-workspaces"
+  config_path = "../../hcp-workspaces"
   mock_outputs = {
     workspace_ids = {}
   }
