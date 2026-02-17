@@ -106,14 +106,14 @@ resource "terraform_data" "stop_argocd" {
 resource "helm_release" "argocd" {
   name      = "argocd"
   namespace = kubernetes_namespace_v1.argocd.metadata[0].name
-  chart     = "${var.helm_values_dir}/argocd"
+  chart     = "${var.helm_values_dir}/argo/cd"
   wait      = true
   timeout   = 600
 
   values = [
     file("${var.helm_values_dir}/ports.yaml"),
-    file("${var.helm_values_dir}/argocd/values.yaml"),
-    file("${var.helm_values_dir}/argocd/values-argocd.yaml"),
+    file("${var.helm_values_dir}/argo/cd/values.yaml"),
+    file("${var.helm_values_dir}/argo/cd/values-argocd.yaml"),
     yamlencode({
       transitVaultIP  = var.vault_cluster_ip
       cacheRegistryIP = var.cache_cluster_ip

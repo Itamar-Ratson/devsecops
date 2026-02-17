@@ -15,10 +15,10 @@ spec:
   source:
     repoURL: "{{ .Values.gitops.repoURL }}"
     targetRevision: "{{ .Values.gitops.targetRevision }}"
-    path: helm/argocd
+    path: helm/argo/cd
     helm:
       valueFiles:
-        - ../ports.yaml
+        - ../../ports.yaml
         - values.yaml
         - values-argocd.yaml
       parameters:
