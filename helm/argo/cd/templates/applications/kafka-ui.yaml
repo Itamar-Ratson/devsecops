@@ -15,10 +15,10 @@ spec:
   source:
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/kafka-ui
+    path: helm/kafka/ui
     helm:
       valueFiles:
-        - ../ports.yaml
+        - ../../ports.yaml
         - values.yaml
         - values-kafka-ui.yaml
   destination:

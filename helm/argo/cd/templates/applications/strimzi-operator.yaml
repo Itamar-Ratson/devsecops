@@ -15,10 +15,10 @@ spec:
   source:
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/strimzi-operator
+    path: helm/kafka/operator
     helm:
       valueFiles:
-        - ../ports.yaml
+        - ../../ports.yaml
         - values.yaml
         - values-strimzi.yaml
   destination:
