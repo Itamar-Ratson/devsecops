@@ -15,10 +15,10 @@ spec:
   source:
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/http-echo
+    path: helm/apps/http-echo
     helm:
       valueFiles:
-        - ../ports.yaml
+        - ../../ports.yaml
         - values.yaml
   destination:
     server: https://kubernetes.default.svc
