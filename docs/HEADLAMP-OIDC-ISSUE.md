@@ -57,12 +57,12 @@ Kubernetes API Server
 - Uses TCP probes (not HTTP) since it returns 401 for unauthenticated requests
 
 **Files:**
-- `helm/kube-oidc-proxy/` - Complete Helm chart
+- `helm/identity/kube-oidc-proxy/` - Complete Helm chart
 
 #### 2. Combined CA Bundle via trust-manager
 Added Kubernetes CA to the gateway-ca-bundle so applications can verify both Kubernetes API server and internal certificates.
 
-**File:** `helm/trust-manager/templates/ca-bundle.yaml`
+**File:** `helm/certificates/trust-manager/templates/ca-bundle.yaml`
 ```yaml
 spec:
   sources:
@@ -120,7 +120,7 @@ Bidirectional rules allowing traffic between Headlamp and kube-oidc-proxy on por
 
 **Files:**
 - `helm/headlamp/templates/networkpolicy.yaml` - Egress to kube-oidc-proxy:8443
-- `helm/kube-oidc-proxy/templates/networkpolicy.yaml` - Ingress from Headlamp:8443
+- `helm/identity/kube-oidc-proxy/templates/networkpolicy.yaml` - Ingress from Headlamp:8443
 
 #### 5. Centralized Port Configuration
 Added kube-oidc-proxy port to the centralized ports configuration.
@@ -135,10 +135,10 @@ kubeOidcProxy:
 
 | File | Purpose |
 |------|---------|
-| `helm/kube-oidc-proxy/` | New Helm chart for kube-oidc-proxy |
+| `helm/identity/kube-oidc-proxy/` | New Helm chart for kube-oidc-proxy |
 | `helm/headlamp/values.yaml` | Custom projected volume, env vars |
 | `helm/headlamp/templates/networkpolicy.yaml` | Egress rule for kube-oidc-proxy |
-| `helm/trust-manager/templates/ca-bundle.yaml` | Added Kubernetes CA source |
+| `helm/certificates/trust-manager/templates/ca-bundle.yaml` | Added Kubernetes CA source |
 | `helm/ports.yaml` | Added kubeOidcProxy.https: 8443 |
 | `helm/argocd/templates/applications/kube-oidc-proxy.yaml` | ArgoCD Application |
 | `scripts/setup.sh` | Added kube-oidc-proxy to VSO namespaces |
