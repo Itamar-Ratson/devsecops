@@ -15,7 +15,7 @@ spec:
   source:
     repoURL: {{ .Values.gitops.repoURL }}
     targetRevision: {{ .Values.gitops.targetRevision }}
-    path: helm/kube-oidc-proxy
+    path: helm/identity/kube-oidc-proxy
     helm:
       valueFiles:
         - values.yaml
