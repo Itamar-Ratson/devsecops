@@ -39,10 +39,13 @@ done
 echo "Push complete. $(wc -l < "$PUSHED_FILE") images cached."
 
 # --- Phase 2: Clean up stale images ---
+# /user/packages requires a user token; GITHUB_TOKEN is a repo installation
+# token, so use /users/{owner}/packages instead.
 echo "Cleaning stale images from GHCR..."
+OWNER="${GITHUB_REPOSITORY_OWNER}"
 MIRROR_PREFIX="devsecops/mirror/"
 
-PACKAGES=$(gh api "/user/packages?package_type=container&per_page=100" -q '.[].name')
+PACKAGES=$(gh api "/users/${OWNER}/packages?package_type=container&per_page=100" -q '.[].name')
 MIRROR_PKGS=$(echo "$PACKAGES" | grep "^${MIRROR_PREFIX}" || true)
 
 if [ -z "$MIRROR_PKGS" ]; then
@@ -53,7 +56,7 @@ else
     if ! grep -qF "$local_path" "$PUSHED_FILE" 2>/dev/null; then
       echo "  Deleting stale package: $pkg"
       encoded=$(printf '%s' "$pkg" | jq -sRr @uri)
-      gh api -X DELETE "/user/packages/container/${encoded}"
+      gh api -X DELETE "/users/${OWNER}/packages/container/${encoded}"
     fi
   done
 fi
