@@ -22,7 +22,7 @@ dependency "hcp_workspaces" {
   mock_outputs_merge_strategy_with_state  = "shallow"
 }
 
-# Serialize after transit-vault to avoid plugin cache race condition
+# Serialize after vault/transit to avoid plugin cache race condition
 # (both modules use kreuzwerker/docker provider)
 dependency "transit_vault" {
   config_path = "../../vault/transit"

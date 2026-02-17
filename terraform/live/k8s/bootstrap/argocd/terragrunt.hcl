@@ -42,7 +42,7 @@ dependency "kind_cluster" {
 # Ordering-only deps whose outputs argocd doesn't reference.
 # Uses dependencies (not dependency) to avoid evaluation failures
 # when vault-config is filtered in CI.
-# - cluster-bootstrap: CRDs (ArgoCD Application, CiliumNetworkPolicy, etc.)
+# - k8s/bootstrap/cluster: CRDs (ArgoCD Application, CiliumNetworkPolicy, etc.)
 # - vault-config: Vault auth backend setup
 dependencies {
   paths = ["../cluster", "../../../vault/config"]
