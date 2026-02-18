@@ -1,0 +1,45 @@
+# Wave 4 — Infrastructure services: Gateway API
+# Dependencies: cert-manager (wave 3)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gateway
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.repoURL }}
+    targetRevision: {{ .Values.targetRevision }}
+    path: helm/networking/gateway
+    helm:
+      valueFiles:
+        - ../../ports.yaml
+        - values.yaml
+      valuesObject:
+        cacheRegistryIP: {{ .Values.cacheRegistryIP | quote }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gateway
+  ignoreDifferences:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jsonPointers:
+        - /spec/parentRefs
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m

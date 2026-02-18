@@ -1,0 +1,48 @@
+# Wave 5 — Identity & secrets: Keycloak OIDC/SSO provider
+# Dependencies: VSO (wave 3), gateway (wave 4)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keycloak
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.repoURL }}
+    targetRevision: {{ .Values.targetRevision }}
+    path: helm/identity/keycloak
+    helm:
+      valueFiles:
+        - ../../ports.yaml
+        - values.yaml
+        - values-keycloak.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keycloak
+  ignoreDifferences:
+    - group: cilium.io
+      kind: CiliumNetworkPolicy
+      jsonPointers:
+        - /spec
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jsonPointers:
+        - /spec/parentRefs
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m
