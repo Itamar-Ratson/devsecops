@@ -145,6 +145,16 @@ argo-cd:
       controller.diff.server.side: "true"
 
     cm:
+      # Exclude Cilium runtime CRs that ArgoCD must not manage or prune.
+      # CiliumIdentity is created/GC'd by the Cilium agent at runtime.
+      resource.exclusions: |
+        - apiGroups:
+            - cilium.io
+          kinds:
+            - CiliumIdentity
+          clusters:
+            - "*"
+
       # Restore Application health assessment (removed in ArgoCD 1.8).
       # Required for sync waves to work in app-of-apps pattern — without this,
       # ArgoCD doesn't wait for child apps to be Healthy before advancing waves.

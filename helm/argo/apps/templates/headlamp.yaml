@@ -1,12 +1,12 @@
-# Wave 7 — Observability: Headlamp Kubernetes dashboard
-# Dependencies: kube-oidc-proxy (wave 6), trust-manager (wave 4)
+# Wave 8 — Observability: Headlamp Kubernetes dashboard
+# Dependencies: kube-oidc-proxy (wave 7), trust-manager (wave 5)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: headlamp
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "7"
+    argocd.argoproj.io/sync-wave: "8"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

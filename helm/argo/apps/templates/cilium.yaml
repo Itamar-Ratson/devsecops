@@ -1,12 +1,12 @@
-# Wave 5 — Infrastructure services: Gateway API
-# Dependencies: cert-manager (wave 4)
+# Wave 1 — Networking: Cilium CNI + service mesh
+# Dependencies: none (Terraform bootstraps Cilium before ArgoCD; this app adopts the release)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gateway
+  name: cilium
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "1"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -14,27 +14,37 @@ spec:
   source:
     repoURL: {{ .Values.repoURL }}
     targetRevision: {{ .Values.targetRevision }}
-    path: helm/networking/gateway
+    path: helm/networking/cilium
     helm:
       valueFiles:
         - ../../ports.yaml
         - values.yaml
-      valuesObject:
-        cacheRegistryIP: {{ .Values.cacheRegistryIP | quote }}
   destination:
     server: https://kubernetes.default.svc
-    namespace: gateway
+    namespace: kube-system
+  # Hubble auto-rotates TLS certs via Helm; suppress spurious diff on those secrets.
   ignoreDifferences:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
+    - kind: Secret
+      name: hubble-ca-cert
+      namespace: kube-system
       jsonPointers:
-        - /spec/parentRefs
+        - /data
+    - kind: Secret
+      name: hubble-relay-client-certs
+      namespace: kube-system
+      jsonPointers:
+        - /data
+    - kind: Secret
+      name: hubble-server-certs
+      namespace: kube-system
+      jsonPointers:
+        - /data
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
     retry:

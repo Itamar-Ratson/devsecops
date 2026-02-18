@@ -112,14 +112,15 @@ Edit `terraform/live/secrets.tfvars` with:
 | Wave | Role | Components |
 |------|------|------------|
 | 0 | Self-management | ArgoCD |
-| 1 | Security: enforcement | Network-policies, Kyverno, Tetragon, Trivy |
-| 2 | Security: policies | Kyverno-policies |
-| 3 | Infrastructure foundations | cert-manager, VSO, Sealed-Secrets, Argo-Rollouts, Strimzi |
-| 4 | Infrastructure services | trust-manager, Gateway, Kafka |
-| 5 | Identity & secrets | Keycloak, Vault |
-| 6 | OIDC proxy | kube-oidc-proxy |
-| 7 | Observability | Monitoring, Kafka-UI, Headlamp |
-| 8 | Demo apps | http-echo, juice-shop |
+| 1 | Networking | Cilium (CNI + service mesh) |
+| 2 | Security: enforcement | Network-policies, Kyverno, Tetragon, Trivy |
+| 3 | Security: policies | Kyverno-policies |
+| 4 | Infrastructure foundations | cert-manager, VSO, Sealed-Secrets, Argo-Rollouts, Strimzi |
+| 5 | Infrastructure services | trust-manager, Gateway, Kafka |
+| 6 | Identity & secrets | Keycloak, Vault |
+| 7 | OIDC proxy | kube-oidc-proxy |
+| 8 | Observability | Monitoring, Kafka-UI, Headlamp |
+| 9 | Demo apps | http-echo, juice-shop |
 
 ## Access URLs
 

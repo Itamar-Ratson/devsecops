@@ -34,6 +34,12 @@ resource "helm_release" "cilium" {
   values = [file("${var.helm_values_dir}/ports.yaml")]
 
   depends_on = [null_resource.gateway_api_crds, null_resource.prometheus_operator_crds, null_resource.cert_manager_crds]
+
+  # ArgoCD adopts this release after bootstrap and owns all day-2 changes.
+  # Terraform only creates and destroys — never updates.
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 # Wait for all nodes to be ready after Cilium installation

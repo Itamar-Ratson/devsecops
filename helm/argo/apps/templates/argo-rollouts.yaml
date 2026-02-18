@@ -1,4 +1,4 @@
-# Wave 3 — Infrastructure foundations: Argo Rollouts
+# Wave 4 — Infrastructure foundations: Argo Rollouts
 # Dependencies: none (standalone CRD controller)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -6,7 +6,7 @@ metadata:
   name: argo-rollouts
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "4"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

@@ -1,12 +1,12 @@
-# Wave 5 — Identity & secrets: HashiCorp Vault
-# Dependencies: VSO (wave 3)
+# Wave 6 — Identity & secrets: HashiCorp Vault
+# Dependencies: VSO (wave 4)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: vault
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "6"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

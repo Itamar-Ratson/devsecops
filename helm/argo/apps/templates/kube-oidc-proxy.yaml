@@ -1,12 +1,12 @@
-# Wave 6 — OIDC proxy: kube-oidc-proxy
-# Dependencies: keycloak (wave 5)
+# Wave 7 — OIDC proxy: kube-oidc-proxy
+# Dependencies: keycloak (wave 6)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: kube-oidc-proxy
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "6"
+    argocd.argoproj.io/sync-wave: "7"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

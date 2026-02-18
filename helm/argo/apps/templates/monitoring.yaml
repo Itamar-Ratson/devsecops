@@ -1,12 +1,12 @@
-# Wave 7 — Observability: Monitoring stack (Prometheus, Grafana, Loki, Tempo)
-# Dependencies: VSO (wave 3), gateway (wave 4)
+# Wave 8 — Observability: Monitoring stack (Prometheus, Grafana, Loki, Tempo)
+# Dependencies: VSO (wave 4), gateway (wave 5)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: monitoring
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "7"
+    argocd.argoproj.io/sync-wave: "8"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
