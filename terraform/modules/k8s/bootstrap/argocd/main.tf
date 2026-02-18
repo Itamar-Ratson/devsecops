@@ -39,7 +39,7 @@ provider "helm" {
 # ============================================================================
 
 resource "terraform_data" "cleanup_app_crs" {
-  depends_on = [helm_release.argocd]
+  depends_on = [helm_release.argocd, kubernetes_manifest.argocd_root_application]
 
   provisioner "local-exec" {
     when    = destroy
@@ -118,7 +118,7 @@ resource "helm_release" "argocd" {
       transitVaultIP  = var.vault_cluster_ip
       cacheRegistryIP = var.cache_cluster_ip
       gitops = {
-        enabled = true
+        enabled = false
         repoURL = var.git_repo_url
       }
       vaultSecrets = {
@@ -138,4 +138,90 @@ resource "helm_release" "argocd" {
     kubernetes_secret_v1.vault_transit_token,
     kubernetes_secret_v1.argocd_redis,
   ]
+}
+
+# ============================================================================
+# Phase 2: Root "app-of-apps" Application CR
+#
+# Created via kubernetes_manifest (uses the existing kubernetes provider —
+# no extra provider, no kubeconfig file, no shell heredoc).
+# Created OUTSIDE the ArgoCD Helm chart so it is not part of any sync wave.
+# ArgoCD picks this up, syncs helm/argo/cd with gitops.enabled=true, and
+# creates all child Application CRs from templates/applications/.
+# This gives GitOps self-management without the wave-0 deadlock.
+#
+# Destroy ordering: cleanup_app_crs (depends on this) runs its destroy
+# provisioner first (kubectl delete all apps), then Terraform removes this
+# resource. The Application CR is already gone at that point → 404 is
+# handled gracefully by the kubernetes provider.
+# ============================================================================
+resource "kubernetes_manifest" "argocd_root_application" {
+  manifest = {
+    apiVersion = "argoproj.io/v1alpha1"
+    kind       = "Application"
+    metadata = {
+      name      = "argocd"
+      namespace = "argocd"
+      finalizers = ["resources-finalizer.argocd.argoproj.io"]
+    }
+    spec = {
+      project = "default"
+      source = {
+        repoURL        = var.git_repo_url
+        targetRevision = "HEAD"
+        path           = "helm/argo/cd"
+        helm = {
+          valueFiles = ["../../ports.yaml", "values.yaml", "values-argocd.yaml"]
+          valuesObject = {
+            transitVaultIP  = var.vault_cluster_ip
+            cacheRegistryIP = var.cache_cluster_ip
+            gitops = {
+              enabled = true
+              repoURL = var.git_repo_url
+            }
+            vaultSecrets = { enabled = false }
+            applications = {
+              juiceShop = { enabled = var.juice_shop_enabled }
+            }
+          }
+        }
+      }
+      destination = {
+        server    = "https://kubernetes.default.svc"
+        namespace = "argocd"
+      }
+      ignoreDifferences = [
+        {
+          group = "argoproj.io"
+          kind  = "Application"
+          jsonPointers = [
+            "/operation",
+            "/metadata/annotations/argocd.argoproj.io~1refresh",
+          ]
+        }
+      ]
+      syncPolicy = {
+        automated = {
+          prune    = false
+          selfHeal = true
+        }
+        syncOptions = ["ServerSideApply=true", "RespectIgnoreDifferences=true"]
+        retry = {
+          limit = 5
+          backoff = {
+            duration    = "30s"
+            factor      = 2
+            maxDuration = "5m"
+          }
+        }
+      }
+    }
+  }
+
+  field_manager {
+    name            = "terraform"
+    force_conflicts = true
+  }
+
+  depends_on = [helm_release.argocd]
 }
