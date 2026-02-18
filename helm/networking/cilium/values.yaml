@@ -31,6 +31,9 @@ cilium:
     enabled: true
     hostNetwork:
       enabled: true
+      nodes:
+        matchLabels:
+          ingress-ready: "true"
     gatewayClass:
       create: "false"
   envoy:
