@@ -8,8 +8,12 @@ spec:
     matchExpressions:
       - key: node-role.kubernetes.io/control-plane
         operator: DoesNotExist
-  # Match eth-style interfaces (eth0 in KinD containers)
+  # Match eth-style interfaces (eth0 in KinD containers); anchored to avoid partial matches
   interfaces:
-    - ^eth[0-9]+
+    - ^eth[0-9]+$
   externalIPs: false
   loadBalancerIPs: true
+  # Scope announcements to gateway-namespace LoadBalancer services only
+  serviceSelector:
+    matchLabels:
+      io.cilium.gateway/owning-gateway-namespace: gateway

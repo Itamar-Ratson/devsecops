@@ -1,3 +1,4 @@
+# cluster-scoped: Cilium LB-IPAM assigns IPs from this pool to gateway LoadBalancer services
 apiVersion: cilium.io/v2alpha1
 kind: CiliumLoadBalancerIPPool
 metadata:
