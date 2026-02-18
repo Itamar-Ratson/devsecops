@@ -55,6 +55,29 @@ resource "null_resource" "cert_manager_crds" {
 }
 
 # ============================================================================
+# Vault Secrets Operator CRDs
+# Pre-installed so wave-0 ArgoCD (helm/argo/cd/templates/vault-secrets.yaml)
+# can create VaultStaticSecret/VaultAuth objects before VSO deploys at wave 3.
+# ============================================================================
+resource "null_resource" "vso_crds" {
+  triggers = {
+    version = var.vso_version
+  }
+
+  provisioner "local-exec" {
+    environment = {
+      KUBECONFIG = local_sensitive_file.kubeconfig.filename
+    }
+    command = <<-EOT
+      helm show crds hashicorp/vault-secrets-operator \
+        --version ${var.vso_version} \
+        --repo https://helm.releases.hashicorp.com \
+        | kubectl apply --server-side -f -
+    EOT
+  }
+}
+
+# ============================================================================
 # ArgoCD CRDs
 # Pre-installed so ArgoCD helm chart can deploy Application CRs in one phase.
 # CRDs are templates in the subchart — Helm can't validate Application CRs
