@@ -1,0 +1,15 @@
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: default-l2-policy
+spec:
+  # Only announce from worker nodes (exclude control-plane)
+  nodeSelector:
+    matchExpressions:
+      - key: node-role.kubernetes.io/control-plane
+        operator: DoesNotExist
+  # Match eth-style interfaces (eth0 in KinD containers)
+  interfaces:
+    - ^eth[0-9]+
+  externalIPs: false
+  loadBalancerIPs: true

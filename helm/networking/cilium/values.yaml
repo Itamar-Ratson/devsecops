@@ -27,13 +27,10 @@ cilium:
     port: 9962
     serviceMonitor:
       enabled: true
+  l2announcements:
+    enabled: true
   gatewayAPI:
     enabled: true
-    hostNetwork:
-      enabled: true
-      nodes:
-        matchLabels:
-          ingress-ready: "true"
     gatewayClass:
       create: "false"
   envoy:
