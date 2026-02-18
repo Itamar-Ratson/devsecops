@@ -9,7 +9,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "grafana.localhost"
+    - "grafana.onprem"
   rules:
     - matches:
         - path:

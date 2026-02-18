@@ -8,7 +8,7 @@ replicaCount: 1
 
 # OIDC configuration
 oidc:
-  issuerUrl: "https://keycloak.localhost/realms/devsecops"
+  issuerUrl: "https://keycloak.onprem/realms/devsecops"
   clientId: "headlamp"
   usernameClaim: "preferred_username"
   groupsClaim: "groups"

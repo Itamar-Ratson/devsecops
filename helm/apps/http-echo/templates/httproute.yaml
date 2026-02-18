@@ -8,7 +8,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - echo.localhost
+    - echo.onprem
   rules:
     - matches:
         - path:

@@ -49,10 +49,10 @@ resource "null_resource" "wait_nodes_ready" {
 }
 
 # ============================================================================
-# CoreDNS *.localhost rewrite
+# CoreDNS *.onprem rewrite
 # ============================================================================
 # Patch the existing CoreDNS ConfigMap with a wildcard regex rewrite rule
-# so that any *.localhost hostname resolves to the Cilium Gateway service.
+# so that any *.onprem hostname resolves to the Cilium Gateway service.
 resource "kubernetes_config_map_v1_data" "coredns" {
   metadata {
     name      = "coredns"
@@ -69,7 +69,7 @@ resource "kubernetes_config_map_v1_data" "coredns" {
              lameduck 5s
           }
           ready
-          rewrite name regex (.+)\.localhost cilium-gateway-main-gateway.gateway.svc.cluster.local
+          rewrite name regex (.+)\.onprem cilium-gateway-main-gateway.gateway.svc.cluster.local
           kubernetes cluster.local in-addr.arpa ip6.arpa {
              pods insecure
              fallthrough in-addr.arpa ip6.arpa

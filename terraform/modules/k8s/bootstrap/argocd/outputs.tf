@@ -5,5 +5,5 @@ output "argocd_namespace" {
 
 output "argocd_server_url" {
   description = "ArgoCD server URL"
-  value       = "https://argocd.localhost"
+  value       = "https://argocd.onprem"
 }

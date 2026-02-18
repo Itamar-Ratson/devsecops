@@ -72,11 +72,11 @@ data:
           "clientAuthenticatorType": "client-secret",
           "secret": "${ARGOCD_CLIENT_SECRET}",
           "redirectUris": [
-            "https://argocd.localhost/auth/callback",
-            "https://argocd.localhost/api/dex/callback"
+            "https://argocd.onprem/auth/callback",
+            "https://argocd.onprem/api/dex/callback"
           ],
           "webOrigins": [
-            "https://argocd.localhost"
+            "https://argocd.onprem"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
@@ -107,10 +107,10 @@ data:
           "clientAuthenticatorType": "client-secret",
           "secret": "${GRAFANA_CLIENT_SECRET}",
           "redirectUris": [
-            "https://grafana.localhost/login/generic_oauth"
+            "https://grafana.onprem/login/generic_oauth"
           ],
           "webOrigins": [
-            "https://grafana.localhost"
+            "https://grafana.onprem"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
@@ -141,10 +141,10 @@ data:
           "clientAuthenticatorType": "client-secret",
           "secret": "${VAULT_CLIENT_SECRET}",
           "redirectUris": [
-            "https://vault.localhost/ui/vault/auth/oidc/oidc/callback"
+            "https://vault.onprem/ui/vault/auth/oidc/oidc/callback"
           ],
           "webOrigins": [
-            "https://vault.localhost"
+            "https://vault.onprem"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
@@ -175,11 +175,11 @@ data:
           "clientAuthenticatorType": "client-secret",
           "secret": "${HEADLAMP_CLIENT_SECRET}",
           "redirectUris": [
-            "https://headlamp.localhost/*",
-            "https://headlamp.localhost/oidc-callback"
+            "https://headlamp.onprem/*",
+            "https://headlamp.onprem/oidc-callback"
           ],
           "webOrigins": [
-            "https://headlamp.localhost"
+            "https://headlamp.onprem"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,

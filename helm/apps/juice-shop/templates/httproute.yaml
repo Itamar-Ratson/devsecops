@@ -9,7 +9,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "juice-shop.localhost"
+    - "juice-shop.onprem"
   rules:
     - matches:
         - path:

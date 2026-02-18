@@ -9,7 +9,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - k8s-api.localhost
+    - k8s-api.onprem
   rules:
     - matches:
         - path:

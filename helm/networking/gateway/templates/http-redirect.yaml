@@ -7,7 +7,7 @@ spec:
     - name: main-gateway
       sectionName: http
   hostnames:
-    - "*.localhost"
+    - "*.onprem"
   rules:
     - filters:
         - type: RequestRedirect

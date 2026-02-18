@@ -9,7 +9,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "argocd.localhost"
+    - "argocd.onprem"
   rules:
     - matches:
         - path:

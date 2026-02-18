@@ -9,7 +9,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "kafka-ui.localhost"
+    - "kafka-ui.onprem"
   rules:
     - matches:
         - path:

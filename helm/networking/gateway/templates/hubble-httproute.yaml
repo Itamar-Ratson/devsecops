@@ -9,7 +9,7 @@ spec:
       namespace: gateway
       sectionName: https
   hostnames:
-    - hubble.localhost
+    - hubble.onprem
   rules:
     - matches:
         - path:

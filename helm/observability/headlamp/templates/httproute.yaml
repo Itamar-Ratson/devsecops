@@ -9,7 +9,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "headlamp.localhost"
+    - "headlamp.onprem"
   rules:
     - matches:
         - path:

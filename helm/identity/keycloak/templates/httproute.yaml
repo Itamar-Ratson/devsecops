@@ -9,7 +9,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "keycloak.localhost"
+    - "keycloak.onprem"
   rules:
     - matches:
         - path:

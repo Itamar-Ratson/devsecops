@@ -8,7 +8,7 @@ spec:
       namespace: gateway
       sectionName: https
   hostnames:
-    - zot.localhost
+    - zot.onprem
   rules:
     - matches:
         - path:

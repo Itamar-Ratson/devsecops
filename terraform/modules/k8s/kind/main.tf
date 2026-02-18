@@ -29,20 +29,6 @@ resource "kind_cluster" "this" {
 
     node {
       role = "worker"
-
-      extra_port_mappings {
-        container_port = 80
-        host_port      = 80
-        protocol       = "TCP"
-        listen_address = "0.0.0.0"
-      }
-
-      extra_port_mappings {
-        container_port = 443
-        host_port      = 443
-        protocol       = "TCP"
-        listen_address = "0.0.0.0"
-      }
     }
   }
 }
@@ -62,6 +48,9 @@ locals {
   kind_subnet_parts = split(".", local.kind_subnet)
   vault_cluster_ip  = "${local.kind_subnet_parts[0]}.${local.kind_subnet_parts[1]}.0.100"
   cache_cluster_ip  = "${local.kind_subnet_parts[0]}.${local.kind_subnet_parts[1]}.0.101"
+  # First IP from the CiliumLoadBalancerIPPool (172.X.0.200/29) — must match lbPool.cidr
+  # in helm/networking/gateway/values.yaml.
+  gateway_lb_ip = "${local.kind_subnet_parts[0]}.${local.kind_subnet_parts[1]}.0.200"
 }
 
 resource "null_resource" "connect_vault_to_kind" {
@@ -145,6 +134,65 @@ TOML"
         done
       done
     EOT
+  }
+}
+
+# Resolve *.onprem hostnames to the gateway LB IP on the host.
+#
+# dnsmasq runs on 127.0.0.1:5353 (no conflict with systemd-resolved on :53) and
+# answers all *.onprem queries with gateway_lb_ip. resolvectl is configured to
+# forward .onprem queries on the KinD bridge link to that dnsmasq instance —
+# all other DNS queries are unaffected.
+#
+# The resolvectl config is per-link and transient: it is automatically cleared
+# when the KinD bridge interface is removed on destroy, so no explicit cleanup
+# is needed for it. Only the dnsmasq service needs to be stopped on destroy.
+#
+# Note: supports multiple *.onprem gateways — add extra address= lines and
+# additional CiliumLoadBalancerIPPools when a second Gateway is introduced.
+resource "null_resource" "host_dns" {
+  depends_on = [null_resource.connect_cache_to_kind]
+
+  triggers = {
+    gateway_lb_ip = local.gateway_lb_ip
+    kind_subnet   = local.kind_subnet
+  }
+
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    command     = <<-EOT
+      # Install dnsmasq-base (binary only, no system service) if missing
+      command -v dnsmasq >/dev/null 2>&1 || sudo apt-get install -y dnsmasq-base
+
+      # Stop any existing instance from a previous apply
+      systemctl stop kind-gateway-dns.service 2>/dev/null || true
+
+      # Write dnsmasq config — add address= lines here for additional gateways
+      cat > /tmp/kind-gateway-dnsmasq.conf <<EOF
+port=5353
+bind-interfaces
+listen-address=127.0.0.1
+address=/.onprem/${local.gateway_lb_ip}
+no-resolv
+no-hosts
+EOF
+
+      # Run as a transient systemd service so it outlives this shell
+      systemd-run --unit=kind-gateway-dns \
+        --description="KinD gateway DNS (.onprem -> ${local.gateway_lb_ip})" \
+        dnsmasq -k --conf-file=/tmp/kind-gateway-dnsmasq.conf
+
+      # Forward .onprem queries on the KinD bridge link to our dnsmasq
+      BRIDGE=$(ip -4 route show ${local.kind_subnet} | awk '{print $3}')
+      resolvectl dns    "$BRIDGE" 127.0.0.1:5353
+      resolvectl domain "$BRIDGE" ~onprem
+    EOT
+  }
+
+  provisioner "local-exec" {
+    when        = destroy
+    interpreter = ["bash", "-c"]
+    command     = "systemctl stop kind-gateway-dns.service 2>/dev/null || true"
   }
 }
 
