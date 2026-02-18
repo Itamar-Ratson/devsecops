@@ -177,14 +177,9 @@ resource "null_resource" "host_dns" {
       # Preflight: verify the one-time DNS prerequisite is in place.
       if [ ! -f /etc/systemd/resolved.conf.d/kind-gateway.conf ]; then
         echo "ERROR: missing one-time DNS prerequisite." >&2
-        echo "Run the following once with sudo, then re-apply:" >&2
+        echo "Run the following once (from the repo root), then re-apply:" >&2
         echo "" >&2
-        echo "  sudo tee /etc/systemd/resolved.conf.d/kind-gateway.conf <<'EOF'" >&2
-        echo "  [Resolve]" >&2
-        echo "  DNS=127.0.0.1:5353" >&2
-        echo "  Domains=~onprem" >&2
-        echo "  EOF" >&2
-        echo "  sudo systemctl restart systemd-resolved" >&2
+        echo "  sudo ./scripts/setup-host-dns.sh" >&2
         exit 1
       fi
 

@@ -76,6 +76,16 @@ fs.inotify.max_user_instances=1024
 fs.inotify.max_user_watches=16384
 ```
 
+Configure host DNS for `*.onprem` resolution (one-time, per machine):
+
+```bash
+sudo ./scripts/setup-host-dns.sh
+```
+
+This writes `/etc/systemd/resolved.conf.d/kind-gateway.conf` so that systemd-resolved
+forwards `*.onprem` queries to the dnsmasq instance that Terraform starts on port 5353.
+Run once before the first `terragrunt run --all apply`.
+
 ## Quick Setup
 
 ```bash
