@@ -151,6 +151,9 @@ TOML"
 # Note: supports multiple *.onprem gateways — add extra address= lines and
 # additional CiliumLoadBalancerIPPools when a second Gateway is introduced.
 resource "null_resource" "host_dns" {
+  # Sequenced after connect_cache_to_kind to guarantee the KinD bridge
+  # interface exists before resolvectl tries to configure it (Docker creates
+  # the bridge when the first container connects to the network).
   depends_on = [null_resource.connect_cache_to_kind]
 
   triggers = {
@@ -162,10 +165,12 @@ resource "null_resource" "host_dns" {
     interpreter = ["bash", "-c"]
     command     = <<-EOT
       # Install dnsmasq-base (binary only, no system service) if missing
-      command -v dnsmasq >/dev/null 2>&1 || sudo apt-get install -y dnsmasq-base
+      command -v dnsmasq >/dev/null 2>&1 || sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q dnsmasq-base
 
-      # Stop any existing instance from a previous apply
+      # Stop any existing instance from a previous apply; reset-failed clears
+      # the dead unit so systemd-run --unit=kind-gateway-dns can reuse the name
       systemctl stop kind-gateway-dns.service 2>/dev/null || true
+      systemctl reset-failed kind-gateway-dns.service 2>/dev/null || true
 
       # Write dnsmasq config — add address= lines here for additional gateways
       cat > /tmp/kind-gateway-dnsmasq.conf <<EOF
@@ -182,8 +187,16 @@ EOF
         --description="KinD gateway DNS (.onprem -> ${local.gateway_lb_ip})" \
         dnsmasq -k --conf-file=/tmp/kind-gateway-dnsmasq.conf
 
-      # Forward .onprem queries on the KinD bridge link to our dnsmasq
-      BRIDGE=$(ip -4 route show ${local.kind_subnet} | awk '{print $3}')
+      # Forward .onprem queries on the KinD bridge link to our dnsmasq.
+      # Use key-based parsing so field position changes don't silently produce
+      # a wrong interface name.
+      BRIDGE=$(ip -4 route show "${local.kind_subnet}" \
+        | awk '/dev/ {for(i=1;i<=NF;i++) if ($i=="dev") print $(i+1)}' \
+        | head -1)
+      if [ -z "$BRIDGE" ]; then
+        echo "ERROR: could not find bridge interface for ${local.kind_subnet}" >&2
+        exit 1
+      fi
       resolvectl dns    "$BRIDGE" 127.0.0.1:5353
       resolvectl domain "$BRIDGE" ~onprem
     EOT

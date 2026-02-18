@@ -115,16 +115,16 @@ Edit `terraform/live/secrets.tfvars` with:
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
-| Echo | <https://echo.localhost> | - |
-| Juice Shop | <https://juice-shop.localhost> | - |
-| Kafka UI | <https://kafka-ui.localhost> | - |
-| Hubble UI | <https://hubble.localhost> | - |
-| Zot Registry | <http://zot.localhost> | - |
-| Headlamp | <https://headlamp.localhost> | SSO via Keycloak (testuser/testuser) |
-| Grafana | <https://grafana.localhost> | SSO via Keycloak or secrets.tfvars: grafana_admin |
-| ArgoCD | <https://argocd.localhost> | SSO via Keycloak or admin/secrets.tfvars: argocd_admin |
-| Vault UI | <https://vault.localhost> | SSO via Keycloak (OIDC) or root token below |
-| Keycloak | <https://keycloak.localhost> | secrets.tfvars: keycloak_admin |
+| Echo | <https://echo.onprem> | - |
+| Juice Shop | <https://juice-shop.onprem> | - |
+| Kafka UI | <https://kafka-ui.onprem> | - |
+| Hubble UI | <https://hubble.onprem> | - |
+| Zot Registry | <http://zot.onprem> | - |
+| Headlamp | <https://headlamp.onprem> | SSO via Keycloak (testuser/testuser) |
+| Grafana | <https://grafana.onprem> | SSO via Keycloak or secrets.tfvars: grafana_admin |
+| ArgoCD | <https://argocd.onprem> | SSO via Keycloak or admin/secrets.tfvars: argocd_admin |
+| Vault UI | <https://vault.onprem> | SSO via Keycloak (OIDC) or root token below |
+| Keycloak | <https://keycloak.onprem> | secrets.tfvars: keycloak_admin |
 
 **Vault root token:**
 
