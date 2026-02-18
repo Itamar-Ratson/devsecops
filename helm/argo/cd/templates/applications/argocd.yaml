@@ -1,5 +1,7 @@
 # Wave 0 — Self-management: ArgoCD
 # Dependencies: none
+# Note: creates VaultStaticSecret (VSO CRD, wave 3) and ServiceMonitor (monitoring CRD, wave 7).
+# SkipDryRunOnMissingResource prevents wave 0 from blocking the rest of the sync tree.
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -45,4 +47,5 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
+      - SkipDryRunOnMissingResource=true
 {{- end }}

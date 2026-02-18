@@ -1,5 +1,7 @@
 # Wave 3 — Infrastructure foundations: Strimzi Kafka operator
 # Dependencies: none (standalone CRD controller)
+# Note: creates ServiceMonitor (monitoring.coreos.com CRD from wave 7).
+# SkipDryRunOnMissingResource lets the sync succeed; self-heal applies it once CRD is ready.
 {{- if .Values.gitops.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -31,4 +33,5 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
 {{- end }}
