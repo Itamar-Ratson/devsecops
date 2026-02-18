@@ -117,18 +117,7 @@ resource "helm_release" "argocd" {
     yamlencode({
       transitVaultIP  = var.vault_cluster_ip
       cacheRegistryIP = var.cache_cluster_ip
-      gitops = {
-        enabled = false
-        repoURL = var.git_repo_url
-      }
-      vaultSecrets = {
-        enabled = false
-      }
-      applications = {
-        juiceShop = {
-          enabled = var.juice_shop_enabled
-        }
-      }
+      vaultSecrets    = { enabled = false }
     }),
   ]
 
@@ -146,8 +135,8 @@ resource "helm_release" "argocd" {
 # Created via kubernetes_manifest (uses the existing kubernetes provider —
 # no extra provider, no kubeconfig file, no shell heredoc).
 # Created OUTSIDE the ArgoCD Helm chart so it is not part of any sync wave.
-# ArgoCD picks this up, syncs helm/argo/cd with gitops.enabled=true, and
-# creates all child Application CRs from templates/applications/.
+# ArgoCD picks this up, syncs helm/argo/apps, and creates all child
+# Application CRs from templates/applications/.
 # This gives GitOps self-management without the wave-0 deadlock.
 #
 # Destroy ordering: cleanup_app_crs (depends on this) runs its destroy
@@ -169,20 +158,14 @@ resource "kubernetes_manifest" "argocd_root_application" {
       source = {
         repoURL        = var.git_repo_url
         targetRevision = "HEAD"
-        path           = "helm/argo/cd"
+        path           = "helm/argo/apps"
         helm = {
-          valueFiles = ["../../ports.yaml", "values.yaml", "values-argocd.yaml"]
+          valueFiles = ["values.yaml"]
           valuesObject = {
+            repoURL         = var.git_repo_url
             transitVaultIP  = var.vault_cluster_ip
             cacheRegistryIP = var.cache_cluster_ip
-            gitops = {
-              enabled = true
-              repoURL = var.git_repo_url
-            }
-            vaultSecrets = { enabled = false }
-            applications = {
-              juiceShop = { enabled = var.juice_shop_enabled }
-            }
+            applications    = { juiceShop = { enabled = var.juice_shop_enabled } }
           }
         }
       }
