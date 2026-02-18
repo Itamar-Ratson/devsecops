@@ -1,0 +1,15 @@
+repoURL: "git@github.com:Itamar-Ratson/devsecops.git"
+targetRevision: HEAD
+
+# KinD Docker network IPs — overridden by Terraform valuesObject at runtime
+transitVaultIP: "172.18.0.100"
+cacheRegistryIP: "172.18.0.101"
+
+# Per-application toggles — disabled by default to save resources
+applications:
+  # Kafka UI — disabled to save ~256Mi. Re-enable for visual topic/consumer debugging.
+  kafkaUi:
+    enabled: false
+  # Juice Shop — disabled to save ~256Mi. Re-enable for OWASP security demos.
+  juiceShop:
+    enabled: false
