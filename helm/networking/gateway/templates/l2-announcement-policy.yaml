@@ -13,7 +13,3 @@ spec:
     - ^eth[0-9]+$
   externalIPs: false
   loadBalancerIPs: true
-  # Scope announcements to gateway-namespace LoadBalancer services only
-  serviceSelector:
-    matchLabels:
-      io.cilium.gateway/owning-gateway-namespace: gateway
