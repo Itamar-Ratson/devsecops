@@ -30,18 +30,6 @@ resource "kind_cluster" "this" {
     node {
       role = "worker"
 
-      kubeadm_config_patches = [
-        <<-PATCH
-        kind: JoinConfiguration
-        nodeRegistration:
-          kubeletExtraArgs:
-            # ingress-ready=true is a legacy label; gateway addressing now uses
-            # Cilium LB-IPAM + L2 Announcements and no longer depends on this label.
-            # Retained to avoid a destroy/apply cycle; safe to remove in a future cleanup.
-            node-labels: "ingress-ready=true"
-        PATCH
-      ]
-
       extra_port_mappings {
         container_port = 80
         host_port      = 80

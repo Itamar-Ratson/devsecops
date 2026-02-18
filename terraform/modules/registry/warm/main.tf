@@ -19,8 +19,8 @@ resource "null_resource" "warm_cache" {
       set -uo pipefail
 
       # --- Wait for ArgoCD applications to be ready ---
-      # Count Healthy + Progressing as ready (gateway stays Progressing
-      # because Cilium hostNetwork Gateway never gets an external address).
+      # Count Healthy + Progressing as ready — apps may be Progressing during
+      # initial sync (StatefulSets rolling, certs being issued, init containers).
       TIMEOUT=1200
       INTERVAL=30
       ELAPSED=0
