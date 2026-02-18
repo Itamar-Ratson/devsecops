@@ -69,7 +69,7 @@ resource "null_resource" "vso_crds" {
       KUBECONFIG = local_sensitive_file.kubeconfig.filename
     }
     command = <<-EOT
-      helm show crds hashicorp/vault-secrets-operator \
+      helm show crds vault-secrets-operator \
         --version ${var.vso_version} \
         --repo https://helm.releases.hashicorp.com \
         | kubectl apply --server-side -f -

@@ -59,5 +59,5 @@ variable "argocd_version" {
 variable "vso_version" {
   description = "Vault Secrets Operator Helm chart version for CRD pre-installation"
   type        = string
-  default     = "0.10.0"
+  default     = "1.2.0"
 }
