@@ -139,38 +139,64 @@ TOML"
 
 # Resolve *.onprem hostnames to the gateway LB IP on the host.
 #
-# dnsmasq runs on 127.0.0.1:5353 (no conflict with systemd-resolved on :53) and
-# answers all *.onprem queries with gateway_lb_ip. resolvectl is configured to
-# forward .onprem queries on the KinD bridge link to that dnsmasq instance —
-# all other DNS queries are unaffected.
+# Architecture — two-layer split:
 #
-# The resolvectl config is per-link and transient: it is automatically cleared
-# when the KinD bridge interface is removed on destroy, so no explicit cleanup
-# is needed for it. Only the dnsmasq service needs to be stopped on destroy.
+#   PREREQUISITE (one-time, run manually with sudo before first deploy):
+#     sudo tee /etc/systemd/resolved.conf.d/kind-gateway.conf <<'EOF'
+#     [Resolve]
+#     DNS=127.0.0.1:5353
+#     Domains=~onprem
+#     EOF
+#     sudo systemctl restart systemd-resolved
+#
+#   This tells systemd-resolved to forward all *.onprem queries to the
+#   local dnsmasq instance at 127.0.0.1:5353.  The file persists across
+#   cluster recreations (correct: it's a machine-level setting).  When the
+#   cluster is destroyed and dnsmasq stops, *.onprem returns NXDOMAIN.
+#
+#   TERRAFORM (per-cluster, fully rootless):
+#     Runs dnsmasq as a user-scope transient systemd service (systemd-run
+#     --user, no sudo required) and stops it on destroy.
 #
 # Note: supports multiple *.onprem gateways — add extra address= lines and
 # additional CiliumLoadBalancerIPPools when a second Gateway is introduced.
 resource "null_resource" "host_dns" {
   # Sequenced after connect_cache_to_kind to guarantee the KinD bridge
-  # interface exists before resolvectl tries to configure it (Docker creates
-  # the bridge when the first container connects to the network).
+  # interface (and thus the Docker bridge route) exists before we start
+  # the DNS service (Docker creates the bridge when the first container
+  # connects to the network).
   depends_on = [null_resource.connect_cache_to_kind]
 
   triggers = {
     gateway_lb_ip = local.gateway_lb_ip
-    kind_subnet   = local.kind_subnet
   }
 
   provisioner "local-exec" {
     interpreter = ["bash", "-c"]
     command     = <<-EOT
-      # Install dnsmasq-base (binary only, no system service) if missing
+      # Preflight: verify the one-time DNS prerequisite is in place.
+      if [ ! -f /etc/systemd/resolved.conf.d/kind-gateway.conf ]; then
+        echo "ERROR: missing one-time DNS prerequisite." >&2
+        echo "Run the following once with sudo, then re-apply:" >&2
+        echo "" >&2
+        echo "  sudo tee /etc/systemd/resolved.conf.d/kind-gateway.conf <<'EOF'" >&2
+        echo "  [Resolve]" >&2
+        echo "  DNS=127.0.0.1:5353" >&2
+        echo "  Domains=~onprem" >&2
+        echo "  EOF" >&2
+        echo "  sudo systemctl restart systemd-resolved" >&2
+        exit 1
+      fi
+
+      # Install dnsmasq-base (binary only, no system service) if missing.
+      # This is the only command that may prompt for sudo; if dnsmasq is
+      # already installed the check short-circuits and sudo is never called.
       command -v dnsmasq >/dev/null 2>&1 || sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q dnsmasq-base
 
       # Stop any existing instance from a previous apply; reset-failed clears
-      # the dead unit so systemd-run --unit=kind-gateway-dns can reuse the name
-      systemctl stop kind-gateway-dns.service 2>/dev/null || true
-      systemctl reset-failed kind-gateway-dns.service 2>/dev/null || true
+      # the dead unit so systemd-run --unit can reuse the name immediately.
+      systemctl --user stop kind-gateway-dns.service 2>/dev/null || true
+      systemctl --user reset-failed kind-gateway-dns.service 2>/dev/null || true
 
       # Write dnsmasq config — add address= lines here for additional gateways
       cat > /tmp/kind-gateway-dnsmasq.conf <<EOF
@@ -182,30 +208,17 @@ no-resolv
 no-hosts
 EOF
 
-      # Run as a transient systemd service so it outlives this shell
-      systemd-run --unit=kind-gateway-dns \
+      # Run as a user-scope transient systemd service (no sudo required).
+      systemd-run --user --unit=kind-gateway-dns \
         --description="KinD gateway DNS (.onprem -> ${local.gateway_lb_ip})" \
         dnsmasq -k --conf-file=/tmp/kind-gateway-dnsmasq.conf
-
-      # Forward .onprem queries on the KinD bridge link to our dnsmasq.
-      # Use key-based parsing so field position changes don't silently produce
-      # a wrong interface name.
-      BRIDGE=$(ip -4 route show "${local.kind_subnet}" \
-        | awk '/dev/ {for(i=1;i<=NF;i++) if ($i=="dev") print $(i+1)}' \
-        | head -1)
-      if [ -z "$BRIDGE" ]; then
-        echo "ERROR: could not find bridge interface for ${local.kind_subnet}" >&2
-        exit 1
-      fi
-      resolvectl dns    "$BRIDGE" 127.0.0.1:5353
-      resolvectl domain "$BRIDGE" ~onprem
     EOT
   }
 
   provisioner "local-exec" {
     when        = destroy
     interpreter = ["bash", "-c"]
-    command     = "systemctl stop kind-gateway-dns.service 2>/dev/null || true"
+    command     = "systemctl --user stop kind-gateway-dns.service 2>/dev/null || true"
   }
 }
 
