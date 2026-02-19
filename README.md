@@ -143,6 +143,12 @@ Edit `terraform/live/secrets.tfvars` with:
 kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base64 -d
 ```
 
+**ArgoCD admin password (before Keycloak's OIDC SSO):**
+
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+```
+
 ## Disabled Components
 
 The following components are disabled to fit within 16GB RAM. Code is preserved with comments — see each file for re-enable instructions.
