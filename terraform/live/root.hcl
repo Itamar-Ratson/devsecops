@@ -1,5 +1,5 @@
 # Root Terragrunt configuration
-# Configures backend, CI auto-approve, and terrascan for all modules
+# Configures backend, CI auto-approve, and Trivy IaC scan for all modules
 
 locals {
   project_name   = "devsecops"
@@ -40,16 +40,13 @@ terraform {
     arguments = local.is_ci ? ["-auto-approve"] : []
   }
 
-  # Terrascan security scan before every plan (skip in CI — Trivy handles IaC scanning)
-  before_hook "terrascan" {
+  # Trivy IaC scan before every plan (skip in CI — handled by Trivy in the security workflow)
+  before_hook "trivy" {
     commands = ["plan"]
-    execute = local.is_ci ? ["echo", "Skipping terrascan in CI"] : [
-      "terrascan", "scan",
-      "--iac-type", "terraform",
-      "--iac-dir", "${get_terragrunt_dir()}",
-      "--non-recursive",
-      "--policy-type", "k8s", "--policy-type", "docker",
-      "--verbose"
+    execute = local.is_ci ? ["echo", "Skipping trivy in CI"] : [
+      "trivy", "config", ".",
+      "--severity", "HIGH,CRITICAL",
+      "--exit-code", "1",
     ]
   }
 }
