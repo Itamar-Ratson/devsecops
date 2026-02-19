@@ -143,7 +143,7 @@ Edit `terraform/live/secrets.tfvars` with:
 kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base64 -d
 ```
 
-**ArgoCD admin password (before Keycloak's OIDC SSO):**
+**ArgoCD admin password:**
 
 ```bash
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
