@@ -65,6 +65,7 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![KinD](https://img.shields.io/badge/KinD-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![kubeseal](https://img.shields.io/badge/kubeseal-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![GitHub CLI](https://img.shields.io/badge/gh-181717?style=flat&logo=github&logoColor=white)
+![Trivy](https://img.shields.io/badge/Trivy-1904DA?style=flat&logo=aquasecurity&logoColor=white)
 
 Increase inotify limits:
 
