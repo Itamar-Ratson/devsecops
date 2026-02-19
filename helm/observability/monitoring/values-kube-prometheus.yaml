@@ -97,8 +97,8 @@ kube-prometheus-stack:
         # auth_url uses external URL (browser redirect)
         auth_url: https://keycloak.onprem/realms/devsecops/protocol/openid-connect/auth
         # token_url and api_url use internal URL (server-to-server)
-        token_url: http://keycloak-keycloakx-http.keycloak.svc:8080/realms/devsecops/protocol/openid-connect/token
-        api_url: http://keycloak-keycloakx-http.keycloak.svc:8080/realms/devsecops/protocol/openid-connect/userinfo
+        token_url: http://keycloak-keycloakx-http.identity.svc:8080/realms/devsecops/protocol/openid-connect/token
+        api_url: http://keycloak-keycloakx-http.identity.svc:8080/realms/devsecops/protocol/openid-connect/userinfo
         # Map Keycloak groups to Grafana roles
         role_attribute_path: "contains(groups[*], 'admins') && 'Admin' || contains(groups[*], 'developers') && 'Editor' || 'Viewer'"
 
