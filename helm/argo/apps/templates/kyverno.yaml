@@ -22,13 +22,13 @@ spec:
         - values-kyverno.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: kyverno
+    namespace: security
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
       - ServerSideApply=true
     retry:
       limit: 5

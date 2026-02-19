@@ -20,13 +20,13 @@ spec:
         - values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: kube-oidc-proxy
+    namespace: identity
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
       - ServerSideApply=true
     retry:
       limit: 5

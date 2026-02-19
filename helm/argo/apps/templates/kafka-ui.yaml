@@ -23,7 +23,7 @@ spec:
         - values-kafka-ui.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: kafka-ui
+    namespace: kafka
   ignoreDifferences:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
@@ -34,7 +34,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
     retry:

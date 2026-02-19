@@ -21,7 +21,7 @@ spec:
         - values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: headlamp
+    namespace: observability
   ignoreDifferences:
     - group: cilium.io
       kind: CiliumNetworkPolicy
@@ -36,7 +36,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
     retry:

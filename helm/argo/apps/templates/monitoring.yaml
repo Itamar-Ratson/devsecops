@@ -26,7 +26,7 @@ spec:
         - values-tempo.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: monitoring
+    namespace: observability
   ignoreDifferences:
     - group: apps
       kind: StatefulSet
@@ -42,7 +42,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
     retry:

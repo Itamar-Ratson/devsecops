@@ -21,7 +21,7 @@ spec:
         - values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: http-echo
+    namespace: apps
   ignoreDifferences:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
@@ -36,7 +36,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
     retry:

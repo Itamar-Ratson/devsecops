@@ -47,7 +47,7 @@ spec:
                 }
   destination:
     server: https://kubernetes.default.svc
-    namespace: vault
+    namespace: secrets
   ignoreDifferences:
     - group: ""
       kind: ConfigMap
@@ -71,7 +71,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
     retry:
