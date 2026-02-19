@@ -67,7 +67,29 @@ spec:
     - toEntities:
         - host
 ---
-# 5. Allow CoreDNS to reach upstream DNS servers
+# 5. Allow trust-manager webhook ingress from kube-apiserver
+# trust-manager runs in cert-manager namespace; moving CNP here avoids ArgoCD
+# shared-resource conflict when two apps (cert-manager + trust-manager) target the same namespace.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-webhook-ingress
+  namespace: cert-manager
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: trust-manager
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.apiServerSecure }}"
+              protocol: TCP
+---
+# 6. Allow CoreDNS to reach upstream DNS servers
 # Required for external DNS resolution (CoreDNS forwards to upstream)
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
