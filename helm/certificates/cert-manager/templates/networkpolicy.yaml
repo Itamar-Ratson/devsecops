@@ -4,7 +4,7 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: allow-k8s-api-egress
-  namespace: cert-manager
+  namespace: {{ .Release.Namespace }}
 spec:
   endpointSelector: {}
   egress:
@@ -23,7 +23,7 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: allow-webhook-ingress
-  namespace: cert-manager
+  namespace: {{ .Release.Namespace }}
 spec:
   endpointSelector:
     matchLabels:
