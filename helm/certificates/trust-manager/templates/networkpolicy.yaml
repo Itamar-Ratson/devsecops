@@ -1,0 +1,22 @@
+---
+# Allow trust-manager webhook ingress from kube-apiserver, host, and remote-node.
+# Named distinctly to avoid collision with cert-manager's own allow-webhook-ingress CNP
+# (which targets app.kubernetes.io/name: webhook in the same cert-manager namespace).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-trust-manager-webhook-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: trust-manager
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.apiServerSecure }}"
+              protocol: TCP
