@@ -122,6 +122,12 @@ Edit `terraform/live/secrets.tfvars` with:
 | 8 | Observability | Monitoring, Kafka-UI, Headlamp |
 | 9 | Demo apps | http-echo, juice-shop |
 
+**Monitor Sync Waves:**
+
+```bash
+watch 'kubectl get pods -A --sort-by=.metadata.creationTimestamp --no-headers | tac | grep -v scan'
+```
+
 ## Access URLs
 
 | Service | URL | Credentials |
@@ -147,12 +153,6 @@ kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base6
 
 ```bash
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
-```
-
-**Monitor Sync Waves:**
-
-```bash
-watch 'kubectl get pods -A --sort-by=.metadata.creationTimestamp --no-headers | tac | grep -v scan'
 ```
 
 ## Disabled Components
