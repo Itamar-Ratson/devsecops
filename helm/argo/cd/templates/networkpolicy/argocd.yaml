@@ -30,7 +30,7 @@ spec:
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: monitoring
+            k8s:io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
@@ -131,7 +131,7 @@ spec:
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: monitoring
+            k8s:io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
@@ -190,7 +190,7 @@ spec:
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: monitoring
+            k8s:io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
@@ -288,7 +288,7 @@ spec:
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: monitoring
+            k8s:io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
@@ -354,7 +354,7 @@ spec:
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: monitoring
+            k8s:io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:

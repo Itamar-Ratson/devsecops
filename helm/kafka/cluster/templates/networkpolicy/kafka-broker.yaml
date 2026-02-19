@@ -74,7 +74,7 @@ spec:
     # Allow Prometheus to scrape metrics (JMX on 9091, Prometheus exporter on 9404)
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: monitoring
+            k8s:io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
@@ -86,10 +86,10 @@ spec:
     # Allow Alloy (log producer) and Alloy Consumer (log consumer) from monitoring
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: monitoring
+            k8s:io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: alloy
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: monitoring
+            k8s:io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: alloy-consumer
       toPorts:
         - ports:
