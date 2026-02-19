@@ -1,4 +1,4 @@
-# Wave 5 — Registry: Zot OCI registry cache proxy
+# Wave 6 — Registry: Zot OCI registry cache proxy
 # Dependencies: gateway (wave 5), registry namespace (wave -1 via network-policies)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -6,7 +6,7 @@ metadata:
   name: zot
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "6"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
