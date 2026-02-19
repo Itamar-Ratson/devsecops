@@ -149,6 +149,12 @@ kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base6
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
 
+**Monitor Sync Waves:**
+
+```bash
+watch 'kubectl get pods -A --sort-by=.metadata.creationTimestamp --no-headers | tac | grep -v scan'
+```
+
 ## Disabled Components
 
 The following components are disabled to fit within 16GB RAM. Code is preserved with comments — see each file for re-enable instructions.
