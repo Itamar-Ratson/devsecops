@@ -1,0 +1,41 @@
+# Pre-created shared namespaces — owned by platform (wave 1)
+# Apps targeting these namespaces use CreateNamespace=false
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: observability
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  labels:
+    trust-manager.io/ca-bundle: "true"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: security
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: secrets
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: identity
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  labels:
+    trust-manager.io/ca-bundle: "true"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
