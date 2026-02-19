@@ -109,20 +109,6 @@ resource "null_resource" "coredns_restart" {
 }
 
 # ============================================================================
-# Pre-create namespaces needed by earlier ArgoCD sync waves
-# ============================================================================
-# The monitoring namespace is needed by strimzi-operator (wave 3) which creates
-# Grafana dashboard ConfigMaps there, but kube-prometheus-stack (wave 7) is the
-# app that normally creates the namespace via CreateNamespace=true.
-resource "kubernetes_namespace_v1" "monitoring" {
-  metadata {
-    name = "monitoring"
-  }
-
-  depends_on = [null_resource.wait_nodes_ready]
-}
-
-# ============================================================================
 # Sealed-Secrets
 # ============================================================================
 resource "helm_release" "sealed_secrets" {
