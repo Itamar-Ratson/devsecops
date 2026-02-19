@@ -27,19 +27,15 @@ resource "kubernetes_namespace_v1" "argocd" {
 }
 
 # ============================================================================
-# Vault Namespace + Transit Token Secret
-# (ArgoCD Wave 2 deploys Vault — it needs this secret pre-created)
+# Vault Transit Token Secret
+# (ArgoCD deploys Vault into the secrets namespace — pre-create this secret
+# so the vault pod can start. The secrets namespace is created by the
+# cluster-bootstrap module via the sealed-secrets helm_release.)
 # ============================================================================
-resource "kubernetes_namespace_v1" "vault" {
-  metadata {
-    name = "vault"
-  }
-}
-
 resource "kubernetes_secret_v1" "vault_transit_token" {
   metadata {
     name      = "vault-transit-token"
-    namespace = kubernetes_namespace_v1.vault.metadata[0].name
+    namespace = "secrets"
   }
 
   data = {
