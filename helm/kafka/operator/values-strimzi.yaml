@@ -16,7 +16,7 @@ strimzi-kafka-operator:
   # Enable dashboard ConfigMaps for Grafana
   dashboards:
     enabled: true
-    namespace: monitoring
+    namespace: observability
     label: grafana_dashboard
     labelValue: "1"
     annotations:
