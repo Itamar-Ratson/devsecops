@@ -112,8 +112,8 @@ Edit `terraform/live/secrets.tfvars` with:
 | Wave | Role | Components |
 |------|------|------------|
 | 0 | Self-management | ArgoCD |
-| 1 | Networking | Cilium (CNI + service mesh) |
-| 2 | Security: enforcement | Network-policies, Kyverno, Tetragon, Trivy |
+| 1 | Networking | Cilium (CNI + service mesh), Network-policies |
+| 2 | Security: enforcement | Kyverno, Tetragon, Trivy |
 | 3 | Security: policies | Kyverno-policies |
 | 4 | Infrastructure foundations | cert-manager, VSO, Sealed-Secrets, Argo-Rollouts, Strimzi |
 | 5 | Infrastructure services | trust-manager, Gateway, Kafka |
