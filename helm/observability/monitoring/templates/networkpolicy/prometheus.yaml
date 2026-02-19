@@ -63,7 +63,7 @@ spec:
     # Allow scraping metrics from kyverno namespace
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kyverno
+            k8s:io.kubernetes.pod.namespace: security
       toPorts:
         - ports:
             - port: "{{ .Values.ports.kyverno.metrics }}"
@@ -79,7 +79,7 @@ spec:
     # Allow scraping metrics from strimzi-system namespace
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: strimzi-system
+            k8s:io.kubernetes.pod.namespace: kafka
       toPorts:
         - ports:
             - port: "{{ .Values.ports.strimziOperator.metrics }}"
@@ -96,14 +96,14 @@ spec:
     # Allow scraping metrics from trivy-system namespace
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: trivy-system
+            k8s:io.kubernetes.pod.namespace: security
       toPorts:
         - ports:
             - port: "{{ .Values.ports.trivyOperator.metrics }}"
     # Allow scraping metrics from vault namespace
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: vault
+            k8s:io.kubernetes.pod.namespace: secrets
       toPorts:
         - ports:
             - port: "{{ .Values.ports.vault.http }}"

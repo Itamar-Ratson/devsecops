@@ -73,7 +73,7 @@ spec:
     # Allow communication with Keycloak for OIDC (direct OIDC without Dex)
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: keycloak
+            k8s:io.kubernetes.pod.namespace: identity
             app.kubernetes.io/name: keycloakx
       toPorts:
         - ports:
@@ -375,7 +375,7 @@ spec:
     # Allow communication with Keycloak for OIDC
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: keycloak
+            k8s:io.kubernetes.pod.namespace: identity
             app.kubernetes.io/name: keycloakx
       toPorts:
         - ports:

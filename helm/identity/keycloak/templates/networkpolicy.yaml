@@ -50,7 +50,7 @@ spec:
     # Allow from Grafana for OAuth
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: monitoring
+            k8s:io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: grafana
       toPorts:
         - ports:
@@ -60,7 +60,7 @@ spec:
     # Allow from Headlamp for OIDC
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: headlamp
+            k8s:io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: headlamp
       toPorts:
         - ports:
@@ -70,7 +70,7 @@ spec:
     # Allow from Vault for OIDC
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: vault
+            k8s:io.kubernetes.pod.namespace: secrets
             app.kubernetes.io/name: vault
       toPorts:
         - ports:
@@ -80,7 +80,7 @@ spec:
     # Allow from Vault bootstrap job for OIDC discovery
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: vault
+            k8s:io.kubernetes.pod.namespace: secrets
             app.kubernetes.io/name: vault-bootstrap
       toPorts:
         - ports:
@@ -90,7 +90,7 @@ spec:
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: monitoring
+            k8s:io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:

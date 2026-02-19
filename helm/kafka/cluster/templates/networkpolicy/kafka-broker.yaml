@@ -60,7 +60,7 @@ spec:
     # Allow Strimzi Operator (needs JMX port for broker config)
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: strimzi-system
+            k8s:io.kubernetes.pod.namespace: kafka
             strimzi.io/kind: cluster-operator
       toPorts:
         - ports:

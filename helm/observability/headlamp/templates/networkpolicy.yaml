@@ -30,7 +30,7 @@ spec:
     # Allow Prometheus to scrape metrics
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: monitoring
+            k8s:io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: prometheus
       toPorts:
         - ports:
@@ -51,7 +51,7 @@ spec:
     # Allow Kubernetes API access via kube-oidc-proxy
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-oidc-proxy
+            k8s:io.kubernetes.pod.namespace: identity
             app.kubernetes.io/name: kube-oidc-proxy
       toPorts:
         - ports:
@@ -69,7 +69,7 @@ spec:
     # Allow Keycloak access for OIDC
     - toEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: keycloak
+            k8s:io.kubernetes.pod.namespace: identity
             app.kubernetes.io/name: keycloakx
       toPorts:
         - ports:
