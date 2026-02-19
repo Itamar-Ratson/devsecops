@@ -113,7 +113,7 @@ resource "null_resource" "coredns_restart" {
 # ============================================================================
 resource "helm_release" "sealed_secrets" {
   name             = "sealed-secrets"
-  namespace        = "sealed-secrets"
+  namespace        = "secrets"
   create_namespace = true
   chart            = "${var.helm_values_dir}/secrets/sealed-secrets"
   wait             = true
