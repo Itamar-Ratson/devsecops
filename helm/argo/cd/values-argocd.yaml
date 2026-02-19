@@ -175,6 +175,10 @@ argo-cd:
       # ArgoCD server URL (used for OIDC callbacks)
       url: https://argocd.onprem
 
+      # Git polling interval — reduced from default 180s since no GitHub webhooks
+      # are reachable (KinD cluster is not internet-accessible).
+      timeout.reconciliation: 30s
+
       # Skip TLS verification for OIDC provider (self-signed certs in dev)
       oidc.tls.insecure.skip.verify: "true"
 
