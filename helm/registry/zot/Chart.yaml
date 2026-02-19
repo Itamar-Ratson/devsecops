@@ -1,0 +1,5 @@
+apiVersion: v2
+name: zot
+description: Zot OCI registry cache proxy — nginx pod forwarding in-cluster traffic to the host-side Zot container
+type: application
+version: 0.1.0

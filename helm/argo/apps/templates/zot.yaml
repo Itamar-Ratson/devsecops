@@ -1,9 +1,9 @@
-# Wave 5 — Infrastructure services: Gateway API
-# Dependencies: cert-manager (wave 4)
+# Wave 5 — Registry: Zot OCI registry cache proxy
+# Dependencies: gateway (wave 5), registry namespace (wave -1 via network-policies)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: gateway
+  name: zot
   namespace: {{ .Release.Namespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "5"
@@ -14,27 +14,23 @@ spec:
   source:
     repoURL: {{ .Values.repoURL }}
     targetRevision: {{ .Values.targetRevision }}
-    path: helm/networking/gateway
+    path: helm/registry/zot
     helm:
       valueFiles:
         - ../../ports.yaml
         - values.yaml
+      valuesObject:
+        cacheRegistryIP: {{ .Values.cacheRegistryIP | quote }}
   destination:
     server: https://kubernetes.default.svc
-    namespace: gateway
-  ignoreDifferences:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      jsonPointers:
-        - /spec/parentRefs
+    namespace: registry
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
       - ServerSideApply=true
-      - RespectIgnoreDifferences=true
     retry:
       limit: 5
       backoff:

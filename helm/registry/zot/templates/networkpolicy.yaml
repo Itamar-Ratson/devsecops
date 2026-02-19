@@ -2,6 +2,7 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: zot-proxy
+  namespace: {{ .Release.Namespace }}
 spec:
   description: "Allow zot-proxy to reach external registry cache on Docker network"
   endpointSelector:

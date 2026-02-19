@@ -2,10 +2,11 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: zot-registry
+  namespace: {{ .Release.Namespace }}
 spec:
   parentRefs:
-    - name: main-gateway
-      namespace: gateway
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
     - zot.onprem

@@ -1,9 +1,6 @@
 className: cilium
 controllerName: io.cilium/gateway-controller
 
-# Registry cache (Zot) IP on the KinD Docker network (dynamic, set via ArgoCD valuesObject)
-cacheRegistryIP: "172.18.0.101"
-
 # LB-IPAM pool CIDR — must be within the KinD Docker bridge subnet (172.18.0.0/16 by default).
 # Chosen range 172.18.0.200/29 is well above node IPs (.2/.3) and static container IPs (.100/.101).
 # Unlike cacheRegistryIP, this is not currently wired as an ArgoCD override; update here if the

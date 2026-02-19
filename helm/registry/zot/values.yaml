@@ -1,0 +1,9 @@
+# Registry cache (Zot) IP on the KinD Docker network
+# Note: KinD subnet varies (172.18.x.x, 172.19.x.x, 172.20.x.x)
+# Terraform sets cacheRegistryIP which ArgoCD uses via Application valuesObject
+cacheRegistryIP: "172.18.0.101"
+
+# Gateway configuration
+gateway:
+  name: main-gateway
+  namespace: gateway
