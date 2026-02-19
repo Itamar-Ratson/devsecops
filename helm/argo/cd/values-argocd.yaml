@@ -172,30 +172,6 @@ argo-cd:
         end
         return hs
 
-      # Wait for trust-manager Bundle to finish distributing before advancing waves.
-      # Without this, ArgoCD marks trust-manager Healthy as soon as pods are running,
-      # but the Bundle hasn't yet created gateway-ca-bundle in target namespaces.
-      resource.customizations.health.trust.cert-manager.io_Bundle: |
-        hs = {}
-        hs.status = "Progressing"
-        hs.message = ""
-        if obj.status ~= nil then
-          if obj.status.conditions ~= nil then
-            for _, condition in ipairs(obj.status.conditions) do
-              if condition.type == "Ready" then
-                if condition.status == "True" then
-                  hs.status = "Healthy"
-                else
-                  hs.status = "Degraded"
-                  hs.message = condition.message or ""
-                end
-                return hs
-              end
-            end
-          end
-        end
-        return hs
-
       # ArgoCD server URL (used for OIDC callbacks)
       url: https://argocd.onprem
 
