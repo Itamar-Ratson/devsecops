@@ -70,6 +70,7 @@ headlamp:
           # Our combined CA bundle (includes Kubernetes + gateway CA)
           - configMap:
               name: gateway-ca-bundle
+              optional: true
               items:
                 - key: ca.crt
                   path: ca.crt
