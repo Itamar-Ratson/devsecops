@@ -14,7 +14,6 @@
 !Dockerfile
 !Chart.lock
 !README.md
-!docs/plans/*.md
 
 # Terraform (scoped to prevent auto-generated files in terraform/live/)
 !terraform/modules/*/*.tf
