@@ -50,7 +50,7 @@ spec:
     # Allow Kafka UI to connect
     - fromEndpoints:
         - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kafka-ui
+            k8s:io.kubernetes.pod.namespace: kafka
             app.kubernetes.io/name: kafka-ui
       toPorts:
         - ports:
