@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: juice-shop
-  namespace: juice-shop
+  namespace: apps
   labels:
     app: juice-shop
     app.kubernetes.io/name: juice-shop
