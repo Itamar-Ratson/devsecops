@@ -20,6 +20,8 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![WireGuard](https://img.shields.io/badge/WireGuard-88171A?style=flat&logo=wireguard&logoColor=white)
 ![Gateway API](https://img.shields.io/badge/Gateway_API-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![Cilium Network Policies](https://img.shields.io/badge/Network_Policies-F8C517?style=flat&logo=cilium&logoColor=black)
+![CoreDNS](https://img.shields.io/badge/CoreDNS-326CE5?style=flat&logo=kubernetes&logoColor=white)
+![dnsmasq](https://img.shields.io/badge/dnsmasq-4A90D9?style=flat&logoColor=white)
 
 **Security & Identity**<br>
 ![Tetragon](https://img.shields.io/badge/Tetragon-F8C517?style=flat&logo=cilium&logoColor=black)
@@ -117,7 +119,7 @@ Edit `terraform/live/secrets.tfvars` with:
 | 3 | Security: policies | Kyverno-policies |
 | 4 | Infrastructure foundations | cert-manager, VSO, Sealed-Secrets, Argo-Rollouts, Strimzi |
 | 5 | Infrastructure services | trust-manager, Gateway, Kafka |
-| 6 | Identity & secrets | Keycloak, Vault |
+| 6 | Identity & secrets | Keycloak, Vault, Zot |
 | 7 | OIDC proxy | kube-oidc-proxy |
 | 8 | Observability | Monitoring, Kafka-UI, Headlamp |
 | 9 | Demo apps | http-echo, juice-shop |
