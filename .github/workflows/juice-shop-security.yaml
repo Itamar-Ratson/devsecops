@@ -486,9 +486,6 @@ jobs:
           DEADLINE=$((SECONDS + 2700))
           for app in network-policies argo-rollouts juice-shop; do
             echo "Waiting for $app to sync..."
-            # Reset nudge timer when starting each app wait — gives the root
-            # sync a full 5 min of uninterrupted progress before we intervene.
-            LAST_NUDGE=$SECONDS
             until [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null)" = "Synced" ] \
                && [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.health.status}' 2>/dev/null)" = "Healthy" ]; do
               if [ $SECONDS -ge $DEADLINE ]; then
@@ -500,22 +497,6 @@ jobs:
                 kubectl get applications -n argocd 2>/dev/null || true
                 kubectl get application "$app" -n argocd -o yaml 2>/dev/null || true
                 exit 1
-              fi
-              # Nudge the root app every 5 minutes ONLY while waiting for
-              # juice-shop (wave 9). Earlier waves need uninterrupted sync time
-              # — clearing the operation restarts from wave 1, which sabotages
-              # progress. By the juice-shop wait, waves 1-4 are confirmed done
-              # and the nudge helps recover from retry exhaustion at wave 8.
-              if [ "$app" = "juice-shop" ] && [ $((SECONDS - LAST_NUDGE)) -ge 300 ]; then
-                ROOT_SYNC=$(kubectl get application argocd -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null)
-                if [ "$ROOT_SYNC" = "OutOfSync" ]; then
-                  echo "  Root app stuck OutOfSync — clearing operation and triggering refresh"
-                  kubectl patch application argocd -n argocd --type json \
-                    -p='[{"op":"remove","path":"/operation"}]' 2>/dev/null || true
-                  kubectl annotate application argocd -n argocd \
-                    argocd.argoproj.io/refresh=hard --overwrite 2>/dev/null || true
-                fi
-                LAST_NUDGE=$SECONDS
               fi
               echo "  $app: $(kubectl get application "$app" -n argocd \
                 -o jsonpath='{.status.sync.status}/{.status.health.status}' 2>/dev/null || echo 'not found')"
