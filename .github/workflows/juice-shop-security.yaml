@@ -461,12 +461,16 @@ jobs:
         run: |
           kubectl -n argocd wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server --timeout=300s
           kubectl -n argocd wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-repo-server --timeout=300s
+          # Single shared deadline for all apps.
+          # juice-shop is sync-wave 9 — it can only be created after waves 1-8 are
+          # healthy. argo-rollouts (wave 4) alone took ~9 min in CI, so later waves
+          # easily consume the remaining time of a per-app timer.
+          DEADLINE=$((SECONDS + 1200))
           for app in network-policies argo-rollouts juice-shop; do
             echo "Waiting for $app to sync..."
-            SECONDS=0
             until [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null)" = "Synced" ] \
                && [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.health.status}' 2>/dev/null)" = "Healthy" ]; do
-              if [ $SECONDS -ge 600 ]; then
+              if [ $SECONDS -ge $DEADLINE ]; then
                 echo "Timed out waiting for $app"
                 kubectl get applications -n argocd 2>/dev/null || true
                 kubectl get application "$app" -n argocd -o yaml 2>/dev/null || true
