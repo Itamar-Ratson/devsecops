@@ -13,13 +13,8 @@ include "root" {
   path = find_in_parent_folders("root.hcl")
 }
 
-dependency "hcp_workspaces" {
-  config_path = "../../hcp-workspaces"
-  mock_outputs = {
-    workspace_ids = {}
-  }
-  mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "apply", "destroy"]
-  mock_outputs_merge_strategy_with_state  = "shallow"
+dependencies {
+  paths = ["./workspace"]
 }
 
 # Serialize after vault/transit to avoid plugin cache race condition
