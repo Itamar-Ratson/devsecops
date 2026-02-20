@@ -496,8 +496,10 @@ jobs:
               kubectl get applications -n argocd 2>/dev/null || true
               exit 1
             fi
+            SYNCED=$(kubectl get applications -n argocd -o jsonpath='{range .items[?(@.status.sync.status=="Synced")]}{.metadata.name}{"\n"}{end}' 2>/dev/null | grep -c . || echo 0)
+            TOTAL=$(kubectl get applications -n argocd -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null | grep -c . || echo 0)
             echo "  juice-shop: $(kubectl get application juice-shop -n argocd \
-              -o jsonpath='{.status.sync.status}/{.status.health.status}' 2>/dev/null || echo 'not found')"
+              -o jsonpath='{.status.sync.status}/{.status.health.status}' 2>/dev/null || echo 'not found') ($SYNCED/$TOTAL apps synced)"
             sleep 15
           done
           echo "juice-shop is Synced/Healthy"
