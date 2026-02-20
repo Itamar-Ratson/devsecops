@@ -149,8 +149,8 @@ resource "kubernetes_manifest" "argocd_root_application" {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Application"
     metadata = {
-      name      = "argocd"
-      namespace = "argocd"
+      name       = "argocd"
+      namespace  = "argocd"
       finalizers = ["resources-finalizer.argocd.argoproj.io"]
     }
     spec = {

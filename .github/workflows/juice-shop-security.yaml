@@ -275,7 +275,9 @@ jobs:
           find helm -name "Chart.yaml" ! -path "*/charts/*" -exec dirname {} \; | sort | \
           while read chart; do
             values_args="-f helm/ports.yaml"
-            [ -f "$chart/values.yaml" ] && values_args="$values_args -f $chart/values.yaml"
+            for vf in "$chart"/values*.yaml; do
+              [ -f "$vf" ] && values_args="$values_args -f $vf"
+            done
             echo "=== Linting $chart ==="
             helm lint "$chart" $values_args
           done
