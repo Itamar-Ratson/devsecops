@@ -45,7 +45,7 @@ dependency "kind_cluster" {
 # - k8s/bootstrap/cluster: CRDs (ArgoCD Application, CiliumNetworkPolicy, etc.)
 # - vault-config: Vault auth backend setup
 dependencies {
-  paths = ["../cluster", "../../../vault/config"]
+  paths = ["./workspace", "../cluster", "../../../vault/config"]
 }
 
 inputs = {
