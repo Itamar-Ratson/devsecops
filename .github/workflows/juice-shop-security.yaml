@@ -484,9 +484,11 @@ jobs:
           # auth to Vault and sync keycloak secrets → keycloak pod starts normally.
           # Keycloak (wave 6, JVM + DB init) is still the slowest gate: ~15 min.
           DEADLINE=$((SECONDS + 2700))
-          LAST_NUDGE=0
           for app in network-policies argo-rollouts juice-shop; do
             echo "Waiting for $app to sync..."
+            # Reset nudge timer when starting each app wait — gives the root
+            # sync a full 5 min of uninterrupted progress before we intervene.
+            LAST_NUDGE=$SECONDS
             until [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null)" = "Synced" ] \
                && [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.health.status}' 2>/dev/null)" = "Healthy" ]; do
               if [ $SECONDS -ge $DEADLINE ]; then
@@ -499,11 +501,12 @@ jobs:
                 kubectl get application "$app" -n argocd -o yaml 2>/dev/null || true
                 exit 1
               fi
-              # Nudge the root app every 5 minutes if its sync is stuck.
-              # ArgoCD's sync can exhaust retries while waiting for slow waves
-              # (e.g. monitoring Degraded during pod startup). Clearing the
-              # operation and triggering a hard refresh lets selfHeal start fresh.
-              if [ $((SECONDS - LAST_NUDGE)) -ge 300 ]; then
+              # Nudge the root app every 5 minutes ONLY while waiting for
+              # juice-shop (wave 9). Earlier waves need uninterrupted sync time
+              # — clearing the operation restarts from wave 1, which sabotages
+              # progress. By the juice-shop wait, waves 1-4 are confirmed done
+              # and the nudge helps recover from retry exhaustion at wave 8.
+              if [ "$app" = "juice-shop" ] && [ $((SECONDS - LAST_NUDGE)) -ge 300 ]; then
                 ROOT_SYNC=$(kubectl get application argocd -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null)
                 if [ "$ROOT_SYNC" = "OutOfSync" ]; then
                   echo "  Root app stuck OutOfSync — clearing operation and triggering refresh"
