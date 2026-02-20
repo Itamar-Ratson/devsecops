@@ -14,6 +14,10 @@ include "root" {
   path = find_in_parent_folders("root.hcl")
 }
 
+dependencies {
+  paths = ["./workspace"]
+}
+
 dependency "transit_vault" {
   config_path = "../transit"
 
