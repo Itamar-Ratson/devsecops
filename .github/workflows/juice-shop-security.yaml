@@ -5,11 +5,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'helm/apps/juice-shop/**'
-      - 'helm/argo/rollouts/**'
-      - 'helm/argo/cd/**'
-      - 'helm/networking/policies/**'
-      - 'helm/ports.yaml'
+      - 'helm/**'
       - 'docker/juice-shop/**'
       - '.github/workflows/juice-shop-security.yaml'
       - '.github/scripts/**'
@@ -19,11 +15,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'helm/apps/juice-shop/**'
-      - 'helm/argo/rollouts/**'
-      - 'helm/argo/cd/**'
-      - 'helm/networking/policies/**'
-      - 'helm/ports.yaml'
+      - 'helm/**'
       - 'docker/juice-shop/**'
       - '.github/workflows/juice-shop-security.yaml'
       - '.github/scripts/**'
@@ -227,20 +219,74 @@ jobs:
         with:
           version: 'v3.14.0'
 
-      - name: Helm lint juice-shop chart
-        run: |
-          helm lint helm/apps/juice-shop/ \
-            -f helm/ports.yaml \
-            -f helm/apps/juice-shop/values.yaml
+      - name: Cache Helm chart dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/helm
+          key: helm-deps-${{ hashFiles('helm/**/Chart.yaml') }}
+          restore-keys: |
+            helm-deps-
 
-      - name: Helm template validation
+      - name: Add Helm repos
+        run: |
+          helm repo add cilium             https://helm.cilium.io
+          helm repo add kafka-ui           https://provectus.github.io/kafka-ui-charts
+          helm repo add kyverno            https://kyverno.github.io/kyverno/
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana            https://grafana.github.io/helm-charts
+          helm repo add open-telemetry     https://open-telemetry.github.io/opentelemetry-helm-charts
+          helm repo add sealed-secrets     https://bitnami-labs.github.io/sealed-secrets
+          helm repo add aquasecurity       https://aquasecurity.github.io/helm-charts/
+          helm repo add hashicorp          https://helm.releases.hashicorp.com
+          helm repo add codecentric        https://codecentric.github.io/helm-charts
+          helm repo add argo               https://argoproj.github.io/argo-helm
+          helm repo add headlamp           https://kubernetes-sigs.github.io/headlamp/
+          helm repo add jetstack           https://charts.jetstack.io
+          helm repo add strimzi            https://strimzi.io/charts/
+          helm repo update
+
+      - name: Build Helm chart dependencies
+        run: |
+          for chart in \
+            helm/certificates/cert-manager \
+            helm/certificates/trust-manager \
+            helm/networking/cilium \
+            helm/security/tetragon \
+            helm/kafka/ui \
+            helm/security/kyverno/engine \
+            helm/security/kyverno/policies \
+            helm/observability/monitoring \
+            helm/observability/opentelemetry-operator \
+            helm/secrets/sealed-secrets \
+            helm/security/trivy-operator \
+            helm/secrets/vault/server \
+            helm/secrets/vault/secrets-operator \
+            helm/identity/keycloak \
+            helm/argo/rollouts \
+            helm/argo/cd \
+            helm/kafka/operator \
+            helm/observability/headlamp; do
+            echo "=== Building deps: $chart ==="
+            helm dependency build "$chart"
+          done
+
+      - name: Lint all Helm charts
+        run: |
+          find helm -name "Chart.yaml" ! -path "*/charts/*" -exec dirname {} \; | sort | \
+          while read chart; do
+            values_args="-f helm/ports.yaml"
+            [ -f "$chart/values.yaml" ] && values_args="$values_args -f $chart/values.yaml"
+            echo "=== Linting $chart ==="
+            helm lint "$chart" $values_args
+          done
+
+      - name: Render and upload juice-shop manifests
         run: |
           helm template juice-shop helm/apps/juice-shop/ \
             -f helm/ports.yaml \
             -f helm/apps/juice-shop/values.yaml \
             --namespace juice-shop \
             > /tmp/rendered.yaml
-          cat /tmp/rendered.yaml
 
       - name: Upload rendered manifests
         uses: actions/upload-artifact@v4
