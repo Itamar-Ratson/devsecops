@@ -484,26 +484,23 @@ jobs:
           # auth to Vault and sync keycloak secrets → keycloak pod starts normally.
           # Keycloak (wave 6, JVM + DB init) is still the slowest gate: ~15 min.
           DEADLINE=$((SECONDS + 2700))
-          for app in network-policies argo-rollouts juice-shop; do
-            echo "Waiting for $app to sync..."
-            until [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null)" = "Synced" ] \
-               && [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.health.status}' 2>/dev/null)" = "Healthy" ]; do
-              if [ $SECONDS -ge $DEADLINE ]; then
-                echo "Timed out waiting for $app"
-                echo "=== Root app (argocd) operation state ==="
-                kubectl get application argocd -n argocd -o jsonpath='{.status.operationState.phase}' 2>/dev/null; echo
-                kubectl get application argocd -n argocd -o jsonpath='{.status.operationState.message}' 2>/dev/null; echo
-                echo "=== All apps ==="
-                kubectl get applications -n argocd 2>/dev/null || true
-                kubectl get application "$app" -n argocd -o yaml 2>/dev/null || true
-                exit 1
-              fi
-              echo "  $app: $(kubectl get application "$app" -n argocd \
-                -o jsonpath='{.status.sync.status}/{.status.health.status}' 2>/dev/null || echo 'not found')"
-              sleep 15
-            done
-            echo "$app is Synced/Healthy"
+          echo "Waiting for juice-shop to sync (wave 9 — all prior waves must complete first)..."
+          until [ "$(kubectl get application juice-shop -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null)" = "Synced" ] \
+             && [ "$(kubectl get application juice-shop -n argocd -o jsonpath='{.status.health.status}' 2>/dev/null)" = "Healthy" ]; do
+            if [ $SECONDS -ge $DEADLINE ]; then
+              echo "Timed out waiting for juice-shop"
+              echo "=== Root app (argocd) operation state ==="
+              kubectl get application argocd -n argocd -o jsonpath='{.status.operationState.phase}' 2>/dev/null; echo
+              kubectl get application argocd -n argocd -o jsonpath='{.status.operationState.message}' 2>/dev/null; echo
+              echo "=== All apps ==="
+              kubectl get applications -n argocd 2>/dev/null || true
+              exit 1
+            fi
+            echo "  juice-shop: $(kubectl get application juice-shop -n argocd \
+              -o jsonpath='{.status.sync.status}/{.status.health.status}' 2>/dev/null || echo 'not found')"
+            sleep 15
           done
+          echo "juice-shop is Synced/Healthy"
 
       # --- Deployment verification ---
       - name: Verify rollout
