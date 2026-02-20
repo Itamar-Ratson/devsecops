@@ -403,6 +403,24 @@ jobs:
         run: |
           cat > terraform/live/secrets.tfvars << 'EOF'
           vault_root_token = "ci-test-token"
+          oidc_client_secrets = {
+            argocd   = "ci-dummy-oidc-secret"
+            grafana  = "ci-dummy-oidc-secret"
+            vault    = "ci-dummy-oidc-secret"
+            headlamp = "ci-dummy-oidc-secret"
+          }
+          keycloak_admin = {
+            username = "admin"
+            password = "ci-test-password"
+          }
+          grafana_admin = {
+            username = "admin"
+            password = "ci-test-password"
+          }
+          argocd_admin = {
+            password_hash     = "ci-dummy-hash"
+            server_secret_key = "ci-dummy-server-secret"
+          }
           EOF
           cat > terraform/live/k8s/bootstrap/argocd/ci.auto.tfvars << EOF
           git_repo_url              = "https://github.com/${{ github.repository }}"
@@ -440,7 +458,6 @@ jobs:
             --filter '!k8s/kind/workspace' \
             --filter '!k8s/bootstrap/cluster/workspace' \
             --filter '!k8s/bootstrap/argocd/workspace' \
-            --filter '!vault/config' \
             --filter '!registry/warm'
         timeout-minutes: 20
 
@@ -462,9 +479,10 @@ jobs:
           kubectl -n argocd wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server --timeout=300s
           kubectl -n argocd wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-repo-server --timeout=300s
           # Single shared deadline for all apps.
-          # juice-shop is sync-wave 9. All prior waves must be Healthy before it
-          # appears. Keycloak (wave 6, JVM + DB init) is the slowest gate: ~20 min
-          # in CI. Waves 7-8 add another ~5-10 min after that.
+          # juice-shop is sync-wave 9. All prior waves must be Healthy first.
+          # vault/config now runs in CI (mirrors local deploy order) so VSO can
+          # auth to Vault and sync keycloak secrets → keycloak pod starts normally.
+          # Keycloak (wave 6, JVM + DB init) is still the slowest gate: ~15 min.
           DEADLINE=$((SECONDS + 2700))
           for app in network-policies argo-rollouts juice-shop; do
             echo "Waiting for $app to sync..."
@@ -565,7 +583,6 @@ jobs:
             --filter '!k8s/kind/workspace' \
             --filter '!k8s/bootstrap/cluster/workspace' \
             --filter '!k8s/bootstrap/argocd/workspace' \
-            --filter '!vault/config' \
             --filter '!registry/warm'
         timeout-minutes: 10
 
