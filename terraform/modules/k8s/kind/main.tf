@@ -174,6 +174,12 @@ resource "null_resource" "host_dns" {
   provisioner "local-exec" {
     interpreter = ["bash", "-c"]
     command     = <<-EOT
+      # CI uses port-forward + localhost for tests — no *.onprem DNS needed.
+      if [ "$${CI:-false}" = "true" ]; then
+        echo "CI: skipping host DNS setup"
+        exit 0
+      fi
+
       # Preflight: verify the one-time DNS prerequisite is in place.
       if [ ! -f /etc/systemd/resolved.conf.d/kind-gateway.conf ]; then
         echo "ERROR: missing one-time DNS prerequisite." >&2
