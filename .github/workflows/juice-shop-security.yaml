@@ -422,6 +422,13 @@ jobs:
           helm dependency build helm/secrets/sealed-secrets/
           helm dependency build helm/argo/cd/
 
+      - name: Pre-create KinD Docker network with explicit subnet
+        run: |
+          docker network create \
+            --driver bridge \
+            --subnet 172.18.0.0/16 \
+            kind 2>/dev/null || echo "kind network already exists"
+
       - name: Deploy infrastructure with Terragrunt
         run: |
           cd terraform/live
