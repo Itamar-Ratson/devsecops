@@ -287,7 +287,7 @@ jobs:
           helm template juice-shop helm/apps/juice-shop/ \
             -f helm/ports.yaml \
             -f helm/apps/juice-shop/values.yaml \
-            --namespace juice-shop \
+            --namespace apps \
             > /tmp/rendered.yaml
 
       - name: Upload rendered manifests
@@ -321,7 +321,7 @@ jobs:
           helm template juice-shop helm/apps/juice-shop/ \
             -f helm/ports.yaml \
             -f helm/apps/juice-shop/values.yaml \
-            --namespace juice-shop \
+            --namespace apps \
             > /tmp/juice-shop-rendered.yaml
 
       - name: Download Kyverno Pod Security Standard policies
@@ -484,15 +484,35 @@ jobs:
           # auth to Vault and sync keycloak secrets → keycloak pod starts normally.
           # Keycloak (wave 6, JVM + DB init) is still the slowest gate: ~15 min.
           DEADLINE=$((SECONDS + 2700))
+          LAST_NUDGE=0
           for app in network-policies argo-rollouts juice-shop; do
             echo "Waiting for $app to sync..."
             until [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null)" = "Synced" ] \
                && [ "$(kubectl get application "$app" -n argocd -o jsonpath='{.status.health.status}' 2>/dev/null)" = "Healthy" ]; do
               if [ $SECONDS -ge $DEADLINE ]; then
                 echo "Timed out waiting for $app"
+                echo "=== Root app (argocd) operation state ==="
+                kubectl get application argocd -n argocd -o jsonpath='{.status.operationState.phase}' 2>/dev/null; echo
+                kubectl get application argocd -n argocd -o jsonpath='{.status.operationState.message}' 2>/dev/null; echo
+                echo "=== All apps ==="
                 kubectl get applications -n argocd 2>/dev/null || true
                 kubectl get application "$app" -n argocd -o yaml 2>/dev/null || true
                 exit 1
+              fi
+              # Nudge the root app every 5 minutes if its sync is stuck.
+              # ArgoCD's sync can exhaust retries while waiting for slow waves
+              # (e.g. monitoring Degraded during pod startup). Clearing the
+              # operation and triggering a hard refresh lets selfHeal start fresh.
+              if [ $((SECONDS - LAST_NUDGE)) -ge 300 ]; then
+                ROOT_SYNC=$(kubectl get application argocd -n argocd -o jsonpath='{.status.sync.status}' 2>/dev/null)
+                if [ "$ROOT_SYNC" = "OutOfSync" ]; then
+                  echo "  Root app stuck OutOfSync — clearing operation and triggering refresh"
+                  kubectl patch application argocd -n argocd --type json \
+                    -p='[{"op":"remove","path":"/operation"}]' 2>/dev/null || true
+                  kubectl annotate application argocd -n argocd \
+                    argocd.argoproj.io/refresh=hard --overwrite 2>/dev/null || true
+                fi
+                LAST_NUDGE=$SECONDS
               fi
               echo "  $app: $(kubectl get application "$app" -n argocd \
                 -o jsonpath='{.status.sync.status}/{.status.health.status}' 2>/dev/null || echo 'not found')"
@@ -504,14 +524,14 @@ jobs:
       # --- Deployment verification ---
       - name: Verify rollout
         run: |
-          kubectl -n juice-shop wait --for=condition=Ready pod -l app=juice-shop --timeout=120s
-          kubectl get rollout -n juice-shop
-          kubectl get pods -n juice-shop
-          kubectl get svc -n juice-shop
+          kubectl -n apps wait --for=condition=Ready pod -l app=juice-shop --timeout=120s
+          kubectl get rollout -n apps
+          kubectl get pods -n apps
+          kubectl get svc -n apps
 
       - name: Test application health
         run: |
-          kubectl port-forward -n juice-shop svc/juice-shop-stable 3000:80 &
+          kubectl port-forward -n apps svc/juice-shop-stable 3000:80 &
           sleep 10
           curl -sf http://localhost:3000/ || exit 1
           echo "Health check passed"
@@ -549,8 +569,8 @@ jobs:
       - name: Export deployment artifacts
         if: always()
         run: |
-          kubectl get all -n juice-shop -o yaml > /tmp/deployment-state.yaml 2>/dev/null || true
-          kubectl logs -n juice-shop -l app=juice-shop --tail=100 > /tmp/app-logs.txt 2>/dev/null || true
+          kubectl get all -n apps -o yaml > /tmp/deployment-state.yaml 2>/dev/null || true
+          kubectl logs -n apps -l app=juice-shop --tail=100 > /tmp/app-logs.txt 2>/dev/null || true
 
       - name: Pre-destroy cleanup
         if: always()

@@ -190,7 +190,7 @@ resource "kubernetes_manifest" "argocd_root_application" {
         }
         syncOptions = ["ServerSideApply=true", "RespectIgnoreDifferences=true"]
         retry = {
-          limit = 5
+          limit = 30
           backoff = {
             duration    = "30s"
             factor      = 2
