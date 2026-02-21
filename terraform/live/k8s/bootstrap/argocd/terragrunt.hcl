@@ -1,17 +1,18 @@
 terraform {
   source = "../../../../modules/k8s/bootstrap/argocd"
-
-  extra_arguments "secrets" {
-    commands = get_terraform_commands_that_need_vars()
-
-    optional_var_files = [
-      "${get_repo_root()}/terraform/live/secrets.tfvars"
-    ]
-  }
 }
 
 include "root" {
   path = find_in_parent_folders("root.hcl")
+}
+
+# Fetch secrets from SSM at plan/apply time.
+# CI also has AWS credentials (via GitHub OIDC AssumeRole), so these succeed in CI too.
+# Non-sensitive CI overrides (create_deploy_key, juice_shop_enabled, git_repo_url for HTTPS)
+# are written to ci.auto.tfvars by the workflow; auto.tfvars override these locals.
+locals {
+  github_token              = run_cmd("--terragrunt-quiet", "aws", "ssm", "get-parameter", "--name", "/devsecops/github-token", "--with-decryption", "--query", "Parameter.Value", "--output", "text")
+  argocd_oidc_client_secret = run_cmd("--terragrunt-quiet", "aws", "ssm", "get-parameter", "--name", "/devsecops/oidc-argocd", "--with-decryption", "--query", "Parameter.Value", "--output", "text")
 }
 
 dependency "transit_vault" {
@@ -57,6 +58,11 @@ inputs = {
   vault_cluster_ip       = dependency.kind_cluster.outputs.vault_cluster_ip
   cache_cluster_ip       = dependency.kind_cluster.outputs.cache_cluster_ip
   helm_values_dir        = "${get_repo_root()}/helm"
-  # git_repo_url, github_token, argocd_oidc_client_secret
-  # — loaded from secrets.tfvars via extra_arguments above
+
+  # SSH URL for local deploy key setup.
+  # In CI: ci.auto.tfvars overrides with HTTPS URL (public repo, no deploy key).
+  git_repo_url = "git@github.com:itamar-ratson/devsecops.git"
+
+  github_token              = local.github_token
+  argocd_oidc_client_secret = local.argocd_oidc_client_secret
 }
