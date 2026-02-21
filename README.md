@@ -97,26 +97,60 @@ Run once before the first `terragrunt run --all apply`.
 
 ## Quick Setup
 
+### Admin (one-time setup)
+
 ```bash
-cp terraform/live/secrets.tfvars.example terraform/live/secrets.tfvars  # Configure secrets
-cd terraform/live && terragrunt run --all apply --non-interactive
+# 1. Configure AWS CLI with admin credentials
+aws configure
+
+# 2. Create IAM infrastructure (OIDC provider, CI role, team users)
+cp terraform/live/aws/iam/team-members.csv.example terraform/live/aws/iam/team-members.csv
+# Edit team-members.csv: add usernames for each team member
+cd terraform/live/aws/iam && terragrunt apply --non-interactive
+
+# 3. Seed SSM parameters from secrets.tfvars
+cp terraform/live/secrets.tfvars.example terraform/live/secrets.tfvars  # fill in all values
+cd ../ssm && terragrunt apply --non-interactive
+
+# 4. Apply the full stack
+cd ../../ && terragrunt run --all apply --non-interactive
+```
+
+After step 4, revoke the Vault root token:
+
+```bash
+vault login <vault_root_token>
+vault token revoke -self
+```
+
+### Team members (day-to-day)
+
+```bash
+# 1. Configure AWS with the access key your admin provided
+aws configure
+
+# 2. Clone the repo and apply (no secrets files needed)
+git clone git@github.com:itamar-ratson/devsecops.git
+cd devsecops/terraform/live
+terragrunt run --all apply --non-interactive
 ```
 
 ### Secrets Configuration
 
-Edit `terraform/live/secrets.tfvars` with:
+The admin fills in `terraform/live/secrets.tfvars` once to bootstrap SSM. After that, secrets
+are managed in AWS SSM Parameter Store (free Standard tier). See `docs/runbooks/ssm-admin-guide.md`
+for full admin procedures.
 
 | Secret | How to Generate |
 |--------|-----------------|
 | `vault_root_token` | `openssl rand -base64 32` |
-| `git_repo_url` | SSH URL of this repo |
 | `github_token` | GitHub token with `admin:repo_key` scope |
 | `oidc_client_secrets` (argocd, grafana, vault, headlamp) | `openssl rand -hex 32` each |
 | `keycloak_admin` | Choose username/password |
 | `grafana_admin` | Choose username/password |
 | `argocd_admin.password_hash` | `htpasswd -nbBC 10 "" 'your-password' \| tr -d ':\n'` |
 | `argocd_admin.server_secret_key` | `openssl rand -base64 32` |
-| `alertmanager_webhooks` (optional) | PagerDuty/Slack webhook URLs |
+| `alertmanager_webhooks` (optional) | PagerDuty/Slack webhook URLs (or leave as `"DISABLED"`) |
 
 | Wave | Role | Components |
 |------|------|------------|
