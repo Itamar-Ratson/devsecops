@@ -26,50 +26,6 @@ variable "token_reviewer_jwt" {
   sensitive   = true
 }
 
-variable "oidc_client_secrets" {
-  description = "OIDC client secrets keyed by service name"
-  type        = map(string)
-  sensitive   = true
-}
-
-variable "keycloak_admin" {
-  description = "Keycloak admin credentials"
-  type = object({
-    username = string
-    password = string
-  })
-  sensitive = true
-}
-
-variable "grafana_admin" {
-  description = "Grafana admin credentials"
-  type = object({
-    username = string
-    password = string
-  })
-  sensitive = true
-}
-
-variable "argocd_admin" {
-  description = "ArgoCD admin credentials"
-  type = object({
-    password_hash     = string
-    server_secret_key = string
-  })
-  sensitive = true
-}
-
-variable "alertmanager_webhooks" {
-  description = "Alertmanager webhook URLs (optional)"
-  type = object({
-    pagerduty_routing_key  = optional(string, "")
-    slack_critical_webhook = optional(string, "")
-    slack_warning_webhook  = optional(string, "")
-  })
-  default   = {}
-  sensitive = true
-}
-
 variable "vso_allowed_namespaces" {
   description = "K8s namespaces allowed to authenticate via VSO role"
   type        = list(string)
