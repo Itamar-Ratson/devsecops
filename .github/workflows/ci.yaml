@@ -403,6 +403,46 @@ jobs:
           name: rendered-manifests
           path: /tmp/rendered.yaml
 
+      - name: Check chart version increments
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin main --depth=1
+          # Find chart roots for all changed files under helm/
+          # Uses command substitution (not pipe) to avoid subshell variable scope issues
+          CHANGED_CHARTS=$(
+            git diff --name-only origin/main -- helm/ | while read -r file; do
+              dir=$(dirname "$file")
+              while [ "$dir" != "helm" ] && [ "$dir" != "." ]; do
+                if [ -f "$dir/Chart.yaml" ]; then
+                  echo "$dir"
+                  break
+                fi
+                dir=$(dirname "$dir")
+              done
+            done | sort -u
+          )
+          if [ -z "$CHANGED_CHARTS" ]; then
+            echo "No Helm charts changed."
+            exit 0
+          fi
+          FAILED=false
+          while read -r chart; do
+            old_ver=$(git show origin/main:"$chart/Chart.yaml" 2>/dev/null \
+              | grep '^version:' | awk '{print $2}' || echo "0.0.0")
+            new_ver=$(grep '^version:' "$chart/Chart.yaml" | awk '{print $2}')
+            if [ "$old_ver" = "$new_ver" ]; then
+              echo "FAIL: $chart changed but version not bumped ($old_ver)"
+              FAILED=true
+            else
+              echo "OK: $chart version $old_ver -> $new_ver"
+            fi
+          done <<< "$CHANGED_CHARTS"
+          if [ "$FAILED" = "true" ]; then
+            echo ""
+            echo "Charts with changes must have their Chart.yaml version incremented."
+            exit 1
+          fi
+
   # Job 5: Kyverno policy testing
   kyverno-test:
     runs-on: ubuntu-latest
