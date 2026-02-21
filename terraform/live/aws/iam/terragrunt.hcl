@@ -26,7 +26,7 @@ locals {
 }
 
 inputs = {
-  aws_region   = "us-east-1"
+  aws_region   = "eu-north-1"
   github_org   = "itamar-ratson"
   github_repo  = "devsecops"
   project_name = "devsecops"
