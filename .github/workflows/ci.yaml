@@ -29,6 +29,7 @@ permissions:
   packages: write
   security-events: write
   pull-requests: write
+  id-token: write  # cosign keyless signing via Sigstore OIDC
 
 jobs:
   gitleaks:
@@ -123,6 +124,40 @@ jobs:
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
             VCS_REF=${{ github.sha }}
             VERSION=${{ github.ref_name }}
+
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad  # v4.0.0
+
+      - name: Sign container image
+        if: github.event_name != 'pull_request'
+        run: |
+          cosign sign --yes \
+            "${{ env.REGISTRY }}/${{ steps.image-name.outputs.image_name }}@${{ steps.build.outputs.digest }}"
+
+      - name: Verify image signature
+        if: github.event_name != 'pull_request'
+        run: |
+          cosign verify \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-identity-regexp "https://github.com/${{ github.repository }}/.github/workflows/ci.yaml@.*" \
+            "${{ env.REGISTRY }}/${{ steps.image-name.outputs.image_name }}@${{ steps.build.outputs.digest }}"
+
+      - name: Generate SBOM with Syft
+        if: github.event_name != 'pull_request'
+        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad  # v0.22.2
+        with:
+          image: ${{ env.REGISTRY }}/${{ steps.image-name.outputs.image_name }}@${{ steps.build.outputs.digest }}
+          format: cyclonedx-json
+          output-file: sbom.cdx.json
+
+      - name: Attest SBOM to image
+        if: github.event_name != 'pull_request'
+        run: |
+          cosign attest --yes \
+            --predicate sbom.cdx.json \
+            --type cyclonedx \
+            "${{ env.REGISTRY }}/${{ steps.image-name.outputs.image_name }}@${{ steps.build.outputs.digest }}"
 
   # Job 2: Container security scanning (Trivy)
   container-scan:
