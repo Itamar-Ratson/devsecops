@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "description": "Pin GitHub Actions to SHA digests and auto-merge digest updates",
+      "matchManagers": ["github-actions"],
+      "pinDigests": true,
+      "matchUpdateTypes": ["digest"],
+      "automerge": true
+    },
+    {
+      "description": "GitHub Actions minor/patch updates require manual review",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": false
+    },
+    {
+      "description": "Group Helm chart dependency updates",
+      "matchManagers": ["helmv3"],
+      "groupName": "helm-dependencies"
+    },
+    {
+      "description": "Group Terraform provider updates",
+      "matchManagers": ["terraform"],
+      "groupName": "terraform-providers"
+    },
+    {
+      "description": "Group Dockerfile base image updates",
+      "matchManagers": ["dockerfile"],
+      "groupName": "docker-base-images"
+    }
+  ],
+  "schedule": ["after 9am and before 5pm every weekday"]
+}
