@@ -2,8 +2,10 @@ name: Pipeline Self-Test
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 6 * * 1'  # Monday 6 AM UTC
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
 
 permissions:
   contents: read

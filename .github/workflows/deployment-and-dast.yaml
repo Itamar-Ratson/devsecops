@@ -4,10 +4,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 3 * * 1-5'  # 3 AM UTC, weekdays
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
-    branches: [main]
 
 env:
   REGISTRY: ghcr.io
@@ -21,19 +17,9 @@ permissions:
   packages: write
 
 jobs:
-  gate:
-    runs-on: ubuntu-latest
-    if: >-
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
-    steps:
-      - run: echo "Gate passed"
-
   deployment-and-dast:
     runs-on: ubuntu-latest
     timeout-minutes: 75
-    needs: gate
     env:
       CI: "true"
     steps:
