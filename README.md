@@ -227,6 +227,6 @@ terragrunt run --all destroy --non-interactive --working-dir terraform/live --fi
 Add to `~/.bash_aliases` for convenience:
 
 ```bash
-alias tg-apply='terragrunt run --all apply --non-interactive --working-dir terraform/live'
-alias tg-destroy='terragrunt run --all destroy --non-interactive --working-dir terraform/live --filter !aws --filter !vault/transit --filter !registry'
+tg-apply()  { terragrunt run --all apply   --non-interactive --working-dir terraform/live; }
+tg-destroy() { terragrunt run --all destroy --non-interactive --working-dir terraform/live --filter '!aws' --filter '!vault/transit' --filter '!registry'; }
 ```
