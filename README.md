@@ -53,6 +53,10 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![ArgoCD](https://img.shields.io/badge/ArgoCD-EF7B4D?style=flat&logo=argo&logoColor=white)
 ![Argo Rollouts](https://img.shields.io/badge/Argo_Rollouts-EF7B4D?style=flat&logo=argo&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat&logo=githubactions&logoColor=white)
+![Renovate](https://img.shields.io/badge/Renovate-1A1F6C?style=flat&logo=renovate&logoColor=white)
+![cosign](https://img.shields.io/badge/cosign-7B2D8B?style=flat&logo=sigstore&logoColor=white)
+![Syft](https://img.shields.io/badge/Syft-1D1D1D?style=flat&logo=anchore&logoColor=white)
+![Gitleaks](https://img.shields.io/badge/Gitleaks-181717?style=flat&logo=git&logoColor=white)
 
 ## Prerequisites
 
@@ -66,6 +70,7 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![kubeseal](https://img.shields.io/badge/kubeseal-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![GitHub CLI](https://img.shields.io/badge/gh-181717?style=flat&logo=github&logoColor=white)
 ![Trivy](https://img.shields.io/badge/Trivy-1904DA?style=flat&logo=aquasecurity&logoColor=white)
+![Renovate](https://img.shields.io/badge/Renovate-1A1F6C?style=flat&logo=renovate&logoColor=white)
 
 Increase inotify limits:
 
