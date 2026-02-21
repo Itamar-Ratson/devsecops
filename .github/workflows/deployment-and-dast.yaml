@@ -107,15 +107,9 @@ jobs:
         run: |
           cd terraform/live
           terragrunt run --all apply --non-interactive \
-            --filter '!aws' \
-            --filter '!registry/cache/workspace' \
-            --filter '!registry/warm/workspace' \
-            --filter '!vault/transit/workspace' \
-            --filter '!vault/config/workspace' \
-            --filter '!k8s/kind/workspace' \
-            --filter '!k8s/bootstrap/cluster/workspace' \
-            --filter '!k8s/bootstrap/argocd/workspace' \
-            --filter '!registry/warm'
+            --queue-exclude-dir "aws/*" \
+            --queue-exclude-dir "*/workspace" \
+            --queue-exclude-dir "registry/warm"
         timeout-minutes: 20
 
       - name: Configure kubectl
@@ -236,15 +230,9 @@ jobs:
         run: |
           cd terraform/live
           terragrunt run --all destroy --non-interactive \
-            --filter '!aws' \
-            --filter '!registry/cache/workspace' \
-            --filter '!registry/warm/workspace' \
-            --filter '!vault/transit/workspace' \
-            --filter '!vault/config/workspace' \
-            --filter '!k8s/kind/workspace' \
-            --filter '!k8s/bootstrap/cluster/workspace' \
-            --filter '!k8s/bootstrap/argocd/workspace' \
-            --filter '!registry/warm'
+            --queue-exclude-dir "aws/*" \
+            --queue-exclude-dir "*/workspace" \
+            --queue-exclude-dir "registry/warm"
         timeout-minutes: 10
 
       - name: Upload deployment artifacts

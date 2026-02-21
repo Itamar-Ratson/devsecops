@@ -219,7 +219,10 @@ The following components are disabled to fit within 16GB RAM. Code is preserved 
 Destroy the cluster stack while preserving AWS resources, transit Vault, and the registry cache:
 
 ```bash
-terragrunt run --all destroy --non-interactive --working-dir terraform/live --filter '!aws' --filter '!vault/transit' --filter '!registry'
+terragrunt run --all destroy --non-interactive --working-dir terraform/live \
+  --queue-exclude-dir "aws/*" \
+  --queue-exclude-dir "vault/transit" \
+  --queue-exclude-dir "registry/*"
 ```
 
 ### Shell Aliases
@@ -227,6 +230,6 @@ terragrunt run --all destroy --non-interactive --working-dir terraform/live --fi
 Add to `~/.bash_aliases` for convenience:
 
 ```bash
-tg-apply()  { terragrunt run --all apply   --non-interactive --working-dir terraform/live; }
-tg-destroy() { terragrunt run --all destroy --non-interactive --working-dir terraform/live --filter '!aws' --filter '!vault/transit' --filter '!registry'; }
+tg-apply()  { terragrunt run --all apply --non-interactive --working-dir terraform/live; }
+tg-destroy() { terragrunt run --all destroy --non-interactive --working-dir terraform/live --queue-exclude-dir "aws/*" --queue-exclude-dir "vault/transit" --queue-exclude-dir "registry/*"; }
 ```
