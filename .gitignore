@@ -26,3 +26,4 @@
 !.gitkeep
 !.github
 !.gitattributes
+!.gitleaks.toml
