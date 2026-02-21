@@ -1,0 +1,367 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'helm/**'
+      - 'docker/juice-shop/**'
+      - '.github/workflows/ci.yaml'
+      - 'terraform/modules/**'
+      - 'terraform/live/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'helm/**'
+      - 'docker/juice-shop/**'
+      - '.github/workflows/ci.yaml'
+      - 'terraform/modules/**'
+      - 'terraform/live/**'
+
+env:
+  REGISTRY: ghcr.io
+  # GATEWAY_API_VERSION and CILIUM_VERSION are in deployment-and-dast.yaml
+  # Keep them in sync with terraform/modules/k8s/bootstrap/cluster/variables.tf
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+  pull-requests: write
+
+jobs:
+  # Job 1: Build and push container image
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-name: ${{ steps.image-name.outputs.image_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set lowercase image name
+        id: image-name
+        run: |
+          IMAGE_NAME=$(echo "${{ github.repository }}/juice-shop" | tr '[:upper:]' '[:lower:]')
+          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.image-name.outputs.image_name }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: docker/juice-shop
+          push: ${{ github.event_name != 'pull_request' }}
+          load: ${{ github.event_name == 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ github.ref_name }}
+
+  # Job 2: Container security scanning (Trivy)
+  container-scan:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image for scanning (PR only)
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: docker/juice-shop
+          load: true
+          tags: juice-shop-scan:local
+
+      - name: Run Trivy vulnerability scanner (PR)
+        if: github.event_name == 'pull_request'
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518  # v0.34.1
+        with:
+          image-ref: 'juice-shop-scan:local'
+          format: 'sarif'
+          output: 'trivy-container-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          vuln-type: 'os,library'
+          scanners: 'vuln,secret,misconfig'
+          timeout: '10m'
+
+      - name: Run Trivy vulnerability scanner (Push)
+        if: github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518  # v0.34.1
+        with:
+          image-ref: '${{ env.REGISTRY }}/${{ needs.build.outputs.image-name }}@${{ needs.build.outputs.image-digest }}'
+          format: 'sarif'
+          output: 'trivy-container-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          vuln-type: 'os,library'
+          scanners: 'vuln,secret,misconfig'
+          timeout: '10m'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-container-results.sarif'
+          category: 'trivy-container'
+
+      - name: Trivy summary report (fail on CRITICAL/HIGH)
+        if: github.event_name == 'pull_request'
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518  # v0.34.1
+        with:
+          image-ref: 'juice-shop-scan:local'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+          vuln-type: 'os,library'
+
+  # Job 3: IaC security scanning (Trivy)
+  iac-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy IaC scanner on Helm charts
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518  # v0.34.1
+        with:
+          scan-type: 'config'
+          scan-ref: 'helm/'
+          format: 'sarif'
+          output: 'trivy-iac-helm-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'
+
+      - name: Upload Trivy Helm IaC results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-iac-helm-results.sarif'
+          category: 'trivy-iac-helm'
+
+      - name: Run Trivy IaC scanner on Terraform
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518  # v0.34.1
+        with:
+          scan-type: 'config'
+          scan-ref: 'terraform/'
+          format: 'sarif'
+          output: 'trivy-iac-terraform-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'
+
+      - name: Upload Trivy Terraform IaC results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-iac-terraform-results.sarif'
+          category: 'trivy-iac-terraform'
+
+      - name: Run Trivy IaC scanner (table output)
+        uses: aquasecurity/trivy-action@e368e328979b113139d6f9068e03accaed98a518  # v0.34.1
+        with:
+          scan-type: 'config'
+          scan-ref: 'helm/apps/juice-shop/'
+          format: 'table'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+  # Job 4: Helm lint and validation
+  helm-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.14.0'
+
+      - name: Cache Helm chart dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/helm
+          key: helm-deps-${{ hashFiles('helm/**/Chart.yaml') }}
+          restore-keys: |
+            helm-deps-
+
+      - name: Add Helm repos
+        run: |
+          helm repo add cilium             https://helm.cilium.io
+          helm repo add kafka-ui           https://provectus.github.io/kafka-ui-charts
+          helm repo add kyverno            https://kyverno.github.io/kyverno/
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana            https://grafana.github.io/helm-charts
+          helm repo add open-telemetry     https://open-telemetry.github.io/opentelemetry-helm-charts
+          helm repo add sealed-secrets     https://bitnami-labs.github.io/sealed-secrets
+          helm repo add aquasecurity       https://aquasecurity.github.io/helm-charts/
+          helm repo add hashicorp          https://helm.releases.hashicorp.com
+          helm repo add codecentric        https://codecentric.github.io/helm-charts
+          helm repo add argo               https://argoproj.github.io/argo-helm
+          helm repo add headlamp           https://kubernetes-sigs.github.io/headlamp/
+          helm repo add jetstack           https://charts.jetstack.io
+          helm repo add strimzi            https://strimzi.io/charts/
+          helm repo update
+
+      - name: Build Helm chart dependencies
+        run: |
+          for chart in \
+            helm/certificates/cert-manager \
+            helm/certificates/trust-manager \
+            helm/networking/cilium \
+            helm/security/tetragon \
+            helm/kafka/ui \
+            helm/security/kyverno/engine \
+            helm/security/kyverno/policies \
+            helm/observability/monitoring \
+            helm/observability/opentelemetry-operator \
+            helm/secrets/sealed-secrets \
+            helm/security/trivy-operator \
+            helm/secrets/vault/server \
+            helm/secrets/vault/secrets-operator \
+            helm/identity/keycloak \
+            helm/argo/rollouts \
+            helm/argo/cd \
+            helm/kafka/operator \
+            helm/observability/headlamp; do
+            echo "=== Building deps: $chart ==="
+            helm dependency build "$chart"
+          done
+
+      - name: Lint all Helm charts
+        run: |
+          ERRORS=0
+          while read chart; do
+            values_args="-f helm/ports.yaml"
+            for vf in "$chart"/values*.yaml; do
+              [ -f "$vf" ] && values_args="$values_args -f $vf"
+            done
+            echo "=== Linting $chart ==="
+            helm lint "$chart" $values_args || ERRORS=$((ERRORS + 1))
+          done < <(find helm -name "Chart.yaml" ! -path "*/charts/*" -exec dirname {} \; | sort)
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "ERROR: $ERRORS charts failed linting"
+            exit 1
+          fi
+
+      - name: Render and upload juice-shop manifests
+        run: |
+          helm template juice-shop helm/apps/juice-shop/ \
+            -f helm/ports.yaml \
+            -f helm/apps/juice-shop/values.yaml \
+            --namespace apps \
+            > /tmp/rendered.yaml
+
+      - name: Upload rendered manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-manifests
+          path: /tmp/rendered.yaml
+
+  # Job 5: Kyverno policy testing
+  kyverno-test:
+    runs-on: ubuntu-latest
+    needs: helm-lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.14.0'
+
+      - name: Install Kyverno CLI
+        run: |
+          curl -LO https://github.com/kyverno/kyverno/releases/download/v1.16.2/kyverno-cli_v1.16.2_linux_x86_64.tar.gz
+          tar -xzf kyverno-cli_v1.16.2_linux_x86_64.tar.gz
+          sudo mv kyverno /usr/local/bin/
+          kyverno version
+
+      - name: Render Helm templates
+        run: |
+          helm template juice-shop helm/apps/juice-shop/ \
+            -f helm/ports.yaml \
+            -f helm/apps/juice-shop/values.yaml \
+            --namespace apps \
+            > /tmp/juice-shop-rendered.yaml
+
+      - name: Download Kyverno Pod Security Standard policies
+        run: |
+          mkdir -p /tmp/policies
+          curl -sL https://raw.githubusercontent.com/kyverno/policies/release-1.13/pod-security/restricted/disallow-capabilities-strict/disallow-capabilities-strict.yaml \
+            -o /tmp/policies/disallow-capabilities-strict.yaml
+          curl -sL https://raw.githubusercontent.com/kyverno/policies/release-1.13/pod-security/restricted/disallow-privilege-escalation/disallow-privilege-escalation.yaml \
+            -o /tmp/policies/disallow-privilege-escalation.yaml
+          curl -sL https://raw.githubusercontent.com/kyverno/policies/release-1.13/pod-security/restricted/require-run-as-nonroot/require-run-as-nonroot.yaml \
+            -o /tmp/policies/require-run-as-nonroot.yaml
+
+      - name: Test against Kyverno policies
+        run: |
+          kyverno apply /tmp/policies/ \
+            --resource /tmp/juice-shop-rendered.yaml \
+            --detailed-results \
+            --audit-warn || true
+
+      - name: Run custom policy tests
+        if: hashFiles('tests/kyverno/juice-shop-policy-test.yaml') != ''
+        run: |
+          kyverno test tests/kyverno/ --detailed-results
+
+  # Job 6: Terraform validation
+  terraform-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform format check
+        run: terraform fmt -check -recursive terraform/modules/
+
+      - name: Validate Terraform modules
+        run: |
+          for module in $(find terraform/modules -name "*.tf" -not -path "*/.terraform/*" -exec dirname {} \; | sort -u); do
+            echo "=== Validating $module ==="
+            terraform -chdir="$module" init -backend=false
+            terraform -chdir="$module" validate
+          done
