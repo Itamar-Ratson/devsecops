@@ -216,12 +216,17 @@ The following components are disabled to fit within 16GB RAM. Code is preserved 
 
 ## Cleanup
 
+Destroy the cluster stack while preserving AWS resources, transit Vault, and the registry cache:
+
 ```bash
-cd terraform/live && terragrunt run --all destroy --non-interactive
+cd terraform/live && terragrunt run --all destroy --non-interactive --filter '!aws' --filter '!vault/transit' --filter '!registry'
 ```
 
-> **Tip:** To preserve the registry cache across rebuild cycles:
->
-> ```bash
-> cd terraform/live && terragrunt run --all --queue-exclude-dir "registry/*" --non-interactive -- destroy
-> ```
+### Shell Aliases
+
+Add to `~/.bash_aliases` for convenience:
+
+```bash
+alias tg-apply='cd ~/github/devsecops/terraform/live && terragrunt run --all apply --non-interactive'
+alias tg-destroy='cd ~/github/devsecops/terraform/live && terragrunt run --all destroy --non-interactive --filter "!aws" --filter "!vault/transit" --filter "!registry"'
+```
