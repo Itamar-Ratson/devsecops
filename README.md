@@ -227,6 +227,6 @@ cd terraform/live && terragrunt run --all destroy --non-interactive --filter '!a
 Add to `~/.bash_aliases` for convenience:
 
 ```bash
-alias tg-apply='cd ~/github/devsecops/terraform/live && terragrunt run --all apply --non-interactive'
-alias tg-destroy='cd ~/github/devsecops/terraform/live && terragrunt run --all destroy --non-interactive --filter "!aws" --filter "!vault/transit" --filter "!registry"'
+alias tg-apply='cd terraform/live && terragrunt run --all apply --non-interactive'
+alias tg-destroy='cd terraform/live && terragrunt run --all destroy --non-interactive --filter "!aws" --filter "!vault/transit" --filter "!registry"'
 ```
