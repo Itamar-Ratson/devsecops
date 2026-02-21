@@ -51,7 +51,6 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![Strimzi](https://img.shields.io/badge/Strimzi-191A1C?style=flat&logo=apachekafka&logoColor=white)
 
 **AWS**<br>
-![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat&logo=amazonwebservices&logoColor=white)
 ![IAM](https://img.shields.io/badge/IAM-232F3E?style=flat&logo=amazoniam&logoColor=white)
 ![SSM Parameter Store](https://img.shields.io/badge/SSM_Parameter_Store-232F3E?style=flat&logo=amazonsystemsmanager&logoColor=white)
 ![KMS](https://img.shields.io/badge/KMS-232F3E?style=flat&logo=amazonwebservices&logoColor=white)
