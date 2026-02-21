@@ -13,6 +13,7 @@ env:
   CILIUM_VERSION: v1.18.5
 
 permissions:
+  id-token: write      # required for GitHub OIDC token minting -> AWS AssumeRole
   contents: read
   packages: write
 
@@ -51,35 +52,26 @@ jobs:
             | tar -xzf - crane
           sudo mv crane /usr/local/bin/
 
-      - name: Create CI secrets
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/devsecops-github-actions
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Create CI overrides
         run: |
+          # vault_root_token: vault/transit reads it from secrets.tfvars.
+          # In CI vault/transit runs (not filtered), so we provide a dummy value.
           cat > terraform/live/secrets.tfvars << 'EOF'
           vault_root_token = "ci-test-token"
-          oidc_client_secrets = {
-            argocd   = "ci-dummy-oidc-secret"
-            grafana  = "ci-dummy-oidc-secret"
-            vault    = "ci-dummy-oidc-secret"
-            headlamp = "ci-dummy-oidc-secret"
-          }
-          keycloak_admin = {
-            username = "admin"
-            password = "ci-test-password"
-          }
-          grafana_admin = {
-            username = "admin"
-            password = "ci-test-password"
-          }
-          argocd_admin = {
-            password_hash     = "ci-dummy-hash"
-            server_secret_key = "ci-dummy-server-secret"
-          }
           EOF
+          # Non-sensitive CI-only overrides for the argocd module.
+          # Secrets (github_token, argocd_oidc_client_secret) are now read from
+          # SSM by run_cmd in terragrunt.hcl using the AWS credentials above.
           cat > terraform/live/k8s/bootstrap/argocd/ci.auto.tfvars << EOF
-          git_repo_url              = "https://github.com/${{ github.repository }}"
-          github_token              = "unused"
-          argocd_oidc_client_secret = "ci-dummy-oidc-secret"
-          create_deploy_key         = false
-          juice_shop_enabled        = true
+          git_repo_url       = "https://github.com/${{ github.repository }}"
+          create_deploy_key  = false
+          juice_shop_enabled = true
           EOF
 
       - name: Build Helm chart dependencies
@@ -115,6 +107,7 @@ jobs:
         run: |
           cd terraform/live
           terragrunt run --all apply --non-interactive \
+            --filter '!aws' \
             --filter '!registry/cache/workspace' \
             --filter '!registry/warm/workspace' \
             --filter '!vault/transit/workspace' \
@@ -243,6 +236,7 @@ jobs:
         run: |
           cd terraform/live
           terragrunt run --all destroy --non-interactive \
+            --filter '!aws' \
             --filter '!registry/cache/workspace' \
             --filter '!registry/warm/workspace' \
             --filter '!vault/transit/workspace' \
