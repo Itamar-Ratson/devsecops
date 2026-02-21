@@ -8,6 +8,12 @@
 terraform {
   source = "../../../modules/aws/ssm"
 
+  # Admin-only module, always run individually (not via run --all).
+  extra_arguments "auto_approve" {
+    commands  = ["apply", "destroy"]
+    arguments = ["-auto-approve"]
+  }
+
   # Fail loudly if secrets.tfvars is missing — this is admin-only and
   # must be present to seed SSM.
   extra_arguments "secrets" {

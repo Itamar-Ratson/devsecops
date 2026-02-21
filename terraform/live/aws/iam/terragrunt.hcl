@@ -8,6 +8,12 @@
 
 terraform {
   source = "../../../modules/aws/iam"
+
+  # Admin-only module, always run individually (not via run --all).
+  extra_arguments "auto_approve" {
+    commands  = ["apply", "destroy"]
+    arguments = ["-auto-approve"]
+  }
 }
 
 include "root" {
