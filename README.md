@@ -228,5 +228,5 @@ Add to `~/.bash_aliases` for convenience:
 
 ```bash
 alias tg-apply='terragrunt run --all apply --non-interactive --working-dir terraform/live'
-alias tg-destroy='terragrunt run --all destroy --non-interactive --working-dir terraform/live --filter "!aws" --filter "!vault/transit" --filter "!registry"'
+alias tg-destroy='terragrunt run --all destroy --non-interactive --working-dir terraform/live --filter !aws --filter !vault/transit --filter !registry'
 ```
