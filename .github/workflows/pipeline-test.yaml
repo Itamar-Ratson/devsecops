@@ -1,0 +1,156 @@
+name: Pipeline Self-Test
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'  # Monday 6 AM UTC
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pipeline-test
+  cancel-in-progress: true
+
+jobs:
+  workflow-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install actionlint v1.7.7
+        run: |
+          # renovate: datasource=github-releases depName=rhysd/actionlint extractVersion=^v(?<version>.*)$
+          ACTIONLINT_VERSION=1.7.7
+          curl -sfL "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" | tar -xzf -
+          sudo mv actionlint /usr/local/bin/
+
+      - name: Run actionlint
+        run: actionlint
+
+  tool-smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Gitleaks v8.30.0
+        id: gitleaks
+        continue-on-error: true
+        run: |
+          trap 'echo "::error title=Gitleaks::Download or SHA256 verification failed"' ERR
+          # renovate: datasource=github-releases depName=gitleaks/gitleaks extractVersion=^v(?<version>.*)$
+          GITLEAKS_VERSION=8.30.0
+          # Update SHA256 when bumping GITLEAKS_VERSION
+          GITLEAKS_SHA256="79a3ab579b53f71efd634f3aaf7e04a0fa0cf206b7ed434638d1547a2470a66e"
+          curl -sfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum -c
+          tar -xzf gitleaks.tar.gz
+          ./gitleaks version
+
+      - name: Kubeconform v0.6.7
+        id: kubeconform
+        continue-on-error: true
+        run: |
+          trap 'echo "::error title=Kubeconform::Download or version check failed"' ERR
+          # renovate: datasource=github-releases depName=yannh/kubeconform extractVersion=^v(?<version>.*)$
+          KUBECONFORM_VERSION=0.6.7
+          curl -sfL "https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" | tar -xzf -
+          ./kubeconform -v
+
+      - name: Kyverno CLI v1.16.2
+        id: kyverno
+        continue-on-error: true
+        run: |
+          trap 'echo "::error title=Kyverno CLI::Download or version check failed"' ERR
+          # renovate: datasource=github-releases depName=kyverno/kyverno extractVersion=^v(?<version>.*)$
+          KYVERNO_VERSION=1.16.2
+          curl -sfL "https://github.com/kyverno/kyverno/releases/download/v${KYVERNO_VERSION}/kyverno-cli_v${KYVERNO_VERSION}_linux_x86_64.tar.gz" | tar -xzf -
+          ./kyverno version
+
+      - name: Helm v3.14.0
+        id: helm
+        continue-on-error: true
+        run: |
+          trap 'echo "::error title=Helm::Download or version check failed"' ERR
+          # renovate: datasource=github-releases depName=helm/helm extractVersion=^v(?<version>.*)$
+          curl -sfL "https://get.helm.sh/helm-v3.14.0-linux-amd64.tar.gz" | tar -xzf -
+          ./linux-amd64/helm version
+
+      - name: Terragrunt v0.99.2
+        id: terragrunt
+        continue-on-error: true
+        run: |
+          trap 'echo "::error title=Terragrunt::Download or version check failed"' ERR
+          # renovate: datasource=github-releases depName=gruntwork-io/terragrunt extractVersion=^v(?<version>.*)$
+          curl -sfL "https://github.com/gruntwork-io/terragrunt/releases/download/v0.99.2/terragrunt_linux_amd64" -o terragrunt
+          chmod +x terragrunt
+          ./terragrunt --version
+
+      - name: Crane v0.20.7
+        id: crane
+        continue-on-error: true
+        run: |
+          trap 'echo "::error title=Crane::Download or version check failed"' ERR
+          # renovate: datasource=github-releases depName=google/go-containerregistry extractVersion=^v(?<version>.*)$
+          curl -sfL "https://github.com/google/go-containerregistry/releases/download/v0.20.7/go-containerregistry_Linux_x86_64.tar.gz" | tar -xzf - crane
+          ./crane version
+
+      - name: Cosign (action install)
+        id: cosign
+        continue-on-error: true
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad  # v4.0.0
+
+      - name: Cosign version check
+        id: cosign-verify
+        continue-on-error: true
+        run: |
+          trap 'echo "::error title=Cosign::Action install or version check failed"' ERR
+          cosign version
+
+      - name: Check results
+        if: always()
+        run: |
+          FAILED=""
+          if [ "${{ steps.gitleaks.outcome }}" = "failure" ]; then FAILED="$FAILED gitleaks"; fi
+          if [ "${{ steps.kubeconform.outcome }}" = "failure" ]; then FAILED="$FAILED kubeconform"; fi
+          if [ "${{ steps.kyverno.outcome }}" = "failure" ]; then FAILED="$FAILED kyverno"; fi
+          if [ "${{ steps.helm.outcome }}" = "failure" ]; then FAILED="$FAILED helm"; fi
+          if [ "${{ steps.terragrunt.outcome }}" = "failure" ]; then FAILED="$FAILED terragrunt"; fi
+          if [ "${{ steps.crane.outcome }}" = "failure" ]; then FAILED="$FAILED crane"; fi
+          if [ "${{ steps.cosign-verify.outcome }}" = "failure" ]; then FAILED="$FAILED cosign"; fi
+          if [ -n "$FAILED" ]; then
+            echo "::error::Failed tools:$FAILED"
+            exit 1
+          fi
+          echo "All tool smoke tests passed"
+
+  helm-chain-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          # renovate: datasource=github-releases depName=helm/helm extractVersion=^v(?<version>.*)$
+          version: 'v3.14.0'
+
+      - name: Install kubeconform
+        run: |
+          # renovate: datasource=github-releases depName=yannh/kubeconform extractVersion=^v(?<version>.*)$
+          KUBECONFORM_VERSION=0.6.7
+          curl -sfL "https://github.com/yannh/kubeconform/releases/download/v${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" | tar -xzf -
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: Validate juice-shop manifests
+        run: |
+          helm template juice-shop helm/apps/juice-shop/ \
+            -f helm/ports.yaml \
+            -f helm/apps/juice-shop/values.yaml \
+            --namespace apps \
+          | kubeconform -strict -summary \
+            -schema-location default \
+            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'

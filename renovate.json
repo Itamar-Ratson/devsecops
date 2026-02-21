@@ -30,6 +30,21 @@
       "description": "Group Dockerfile base image updates",
       "matchManagers": ["dockerfile"],
       "groupName": "docker-base-images"
+    },
+    {
+      "description": "Group inline tool version updates from workflow run blocks",
+      "matchManagers": ["custom.regex"],
+      "groupName": "workflow-tool-versions"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Tool versions annotated with '# renovate:' comments in workflow files",
+      "fileMatch": ["^\\.github/workflows/.*\\.yaml$"],
+      "matchStrings": [
+        "#\\s*renovate:\\s+datasource=(?<datasource>[^\\s]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+extractVersion=(?<extractVersion>[^\\s]+))?\\n[^\\n]*?(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ]
     }
   ],
   "schedule": ["after 9am and before 5pm every weekday"]
