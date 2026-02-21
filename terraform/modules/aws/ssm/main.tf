@@ -1,0 +1,99 @@
+locals {
+  prefix = "/devsecops"
+}
+
+# -- ArgoCD ---------------------------------------------------------------------
+
+resource "aws_ssm_parameter" "github_token" {
+  name  = "${local.prefix}/github-token"
+  type  = "SecureString"
+  value = var.github_token
+}
+
+resource "aws_ssm_parameter" "oidc_argocd" {
+  name  = "${local.prefix}/oidc-argocd"
+  type  = "SecureString"
+  value = var.oidc_client_secrets["argocd"]
+}
+
+# -- vault/config OIDC ----------------------------------------------------------
+
+resource "aws_ssm_parameter" "oidc_grafana" {
+  name  = "${local.prefix}/oidc-grafana"
+  type  = "SecureString"
+  value = var.oidc_client_secrets["grafana"]
+}
+
+resource "aws_ssm_parameter" "oidc_vault" {
+  name  = "${local.prefix}/oidc-vault"
+  type  = "SecureString"
+  value = var.oidc_client_secrets["vault"]
+}
+
+resource "aws_ssm_parameter" "oidc_headlamp" {
+  name  = "${local.prefix}/oidc-headlamp"
+  type  = "SecureString"
+  value = var.oidc_client_secrets["headlamp"]
+}
+
+# -- Keycloak -------------------------------------------------------------------
+
+resource "aws_ssm_parameter" "keycloak_admin_username" {
+  name  = "${local.prefix}/keycloak-admin-username"
+  type  = "SecureString"
+  value = var.keycloak_admin.username
+}
+
+resource "aws_ssm_parameter" "keycloak_admin_password" {
+  name  = "${local.prefix}/keycloak-admin-password"
+  type  = "SecureString"
+  value = var.keycloak_admin.password
+}
+
+# -- Grafana --------------------------------------------------------------------
+
+resource "aws_ssm_parameter" "grafana_admin_username" {
+  name  = "${local.prefix}/grafana-admin-username"
+  type  = "SecureString"
+  value = var.grafana_admin.username
+}
+
+resource "aws_ssm_parameter" "grafana_admin_password" {
+  name  = "${local.prefix}/grafana-admin-password"
+  type  = "SecureString"
+  value = var.grafana_admin.password
+}
+
+# -- ArgoCD admin ---------------------------------------------------------------
+
+resource "aws_ssm_parameter" "argocd_admin_password_hash" {
+  name  = "${local.prefix}/argocd-admin-password-hash"
+  type  = "SecureString"
+  value = var.argocd_admin.password_hash
+}
+
+resource "aws_ssm_parameter" "argocd_server_secret_key" {
+  name  = "${local.prefix}/argocd-server-secret-key"
+  type  = "SecureString"
+  value = var.argocd_admin.server_secret_key
+}
+
+# -- Alertmanager webhooks (optional; use "DISABLED" to disable) ----------------
+
+resource "aws_ssm_parameter" "alertmanager_pagerduty" {
+  name  = "${local.prefix}/alertmanager-pagerduty-routing-key"
+  type  = "SecureString"
+  value = var.alertmanager_webhooks.pagerduty_routing_key
+}
+
+resource "aws_ssm_parameter" "alertmanager_slack_critical" {
+  name  = "${local.prefix}/alertmanager-slack-critical-webhook"
+  type  = "SecureString"
+  value = var.alertmanager_webhooks.slack_critical_webhook
+}
+
+resource "aws_ssm_parameter" "alertmanager_slack_warning" {
+  name  = "${local.prefix}/alertmanager-slack-warning-webhook"
+  type  = "SecureString"
+  value = var.alertmanager_webhooks.slack_warning_webhook
+}
