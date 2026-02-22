@@ -35,6 +35,7 @@ variable "keycloak_client_secret" {
 variable "protected_services" {
   description = "Service subdomain prefixes that require CloudFlare Access authentication"
   type        = list(string)
+  # Excluded: echo (public demo), juice-shop (public demo), keycloak (needs unauthenticated access for OIDC flows)
   default = [
     "grafana",
     "argocd",

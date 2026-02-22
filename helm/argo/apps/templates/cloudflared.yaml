@@ -24,6 +24,11 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: cloudflare
+  ignoreDifferences:
+    - group: cilium.io
+      kind: CiliumNetworkPolicy
+      jsonPointers:
+        - /spec
   syncPolicy:
     automated:
       prune: true

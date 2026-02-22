@@ -5,7 +5,7 @@ variable "github_token" {
 }
 
 variable "oidc_client_secrets" {
-  description = "OIDC client secrets keyed by service name (argocd, grafana, vault, headlamp)"
+  description = "OIDC client secrets keyed by service name (argocd, grafana, vault, headlamp, cloudflare-access)"
   type        = map(string)
   sensitive   = true
 }

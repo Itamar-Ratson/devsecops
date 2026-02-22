@@ -14,12 +14,6 @@ variable "cloudflare_zone_id" {
   type        = string
 }
 
-variable "domain" {
-  description = "Base domain name (e.g., itamarratson.com)"
-  type        = string
-  default     = "itamarratson.com"
-}
-
 variable "tunnel_name" {
   description = "Name for the CloudFlare tunnel"
   type        = string

@@ -12,6 +12,8 @@ image:
   tag: "2026.2.0"
   pullPolicy: IfNotPresent
 
+metricsPort: 2000
+
 resources:
   requests:
     cpu: 10m

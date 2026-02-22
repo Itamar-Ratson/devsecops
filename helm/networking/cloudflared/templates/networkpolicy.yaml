@@ -5,6 +5,7 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: cloudflared
+  namespace: {{ .Release.Namespace }}
 spec:
   endpointSelector:
     matchLabels:
@@ -41,5 +42,5 @@ spec:
         - remote-node
       toPorts:
         - ports:
-            - port: "2000"
+            - port: "{{ .Values.metricsPort }}"
               protocol: TCP

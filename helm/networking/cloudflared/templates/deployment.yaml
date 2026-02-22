@@ -29,7 +29,7 @@ spec:
             - --config
             - /etc/cloudflared/config/config.yaml
             - --metrics
-            - 0.0.0.0:2000
+            - 0.0.0.0:{{ .Values.metricsPort }}
             - --no-autoupdate
             - run
             - --token
@@ -45,13 +45,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /ready
-              port: 2000
+              port: {{ .Values.metricsPort }}
             initialDelaySeconds: 10
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /ready
-              port: 2000
+              port: {{ .Values.metricsPort }}
             initialDelaySeconds: 5
             periodSeconds: 10
           securityContext:

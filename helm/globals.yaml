@@ -5,3 +5,6 @@
 cloudflare:
   enabled: false
   domain: itamarratson.com
+  # CloudFlare Zero Trust team domain (e.g., "myteam" from myteam.cloudflareaccess.com)
+  # Set this before enabling cloudflare — used in Keycloak OIDC redirect URIs
+  teamDomain: ""

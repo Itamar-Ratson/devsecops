@@ -74,12 +74,12 @@ data:
           "redirectUris": [
             "https://argocd.onprem/auth/callback",
             "https://argocd.onprem/api/dex/callback",
-            "https://argocd.itamarratson.com/auth/callback",
-            "https://argocd.itamarratson.com/api/dex/callback"
+            "https://argocd.{{ .Values.cloudflare.domain }}/auth/callback",
+            "https://argocd.{{ .Values.cloudflare.domain }}/api/dex/callback"
           ],
           "webOrigins": [
             "https://argocd.onprem",
-            "https://argocd.itamarratson.com"
+            "https://argocd.{{ .Values.cloudflare.domain }}"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
@@ -111,11 +111,11 @@ data:
           "secret": "${GRAFANA_CLIENT_SECRET}",
           "redirectUris": [
             "https://grafana.onprem/login/generic_oauth",
-            "https://grafana.itamarratson.com/login/generic_oauth"
+            "https://grafana.{{ .Values.cloudflare.domain }}/login/generic_oauth"
           ],
           "webOrigins": [
             "https://grafana.onprem",
-            "https://grafana.itamarratson.com"
+            "https://grafana.{{ .Values.cloudflare.domain }}"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
@@ -147,11 +147,11 @@ data:
           "secret": "${VAULT_CLIENT_SECRET}",
           "redirectUris": [
             "https://vault.onprem/ui/vault/auth/oidc/oidc/callback",
-            "https://vault.itamarratson.com/ui/vault/auth/oidc/oidc/callback"
+            "https://vault.{{ .Values.cloudflare.domain }}/ui/vault/auth/oidc/oidc/callback"
           ],
           "webOrigins": [
             "https://vault.onprem",
-            "https://vault.itamarratson.com"
+            "https://vault.{{ .Values.cloudflare.domain }}"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
@@ -184,12 +184,12 @@ data:
           "redirectUris": [
             "https://headlamp.onprem/*",
             "https://headlamp.onprem/oidc-callback",
-            "https://headlamp.itamarratson.com/*",
-            "https://headlamp.itamarratson.com/oidc-callback"
+            "https://headlamp.{{ .Values.cloudflare.domain }}/*",
+            "https://headlamp.{{ .Values.cloudflare.domain }}/oidc-callback"
           ],
           "webOrigins": [
             "https://headlamp.onprem",
-            "https://headlamp.itamarratson.com"
+            "https://headlamp.{{ .Values.cloudflare.domain }}"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
@@ -220,10 +220,10 @@ data:
           "clientAuthenticatorType": "client-secret",
           "secret": "${CLOUDFLARE_ACCESS_CLIENT_SECRET}",
           "redirectUris": [
-            "https://CLOUDFLARE_TEAM_DOMAIN.cloudflareaccess.com/cdn-cgi/access/callback"
+            "https://{{ .Values.cloudflare.teamDomain }}.cloudflareaccess.com/cdn-cgi/access/callback"
           ],
           "webOrigins": [
-            "https://CLOUDFLARE_TEAM_DOMAIN.cloudflareaccess.com"
+            "https://{{ .Values.cloudflare.teamDomain }}.cloudflareaccess.com"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
