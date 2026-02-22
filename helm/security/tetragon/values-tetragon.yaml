@@ -64,6 +64,6 @@ tetragonOperator:
       enabled: true
       labelsOverride: {}
 
-# Install CRDs via operator (not Helm)
+# Install CRDs via Helm so TracingPolicy CRs can be applied in the same sync
 crds:
-  installMethod: operator
+  installMethod: helm
