@@ -37,6 +37,22 @@ variable "argocd_admin" {
   sensitive = true
 }
 
+variable "cloudflare_api_token" {
+  description = "CloudFlare API token (Tunnel + DNS + Access Edit permissions)"
+  type        = string
+  sensitive   = true
+}
+
+variable "cloudflare_account_id" {
+  description = "CloudFlare account ID"
+  type        = string
+}
+
+variable "cloudflare_zone_id" {
+  description = "CloudFlare zone ID for itamarratson.com"
+  type        = string
+}
+
 variable "alertmanager_webhooks" {
   description = "Alertmanager webhook URLs. Use 'DISABLED' sentinel to disable a channel."
   type = object({

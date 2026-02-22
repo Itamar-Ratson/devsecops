@@ -97,3 +97,29 @@ resource "aws_ssm_parameter" "alertmanager_slack_warning" {
   type  = "SecureString"
   value = var.alertmanager_webhooks.slack_warning_webhook
 }
+
+# -- CloudFlare -----------------------------------------------------------------
+
+resource "aws_ssm_parameter" "cloudflare_api_token" {
+  name  = "${local.prefix}/cloudflare-api-token"
+  type  = "SecureString"
+  value = var.cloudflare_api_token
+}
+
+resource "aws_ssm_parameter" "cloudflare_account_id" {
+  name  = "${local.prefix}/cloudflare-account-id"
+  type  = "String"
+  value = var.cloudflare_account_id
+}
+
+resource "aws_ssm_parameter" "cloudflare_zone_id" {
+  name  = "${local.prefix}/cloudflare-zone-id"
+  type  = "String"
+  value = var.cloudflare_zone_id
+}
+
+resource "aws_ssm_parameter" "oidc_cloudflare_access" {
+  name  = "${local.prefix}/oidc-cloudflare-access"
+  type  = "SecureString"
+  value = var.oidc_client_secrets["cloudflare-access"]
+}
