@@ -37,3 +37,16 @@ spec:
         - ports:
             - port: "{{ .Values.ports.juiceShop }}"
               protocol: TCP
+
+  egress:
+    # Allow DNS resolution only — no other egress (blocks SSRF to internal services)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP

@@ -1,0 +1,24 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicy
+metadata:
+  name: juice-shop-enforcement
+spec:
+  # Only apply to juice-shop pods
+  podSelector:
+    matchLabels:
+      app: juice-shop
+  tracepoints:
+    - subsystem: "raw_syscalls"
+      event: "sys_enter"
+      args:
+        - index: 4
+          type: "int64"
+      selectors:
+        - matchActions:
+            - action: Sigkill
+          matchBinaries:
+            - operator: "NotIn"
+              values:
+                - "/usr/local/bin/node"
+                - "/usr/bin/node"
+                - "/bin/sh"

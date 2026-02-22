@@ -4,7 +4,8 @@ gateway:
 
 image:
   repository: bkimminich/juice-shop
-  tag: latest
+  # Pin to specific version — never use :latest for a publicly-exposed vulnerable app
+  tag: v17.1.1@sha256:9e437b456e444ff001d1663e4f6f05c796fe02f1058dd2651d6791a15b43dfeb
   pullPolicy: IfNotPresent
 
 # For pulling from private registries (e.g., GHCR)
@@ -27,6 +28,8 @@ securityContext:
   runAsUser: 65532
   runAsGroup: 65532
   fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
 
 # Container security context
 containerSecurityContext:
