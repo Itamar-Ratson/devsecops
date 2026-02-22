@@ -3,7 +3,7 @@
 
 # CloudFlare Tunnel — toggle public exposure of services
 cloudflare:
-  enabled: false
+  enabled: true
   domain: itamarratson.com
   # CloudFlare Zero Trust team domain (e.g., "myteam" from myteam.cloudflareaccess.com)
   # Set this before enabling cloudflare — used in Keycloak OIDC redirect URIs
