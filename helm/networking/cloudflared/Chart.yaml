@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cloudflared
+description: CloudFlare Tunnel connector for exposing cluster services publicly
+version: 0.1.0
+type: application

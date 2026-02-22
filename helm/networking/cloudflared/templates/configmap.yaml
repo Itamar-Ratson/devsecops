@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflared-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: cloudflared
+data:
+  # Single catch-all ingress rule: all traffic goes to Cilium Gateway.
+  # Hostname-based routing is handled by HTTPRoutes on the gateway, not here.
+  config.yaml: |
+    no-autoupdate: true
+    ingress:
+      - service: https://{{ .Values.gateway.name }}.{{ .Values.gateway.namespace }}.svc.cluster.local:{{ .Values.ports.gateway.https }}
+        originRequest:
+          noTLSVerify: true
+      - service: http_status:404
