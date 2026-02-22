@@ -73,10 +73,13 @@ data:
           "secret": "${ARGOCD_CLIENT_SECRET}",
           "redirectUris": [
             "https://argocd.onprem/auth/callback",
-            "https://argocd.onprem/api/dex/callback"
+            "https://argocd.onprem/api/dex/callback",
+            "https://argocd.itamarratson.com/auth/callback",
+            "https://argocd.itamarratson.com/api/dex/callback"
           ],
           "webOrigins": [
-            "https://argocd.onprem"
+            "https://argocd.onprem",
+            "https://argocd.itamarratson.com"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
@@ -107,10 +110,12 @@ data:
           "clientAuthenticatorType": "client-secret",
           "secret": "${GRAFANA_CLIENT_SECRET}",
           "redirectUris": [
-            "https://grafana.onprem/login/generic_oauth"
+            "https://grafana.onprem/login/generic_oauth",
+            "https://grafana.itamarratson.com/login/generic_oauth"
           ],
           "webOrigins": [
-            "https://grafana.onprem"
+            "https://grafana.onprem",
+            "https://grafana.itamarratson.com"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
@@ -141,10 +146,12 @@ data:
           "clientAuthenticatorType": "client-secret",
           "secret": "${VAULT_CLIENT_SECRET}",
           "redirectUris": [
-            "https://vault.onprem/ui/vault/auth/oidc/oidc/callback"
+            "https://vault.onprem/ui/vault/auth/oidc/oidc/callback",
+            "https://vault.itamarratson.com/ui/vault/auth/oidc/oidc/callback"
           ],
           "webOrigins": [
-            "https://vault.onprem"
+            "https://vault.onprem",
+            "https://vault.itamarratson.com"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
@@ -176,10 +183,13 @@ data:
           "secret": "${HEADLAMP_CLIENT_SECRET}",
           "redirectUris": [
             "https://headlamp.onprem/*",
-            "https://headlamp.onprem/oidc-callback"
+            "https://headlamp.onprem/oidc-callback",
+            "https://headlamp.itamarratson.com/*",
+            "https://headlamp.itamarratson.com/oidc-callback"
           ],
           "webOrigins": [
-            "https://headlamp.onprem"
+            "https://headlamp.onprem",
+            "https://headlamp.itamarratson.com"
           ],
           "standardFlowEnabled": true,
           "implicitFlowEnabled": false,
