@@ -10,7 +10,8 @@ data:
   # Hostname-based routing is handled by HTTPRoutes on the gateway, not here.
   config.yaml: |
     ingress:
-      - service: https://{{ .Values.gateway.name }}.{{ .Values.gateway.namespace }}.svc.cluster.local:{{ .Values.ports.gateway.https }}
+      - hostname: "*.{{ .Values.domain }}"
+        service: https://{{ .Values.gateway.name }}.{{ .Values.gateway.namespace }}.svc.cluster.local:{{ .Values.ports.gateway.https }}
         originRequest:
           noTLSVerify: true
       - service: http_status:404
