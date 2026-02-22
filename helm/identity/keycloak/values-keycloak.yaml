@@ -32,7 +32,7 @@ keycloakx:
     - "start"
     - "--http-enabled=true"
     - "--http-port=8080"
-    - "--hostname=keycloak.itamarratson.com"  # Must match cloudflare.domain in globals.yaml
+    - "--hostname=keycloak.onprem"
     - "--hostname-strict=false"
     - "--proxy-headers=xforwarded"
     - "--http-relative-path=/"
