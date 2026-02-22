@@ -18,6 +18,7 @@ spec:
     helm:
       valueFiles:
         - ../../ports.yaml
+        - ../../globals.yaml
         - values.yaml
         - values-kube-prometheus.yaml
         - values-loki.yaml

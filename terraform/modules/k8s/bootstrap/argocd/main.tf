@@ -112,6 +112,7 @@ resource "helm_release" "argocd" {
 
   values = [
     file("${var.helm_values_dir}/ports.yaml"),
+    file("${var.helm_values_dir}/globals.yaml"),
     file("${var.helm_values_dir}/argo/cd/values.yaml"),
     file("${var.helm_values_dir}/argo/cd/values-argocd.yaml"),
     yamlencode({
@@ -160,7 +161,7 @@ resource "kubernetes_manifest" "argocd_root_application" {
         targetRevision = "HEAD"
         path           = "helm/argo/apps"
         helm = {
-          valueFiles = ["values.yaml"]
+          valueFiles = ["values.yaml", "../../globals.yaml"]
           valuesObject = {
             repoURL         = var.git_repo_url
             transitVaultIP  = var.vault_cluster_ip

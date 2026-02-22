@@ -19,6 +19,7 @@ spec:
     helm:
       valueFiles:
         - ../../ports.yaml
+        - ../../globals.yaml
         - values.yaml
         - values-kafka-ui.yaml
   destination:

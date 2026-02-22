@@ -1,0 +1,7 @@
+# Shared non-port configuration for all charts
+# Pass this file to helm commands with: -f helm/globals.yaml
+
+# CloudFlare Tunnel — toggle public exposure of services
+cloudflare:
+  enabled: false
+  domain: itamarratson.com
