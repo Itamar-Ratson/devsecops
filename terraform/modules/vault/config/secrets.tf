@@ -8,10 +8,11 @@ resource "vault_kv_secret_v2" "oidc_clients" {
   name  = "keycloak/oidc-clients"
 
   data_json = jsonencode({
-    "argocd-client-secret"   = data.aws_ssm_parameter.oidc_argocd.value
-    "grafana-client-secret"  = data.aws_ssm_parameter.oidc_grafana.value
-    "vault-client-secret"    = data.aws_ssm_parameter.oidc_vault.value
-    "headlamp-client-secret" = data.aws_ssm_parameter.oidc_headlamp.value
+    "argocd-client-secret"            = data.aws_ssm_parameter.oidc_argocd.value
+    "grafana-client-secret"           = data.aws_ssm_parameter.oidc_grafana.value
+    "vault-client-secret"             = data.aws_ssm_parameter.oidc_vault.value
+    "headlamp-client-secret"          = data.aws_ssm_parameter.oidc_headlamp.value
+    "cloudflare-access-client-secret" = data.aws_ssm_parameter.oidc_cloudflare_access.value
   })
 }
 

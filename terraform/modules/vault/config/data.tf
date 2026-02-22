@@ -22,6 +22,11 @@ data "aws_ssm_parameter" "oidc_headlamp" {
   with_decryption = true
 }
 
+data "aws_ssm_parameter" "oidc_cloudflare_access" {
+  name            = "/devsecops/oidc-cloudflare-access"
+  with_decryption = true
+}
+
 # -- Keycloak -------------------------------------------------------------------
 data "aws_ssm_parameter" "keycloak_admin_username" {
   name            = "/devsecops/keycloak-admin-username"
