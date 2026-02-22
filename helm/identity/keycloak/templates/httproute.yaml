@@ -10,6 +10,9 @@ spec:
       sectionName: https
   hostnames:
     - "keycloak.onprem"
+    {{- if .Values.cloudflare.enabled }}
+    - "keycloak.{{ .Values.cloudflare.domain }}"
+    {{- end }}
   rules:
     - matches:
         - path:

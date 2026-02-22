@@ -10,6 +10,9 @@ spec:
       sectionName: https
   hostnames:
     - "argocd.onprem"
+    {{- if .Values.cloudflare.enabled }}
+    - "argocd.{{ .Values.cloudflare.domain }}"
+    {{- end }}
   rules:
     - matches:
         - path:

@@ -9,6 +9,9 @@ spec:
       sectionName: https
   hostnames:
     - echo.onprem
+    {{- if .Values.cloudflare.enabled }}
+    - "echo.{{ .Values.cloudflare.domain }}"
+    {{- end }}
   rules:
     - matches:
         - path:
