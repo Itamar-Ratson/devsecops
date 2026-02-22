@@ -1,0 +1,53 @@
+variable "cloudflare_api_token" {
+  description = "CloudFlare API token"
+  type        = string
+  sensitive   = true
+}
+
+variable "cloudflare_account_id" {
+  description = "CloudFlare account ID"
+  type        = string
+}
+
+variable "cloudflare_zone_id" {
+  description = "CloudFlare zone ID for the domain"
+  type        = string
+}
+
+variable "domain" {
+  description = "Base domain name (e.g., itamarratson.com)"
+  type        = string
+  default     = "itamarratson.com"
+}
+
+variable "tunnel_name" {
+  description = "Name for the CloudFlare tunnel"
+  type        = string
+  default     = "devsecops-kind"
+}
+
+variable "services" {
+  description = "List of service subdomain prefixes to create CNAME records for"
+  type        = list(string)
+  default = [
+    "grafana",
+    "argocd",
+    "vault",
+    "keycloak",
+    "headlamp",
+    "kafka-ui",
+    "juice-shop",
+    "echo",
+  ]
+}
+
+variable "vault_address" {
+  description = "Vault API address"
+  type        = string
+}
+
+variable "vault_token" {
+  description = "Vault root token"
+  type        = string
+  sensitive   = true
+}
