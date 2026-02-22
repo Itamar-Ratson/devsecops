@@ -34,5 +34,6 @@ variable "vso_allowed_namespaces" {
     "observability",
     "argocd",
     "identity",
+    "cloudflare",
   ]
 }
