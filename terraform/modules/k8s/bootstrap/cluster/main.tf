@@ -55,10 +55,18 @@ resource "null_resource" "wait_nodes_ready" {
 }
 
 # ============================================================================
-# CoreDNS *.onprem rewrite
+# CoreDNS split-horizon DNS
 # ============================================================================
 # Patch the existing CoreDNS ConfigMap with a wildcard regex rewrite rule
-# so that any *.onprem hostname resolves to the Cilium Gateway service.
+# so that any *.domain hostname resolves to the Cilium Gateway service.
+# This enables split-horizon DNS: pods resolve the public domain to the
+# gateway directly (no round-trip through Cloudflare tunnel).
+locals {
+  globals      = yamldecode(file("${var.helm_values_dir}/globals.yaml"))
+  domain       = local.globals.cloudflare.domain
+  domain_regex = replace(local.domain, ".", "\\.")
+}
+
 resource "kubernetes_config_map_v1_data" "coredns" {
   metadata {
     name      = "coredns"
@@ -75,7 +83,7 @@ resource "kubernetes_config_map_v1_data" "coredns" {
              lameduck 5s
           }
           ready
-          rewrite name regex (.+)\.onprem cilium-gateway-main-gateway.gateway.svc.cluster.local
+          rewrite name regex (.+)\.${local.domain_regex} cilium-gateway-main-gateway.gateway.svc.cluster.local
           kubernetes cluster.local in-addr.arpa ip6.arpa {
              pods insecure
              fallthrough in-addr.arpa ip6.arpa

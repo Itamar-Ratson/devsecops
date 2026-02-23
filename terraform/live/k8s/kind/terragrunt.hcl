@@ -42,4 +42,5 @@ inputs = {
   vault_container_id   = dependency.transit_vault.outputs.container_id
   cache_container_name = dependency.registry_cache.outputs.container_name
   cache_container_id   = dependency.registry_cache.outputs.container_id
+  helm_values_dir      = "${get_repo_root()}/helm"
 }

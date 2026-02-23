@@ -80,7 +80,7 @@ spec:
             - port: "{{ .Values.ports.keycloak.http }}"
               protocol: TCP
 
-    # Allow external Keycloak access (via Gateway for keycloak.onprem)
+    # Allow external Keycloak access (via Gateway for OIDC discovery)
     - toEntities:
         - world
       toPorts:

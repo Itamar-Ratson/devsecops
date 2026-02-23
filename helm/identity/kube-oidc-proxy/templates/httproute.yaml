@@ -9,7 +9,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - k8s-api.onprem
+    - "k8s-api.{{ .Values.cloudflare.domain }}"
   rules:
     - matches:
         - path:

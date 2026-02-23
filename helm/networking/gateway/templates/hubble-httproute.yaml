@@ -9,7 +9,7 @@ spec:
       namespace: gateway
       sectionName: https
   hostnames:
-    - hubble.onprem
+    - "hubble.{{ .Values.cloudflare.domain }}"
   rules:
     - matches:
         - path:

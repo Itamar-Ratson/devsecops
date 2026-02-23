@@ -17,6 +17,7 @@ spec:
     path: helm/identity/kube-oidc-proxy
     helm:
       valueFiles:
+        - ../../globals.yaml
         - values.yaml
   destination:
     server: https://kubernetes.default.svc

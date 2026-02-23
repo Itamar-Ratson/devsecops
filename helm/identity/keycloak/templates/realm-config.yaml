@@ -72,13 +72,10 @@ data:
           "clientAuthenticatorType": "client-secret",
           "secret": "${ARGOCD_CLIENT_SECRET}",
           "redirectUris": [
-            "https://argocd.onprem/auth/callback",
-            "https://argocd.onprem/api/dex/callback",
             "https://argocd.{{ .Values.cloudflare.domain }}/auth/callback",
             "https://argocd.{{ .Values.cloudflare.domain }}/api/dex/callback"
           ],
           "webOrigins": [
-            "https://argocd.onprem",
             "https://argocd.{{ .Values.cloudflare.domain }}"
           ],
           "standardFlowEnabled": true,
@@ -110,11 +107,9 @@ data:
           "clientAuthenticatorType": "client-secret",
           "secret": "${GRAFANA_CLIENT_SECRET}",
           "redirectUris": [
-            "https://grafana.onprem/login/generic_oauth",
             "https://grafana.{{ .Values.cloudflare.domain }}/login/generic_oauth"
           ],
           "webOrigins": [
-            "https://grafana.onprem",
             "https://grafana.{{ .Values.cloudflare.domain }}"
           ],
           "standardFlowEnabled": true,
@@ -146,11 +141,9 @@ data:
           "clientAuthenticatorType": "client-secret",
           "secret": "${VAULT_CLIENT_SECRET}",
           "redirectUris": [
-            "https://vault.onprem/ui/vault/auth/oidc/oidc/callback",
             "https://vault.{{ .Values.cloudflare.domain }}/ui/vault/auth/oidc/oidc/callback"
           ],
           "webOrigins": [
-            "https://vault.onprem",
             "https://vault.{{ .Values.cloudflare.domain }}"
           ],
           "standardFlowEnabled": true,
@@ -182,13 +175,10 @@ data:
           "clientAuthenticatorType": "client-secret",
           "secret": "${HEADLAMP_CLIENT_SECRET}",
           "redirectUris": [
-            "https://headlamp.onprem/*",
-            "https://headlamp.onprem/oidc-callback",
             "https://headlamp.{{ .Values.cloudflare.domain }}/*",
             "https://headlamp.{{ .Values.cloudflare.domain }}/oidc-callback"
           ],
           "webOrigins": [
-            "https://headlamp.onprem",
             "https://headlamp.{{ .Values.cloudflare.domain }}"
           ],
           "standardFlowEnabled": true,

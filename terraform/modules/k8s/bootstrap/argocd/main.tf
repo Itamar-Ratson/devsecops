@@ -5,6 +5,8 @@ locals {
   )
   github_owner = local.git_url_parts[0]
   github_repo  = local.git_url_parts[1]
+  globals      = yamldecode(file("${var.helm_values_dir}/globals.yaml"))
+  domain       = local.globals.cloudflare.domain
 }
 
 provider "github" {

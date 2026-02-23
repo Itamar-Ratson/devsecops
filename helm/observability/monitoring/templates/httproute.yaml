@@ -9,10 +9,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "grafana.onprem"
-    {{- if .Values.cloudflare.enabled }}
     - "grafana.{{ .Values.cloudflare.domain }}"
-    {{- end }}
   rules:
     - matches:
         - path:

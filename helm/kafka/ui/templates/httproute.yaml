@@ -9,10 +9,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "kafka-ui.onprem"
-    {{- if .Values.cloudflare.enabled }}
     - "kafka-ui.{{ .Values.cloudflare.domain }}"
-    {{- end }}
   rules:
     - matches:
         - path:

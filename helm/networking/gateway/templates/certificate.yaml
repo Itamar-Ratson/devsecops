@@ -8,4 +8,4 @@ spec:
     name: selfsigned
     kind: ClusterIssuer
   dnsNames:
-    - "*.onprem"
+    - "*.{{ .Values.cloudflare.domain }}"

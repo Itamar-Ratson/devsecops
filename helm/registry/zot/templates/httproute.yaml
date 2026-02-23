@@ -9,7 +9,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - zot.onprem
+    - "zot.{{ .Values.cloudflare.domain }}"
   rules:
     - matches:
         - path:

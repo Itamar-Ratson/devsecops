@@ -17,4 +17,4 @@ spec:
     - kube-oidc-proxy.{{ .Release.Namespace }}
     - kube-oidc-proxy.{{ .Release.Namespace }}.svc
     - kube-oidc-proxy.{{ .Release.Namespace }}.svc.cluster.local
-    - k8s-api.onprem
+    - "k8s-api.{{ .Values.cloudflare.domain }}"

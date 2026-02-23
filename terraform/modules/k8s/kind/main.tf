@@ -1,6 +1,11 @@
 provider "kind" {}
 provider "docker" {}
 
+locals {
+  globals = yamldecode(file("${var.helm_values_dir}/globals.yaml"))
+  domain  = local.globals.cloudflare.domain
+}
+
 resource "kind_cluster" "this" {
   name           = var.cluster_name
   wait_for_ready = true
@@ -137,28 +142,23 @@ TOML"
   }
 }
 
-# Resolve *.onprem hostnames to the gateway LB IP on the host.
+# Split-horizon DNS: resolve *.domain to the gateway LB IP on the host.
 #
 # Architecture — two-layer split:
 #
 #   PREREQUISITE (one-time, run manually with sudo before first deploy):
-#     sudo tee /etc/systemd/resolved.conf.d/kind-gateway.conf <<'EOF'
-#     [Resolve]
-#     DNS=127.0.0.1:5353
-#     Domains=~onprem
-#     EOF
-#     sudo systemctl restart systemd-resolved
+#     sudo ./scripts/setup-host-dns.sh
 #
-#   This tells systemd-resolved to forward all *.onprem queries to the
+#   This tells systemd-resolved to forward all *.domain queries to the
 #   local dnsmasq instance at 127.0.0.1:5353.  The file persists across
 #   cluster recreations (correct: it's a machine-level setting).  When the
-#   cluster is destroyed and dnsmasq stops, *.onprem returns NXDOMAIN.
+#   cluster is destroyed and dnsmasq stops, queries fall through to public DNS.
 #
 #   TERRAFORM (per-cluster, fully rootless):
 #     Runs dnsmasq as a user-scope transient systemd service (systemd-run
 #     --user, no sudo required) and stops it on destroy.
 #
-# Note: supports multiple *.onprem gateways — add extra address= lines and
+# Note: supports multiple gateways — add extra address= lines and
 # additional CiliumLoadBalancerIPPools when a second Gateway is introduced.
 resource "null_resource" "host_dns" {
   # Sequenced after connect_cache_to_kind to guarantee the KinD bridge
@@ -169,12 +169,13 @@ resource "null_resource" "host_dns" {
 
   triggers = {
     gateway_lb_ip = local.gateway_lb_ip
+    domain        = local.domain
   }
 
   provisioner "local-exec" {
     interpreter = ["bash", "-c"]
     command     = <<-EOT
-      # CI uses port-forward + localhost for tests — no *.onprem DNS needed.
+      # CI uses port-forward + localhost for tests — no split-horizon DNS needed.
       if [ "$${CI:-false}" = "true" ]; then
         echo "CI: skipping host DNS setup"
         exit 0
@@ -204,14 +205,14 @@ resource "null_resource" "host_dns" {
 port=5353
 bind-interfaces
 listen-address=127.0.0.1
-address=/.onprem/${local.gateway_lb_ip}
+address=/.${local.domain}/${local.gateway_lb_ip}
 no-resolv
 no-hosts
 EOF
 
       # Run as a user-scope transient systemd service (no sudo required).
       systemd-run --user --unit=kind-gateway-dns \
-        --description="KinD gateway DNS (.onprem -> ${local.gateway_lb_ip})" \
+        --description="KinD gateway DNS (*.${local.domain} -> ${local.gateway_lb_ip})" \
         dnsmasq -k --conf-file=/tmp/kind-gateway-dnsmasq.conf
     EOT
   }

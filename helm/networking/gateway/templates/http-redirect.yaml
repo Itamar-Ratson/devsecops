@@ -7,7 +7,7 @@ spec:
     - name: main-gateway
       sectionName: http
   hostnames:
-    - "*.onprem"
+    - "*.{{ .Values.cloudflare.domain }}"
   rules:
     - filters:
         - type: RequestRedirect

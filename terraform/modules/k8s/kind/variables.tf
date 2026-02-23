@@ -23,3 +23,8 @@ variable "cache_container_id" {
   description = "Docker container ID of registry cache (triggers network reconnect on replacement)"
   type        = string
 }
+
+variable "helm_values_dir" {
+  description = "Absolute path to the helm/ directory containing chart values"
+  type        = string
+}

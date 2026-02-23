@@ -9,10 +9,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "juice-shop.onprem"
-    {{- if .Values.cloudflare.enabled }}
     - "juice-shop.{{ .Values.cloudflare.domain }}"
-    {{- end }}
   rules:
     - matches:
         - path:
