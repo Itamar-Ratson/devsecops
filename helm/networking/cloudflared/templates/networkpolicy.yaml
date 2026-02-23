@@ -19,11 +19,14 @@ spec:
         - ports:
             - port: "{{ .Values.ports.gateway.https }}"
               protocol: TCP
-    # Allow outbound to CloudFlare edge (tunnel connection over HTTP/2)
+    # Allow outbound to CloudFlare edge (tunnel connection)
+    # Port 7844 is the primary tunnel port; 443 is the fallback
     - toEntities:
         - world
       toPorts:
         - ports:
+            - port: "7844"
+              protocol: TCP
             - port: "443"
               protocol: TCP
     # Allow DNS resolution (CoreDNS in kube-system)
