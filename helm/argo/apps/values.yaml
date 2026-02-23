@@ -5,6 +5,9 @@ targetRevision: HEAD
 transitVaultIP: "172.18.0.100"
 cacheRegistryIP: "172.18.0.101"
 
+# Let's Encrypt ACME email — overridden by Terraform valuesObject at runtime
+acmeEmail: ""
+
 # Per-application toggles — disabled by default to save resources
 applications:
   # Kafka UI — disabled to save ~256Mi. Re-enable for visual topic/consumer debugging.

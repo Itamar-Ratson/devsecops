@@ -35,5 +35,6 @@ variable "vso_allowed_namespaces" {
     "argocd",
     "identity",
     "cloudflare",
+    "cert-manager",
   ]
 }

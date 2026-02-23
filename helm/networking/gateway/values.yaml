@@ -1,3 +1,6 @@
+tls:
+  issuerName: selfsigned
+
 className: cilium
 controllerName: io.cilium/gateway-controller
 

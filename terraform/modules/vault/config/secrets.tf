@@ -47,6 +47,15 @@ resource "vault_kv_secret_v2" "alertmanager" {
   })
 }
 
+resource "vault_kv_secret_v2" "cloudflare_api_token" {
+  mount = "secret"
+  name  = "cloudflare/api-token"
+
+  data_json = jsonencode({
+    "api-token" = data.aws_ssm_parameter.cloudflare_api_token.value
+  })
+}
+
 resource "vault_kv_secret_v2" "argocd_admin" {
   mount = "secret"
   name  = "argocd/admin"

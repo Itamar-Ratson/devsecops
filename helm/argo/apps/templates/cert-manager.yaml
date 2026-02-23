@@ -19,6 +19,9 @@ spec:
       valueFiles:
         - ../../ports.yaml
         - values.yaml
+      valuesObject:
+        acme:
+          email: {{ .Values.acmeEmail | quote }}
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager

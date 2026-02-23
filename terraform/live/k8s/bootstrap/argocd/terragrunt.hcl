@@ -13,6 +13,7 @@ include "root" {
 locals {
   github_token              = run_cmd("--terragrunt-quiet", "aws", "ssm", "get-parameter", "--name", "/devsecops/github-token", "--with-decryption", "--query", "Parameter.Value", "--output", "text")
   argocd_oidc_client_secret = run_cmd("--terragrunt-quiet", "aws", "ssm", "get-parameter", "--name", "/devsecops/oidc-argocd", "--with-decryption", "--query", "Parameter.Value", "--output", "text")
+  acme_email                = run_cmd("--terragrunt-quiet", "aws", "ssm", "get-parameter", "--name", "/devsecops/letsencrypt-email", "--query", "Parameter.Value", "--output", "text")
 }
 
 dependency "transit_vault" {
@@ -65,4 +66,5 @@ inputs = {
 
   github_token              = local.github_token
   argocd_oidc_client_secret = local.argocd_oidc_client_secret
+  acme_email                = local.acme_email
 }

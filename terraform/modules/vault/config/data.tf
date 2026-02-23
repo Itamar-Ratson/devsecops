@@ -60,6 +60,12 @@ data "aws_ssm_parameter" "argocd_server_secret_key" {
   with_decryption = true
 }
 
+# -- Cloudflare -----------------------------------------------------------------
+data "aws_ssm_parameter" "cloudflare_api_token" {
+  name            = "/devsecops/cloudflare-api-token"
+  with_decryption = true
+}
+
 # -- Alertmanager (optional; "DISABLED" sentinel -> converted to "" below) ------
 data "aws_ssm_parameter" "alertmanager_pagerduty" {
   name            = "/devsecops/alertmanager-pagerduty-routing-key"

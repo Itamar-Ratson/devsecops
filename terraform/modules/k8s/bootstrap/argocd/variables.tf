@@ -65,6 +65,12 @@ variable "create_deploy_key" {
   default     = true
 }
 
+variable "acme_email" {
+  description = "Email for Let's Encrypt ACME account registration"
+  type        = string
+  default     = ""
+}
+
 variable "juice_shop_enabled" {
   description = "Enable the Juice Shop ArgoCD application (CI sets true, local defaults false to save resources)"
   type        = bool

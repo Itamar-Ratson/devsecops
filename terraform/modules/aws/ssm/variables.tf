@@ -53,6 +53,11 @@ variable "cloudflare_zone_id" {
   type        = string
 }
 
+variable "letsencrypt_email" {
+  description = "Email for Let's Encrypt ACME account (expiry notifications)"
+  type        = string
+}
+
 variable "alertmanager_webhooks" {
   description = "Alertmanager webhook URLs. Use 'DISABLED' sentinel to disable a channel."
   type = object({

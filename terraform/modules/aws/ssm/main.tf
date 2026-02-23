@@ -112,6 +112,15 @@ resource "aws_ssm_parameter" "alertmanager_slack_warning" {
   overwrite = true
 }
 
+# -- Let's Encrypt --------------------------------------------------------------
+
+resource "aws_ssm_parameter" "letsencrypt_email" {
+  name      = "${local.prefix}/letsencrypt-email"
+  type      = "String"
+  value     = var.letsencrypt_email
+  overwrite = true
+}
+
 # -- CloudFlare -----------------------------------------------------------------
 
 resource "aws_ssm_parameter" "cloudflare_api_token" {

@@ -5,7 +5,7 @@ metadata:
 spec:
   secretName: gateway-tls
   issuerRef:
-    name: selfsigned
+    name: {{ .Values.tls.issuerName }}
     kind: ClusterIssuer
   dnsNames:
     - "*.{{ .Values.cloudflare.domain }}"

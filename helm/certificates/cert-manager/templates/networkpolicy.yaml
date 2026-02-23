@@ -37,3 +37,25 @@ spec:
         - ports:
             - port: "{{ .Values.ports.kubelet }}"
               protocol: TCP
+{{- if .Values.acme.email }}
+---
+# Allow cert-manager to reach ACME server and Cloudflare API for DNS-01 challenges
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-acme-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: cert-manager
+  egress:
+    - toFQDNs:
+        - matchName: "acme-v02.api.letsencrypt.org"
+        - matchName: "acme-staging-v02.api.letsencrypt.org"
+        - matchName: "api.cloudflare.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+{{- end }}

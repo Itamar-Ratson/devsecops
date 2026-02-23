@@ -20,6 +20,9 @@ spec:
         - ../../ports.yaml
         - ../../globals.yaml
         - values.yaml
+      valuesObject:
+        tls:
+          issuerName: {{ if .Values.acmeEmail }}letsencrypt{{ else }}selfsigned{{ end }}
   destination:
     server: https://kubernetes.default.svc
     namespace: gateway
