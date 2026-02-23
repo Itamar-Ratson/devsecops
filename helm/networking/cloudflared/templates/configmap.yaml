@@ -11,7 +11,7 @@ data:
   config.yaml: |
     ingress:
       - hostname: "*.{{ .Values.cloudflare.domain }}"
-        service: https://{{ .Values.gateway.name }}.{{ .Values.gateway.namespace }}.svc.cluster.local:{{ .Values.ports.gateway.https }}
+        service: https://cilium-gateway-{{ .Values.gateway.name }}.{{ .Values.gateway.namespace }}.svc.cluster.local:{{ .Values.ports.gateway.https }}
         originRequest:
           noTLSVerify: true
       - service: http_status:404
