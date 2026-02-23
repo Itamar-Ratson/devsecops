@@ -173,7 +173,8 @@ argo-cd:
         return hs
 
       # ArgoCD server URL (used for OIDC callbacks)
-      url: https://argocd.onprem
+      # Uses public domain so OIDC works through Cloudflare tunnel
+      url: https://argocd.itamarratson.com
 
       # Skip TLS verification for OIDC provider (self-signed certs in dev)
       oidc.tls.insecure.skip.verify: "true"
@@ -181,7 +182,7 @@ argo-cd:
       # Direct OIDC configuration for Keycloak (no Dex)
       oidc.config: |
         name: Keycloak
-        issuer: https://keycloak.onprem/realms/devsecops
+        issuer: https://keycloak.itamarratson.com/realms/devsecops
         clientID: argocd
         clientSecret: $argocd-oidc-secret:oidc.keycloak.clientSecret
         requestedScopes: ["openid", "profile", "email", "groups"]
