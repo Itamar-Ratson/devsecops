@@ -5,6 +5,8 @@ metadata:
   name: gateway-ca-bundle
 spec:
   sources:
+    # Source: public CA package (includes Let's Encrypt chain, etc.)
+    - useDefaultCAs: true
     # Source: root CA from cert-manager namespace
     - secret:
         name: root-ca-secret
