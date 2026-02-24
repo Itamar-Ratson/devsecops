@@ -95,3 +95,14 @@ data "aws_ssm_parameter" "tailscale_auth_key" {
   name            = "/devsecops/tailscale-auth-key"
   with_decryption = true
 }
+
+# -- Crossplane ----------------------------------------------------------------
+data "aws_ssm_parameter" "aws_access_key_id" {
+  name            = "/devsecops/aws-access-key-id"
+  with_decryption = true
+}
+
+data "aws_ssm_parameter" "aws_secret_access_key" {
+  name            = "/devsecops/aws-secret-access-key"
+  with_decryption = true
+}

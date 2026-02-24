@@ -74,3 +74,13 @@ resource "vault_kv_secret_v2" "tailscale" {
     "auth-key" = data.aws_ssm_parameter.tailscale_auth_key.value
   })
 }
+
+resource "vault_kv_secret_v2" "crossplane_aws" {
+  mount = "secret"
+  name  = "crossplane/aws"
+
+  data_json = jsonencode({
+    "aws-access-key-id"     = data.aws_ssm_parameter.aws_access_key_id.value
+    "aws-secret-access-key" = data.aws_ssm_parameter.aws_secret_access_key.value
+  })
+}
