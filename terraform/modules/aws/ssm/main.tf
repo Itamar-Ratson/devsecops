@@ -150,3 +150,21 @@ resource "aws_ssm_parameter" "oidc_cloudflare_access" {
   value     = var.oidc_client_secrets["cloudflare-access"]
   overwrite = true
 }
+
+# -- Tailscale -----------------------------------------------------------------
+
+resource "aws_ssm_parameter" "tailscale_auth_key" {
+  name      = "${local.prefix}/tailscale-auth-key"
+  type      = "SecureString"
+  value     = var.tailscale_auth_key
+  overwrite = true
+}
+
+# -- Slack (CI/CD notifications) -----------------------------------------------
+
+resource "aws_ssm_parameter" "slack_devops_webhook" {
+  name      = "${local.prefix}/slack-devops-webhook"
+  type      = "SecureString"
+  value     = var.slack_devops_webhook
+  overwrite = true
+}

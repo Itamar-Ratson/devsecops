@@ -68,3 +68,15 @@ variable "alertmanager_webhooks" {
   default   = {}
   sensitive = true
 }
+
+variable "tailscale_auth_key" {
+  description = "Tailscale auth key for KinD subnet router (reusable + ephemeral + tag:k8s)"
+  type        = string
+  sensitive   = true
+}
+
+variable "slack_devops_webhook" {
+  description = "Slack incoming webhook URL for the DevOps project channel (CI/CD notifications)"
+  type        = string
+  sensitive   = true
+}
