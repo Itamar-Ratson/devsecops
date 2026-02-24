@@ -80,3 +80,12 @@ variable "slack_devops_webhook" {
   type        = string
   sensitive   = true
 }
+
+variable "aws_credentials" {
+  description = "AWS IAM credentials for Crossplane S3 provisioning"
+  type = object({
+    access_key_id     = string
+    secret_access_key = string
+  })
+  sensitive = true
+}

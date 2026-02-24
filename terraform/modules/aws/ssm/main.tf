@@ -168,3 +168,19 @@ resource "aws_ssm_parameter" "slack_devops_webhook" {
   value     = var.slack_devops_webhook
   overwrite = true
 }
+
+# -- Crossplane (AWS credentials for infrastructure provisioning) ---------------
+
+resource "aws_ssm_parameter" "aws_access_key_id" {
+  name      = "${local.prefix}/aws-access-key-id"
+  type      = "SecureString"
+  value     = var.aws_credentials.access_key_id
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "aws_secret_access_key" {
+  name      = "${local.prefix}/aws-secret-access-key"
+  type      = "SecureString"
+  value     = var.aws_credentials.secret_access_key
+  overwrite = true
+}
