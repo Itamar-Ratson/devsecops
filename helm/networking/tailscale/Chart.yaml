@@ -1,0 +1,5 @@
+apiVersion: v2
+name: tailscale
+description: Tailscale subnet router for multi-cluster connectivity
+version: 0.1.0
+type: application
