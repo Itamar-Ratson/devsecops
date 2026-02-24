@@ -31,7 +31,7 @@ resource "docker_container" "vault" {
     add = ["CAP_IPC_LOCK"]
   }
 
-  command = ["server", "-dev", "-dev-storage=file"]
+  command = ["server", "-dev"]
   restart = "unless-stopped"
 
   # Resource limits - actual usage ~73 MiB / <1% CPU
