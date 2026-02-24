@@ -105,34 +105,6 @@ This writes `/etc/systemd/resolved.conf.d/kind-gateway.conf` so that systemd-res
 forwards `*.onprem` queries to the dnsmasq instance that Terraform starts on port 5353.
 Run once before the first `terragrunt run --all apply`.
 
-## Quick Setup
-
-### Admin (one-time setup)
-
-```bash
-# 1. Configure AWS CLI with admin credentials
-aws configure
-
-# 2. Create IAM infrastructure (OIDC provider, CI role, team users)
-cp terraform/live/aws/iam/team-members.csv.example terraform/live/aws/iam/team-members.csv
-# Edit team-members.csv: add usernames for each team member
-cd terraform/live/aws/iam && terragrunt apply --non-interactive
-
-# 3. Seed SSM parameters from secrets.tfvars
-cp terraform/live/secrets.tfvars.example terraform/live/secrets.tfvars  # fill in all values
-cd ../ssm && terragrunt apply --non-interactive
-
-# 4. Apply the full stack
-cd ../../ && terragrunt run --all apply --non-interactive
-```
-
-After step 4, revoke the Vault root token:
-
-```bash
-vault login <vault_root_token>
-vault token revoke -self
-```
-
 ### Team members (day-to-day)
 
 ```bash
