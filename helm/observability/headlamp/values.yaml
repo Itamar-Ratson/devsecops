@@ -53,12 +53,34 @@ headlamp:
   # Disable default SA mount - we'll create our own with custom CA
   automountServiceAccountToken: false
 
+  # Init container merges system CAs with private CA so headlamp can
+  # verify both Let's Encrypt (OIDC issuer) and internal certs (kube-oidc-proxy).
+  initContainers:
+    - name: merge-ca
+      image: ghcr.io/headlamp-k8s/headlamp:v0.40.1
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          cat /etc/ssl/certs/ca-certificates.crt /private-ca/ca.crt > /merged-ca/ca.crt
+      volumeMounts:
+        - name: private-ca
+          mountPath: /private-ca
+          readOnly: true
+        - name: merged-ca
+          mountPath: /merged-ca
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+
   # Mount CA bundle from trust-manager for OIDC TLS verification
   volumes:
-    - name: ca-bundle
+    - name: private-ca
       configMap:
         name: gateway-ca-bundle
         optional: true  # Don't fail if trust-manager hasn't synced yet
+    - name: merged-ca
+      emptyDir: {}
     # Custom ServiceAccount volume with our CA
     - name: custom-sa
       projected:
@@ -82,7 +104,7 @@ headlamp:
                     fieldPath: metadata.namespace
 
   volumeMounts:
-    - name: ca-bundle
+    - name: merged-ca
       mountPath: /etc/headlamp/certs
       readOnly: true
     # Mount custom SA to the standard path
@@ -90,7 +112,7 @@ headlamp:
       mountPath: /var/run/secrets/kubernetes.io/serviceaccount
       readOnly: true
 
-  # Point Go's TLS to use our CA bundle for OIDC connections
+  # Point Go's TLS to merged bundle (system CAs + private CA)
   env:
     - name: SSL_CERT_FILE
       value: /etc/headlamp/certs/ca.crt
