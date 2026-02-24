@@ -1,0 +1,62 @@
+---
+# Crossplane controller — needs AWS API egress + webhook ingress
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crossplane-controller
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: crossplane
+
+  ingress:
+    # Allow webhook callbacks from kube-apiserver
+    # host + remote-node + cluster required for KinD compatibility
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - remote-node
+        - cluster
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.crossplane.webhook }}"
+              protocol: TCP
+
+    # Allow Prometheus to scrape metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.crossplane.metrics }}"
+              protocol: TCP
+
+  egress:
+    # Allow HTTPS to AWS APIs (FQDN-based for zero-trust)
+    - toFQDNs:
+        - matchPattern: "*.amazonaws.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    # Allow Kubernetes API access
+    - toEntities:
+        - kube-apiserver
+---
+# Crossplane RBAC manager
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crossplane-rbac-manager
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: crossplane-rbac-manager
+
+  egress:
+    # Allow Kubernetes API access (manages RBAC resources)
+    - toEntities:
+        - kube-apiserver

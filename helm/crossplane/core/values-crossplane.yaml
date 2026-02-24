@@ -1,0 +1,25 @@
+# Upstream Crossplane chart overrides
+crossplane:
+  replicas: 1
+
+  resourcesCrossplane:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+  resourcesRBACManager:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 25m
+      memory: 64Mi
+
+  metrics:
+    enabled: true
+
+  webhooks:
+    enabled: true
