@@ -36,5 +36,6 @@ variable "vso_allowed_namespaces" {
     "identity",
     "cloudflare",
     "cert-manager",
+    "tailscale",
   ]
 }

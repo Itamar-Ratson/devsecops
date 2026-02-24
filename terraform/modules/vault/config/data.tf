@@ -89,3 +89,9 @@ locals {
   alertmanager_slack_critical = data.aws_ssm_parameter.alertmanager_slack_critical.value == "DISABLED" ? "" : data.aws_ssm_parameter.alertmanager_slack_critical.value
   alertmanager_slack_warning  = data.aws_ssm_parameter.alertmanager_slack_warning.value == "DISABLED" ? "" : data.aws_ssm_parameter.alertmanager_slack_warning.value
 }
+
+# -- Tailscale -----------------------------------------------------------------
+data "aws_ssm_parameter" "tailscale_auth_key" {
+  name            = "/devsecops/tailscale-auth-key"
+  with_decryption = true
+}

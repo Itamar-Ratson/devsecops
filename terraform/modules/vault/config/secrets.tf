@@ -65,3 +65,12 @@ resource "vault_kv_secret_v2" "argocd_admin" {
     "server.secretkey" = data.aws_ssm_parameter.argocd_server_secret_key.value
   })
 }
+
+resource "vault_kv_secret_v2" "tailscale" {
+  mount = "secret"
+  name  = "tailscale/operator"
+
+  data_json = jsonencode({
+    "auth-key" = data.aws_ssm_parameter.tailscale_auth_key.value
+  })
+}
