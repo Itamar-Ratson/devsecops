@@ -1,0 +1,35 @@
+name: Tailscale Key Rotation Reminder
+
+on:
+  schedule:
+    # Run on the 1st of every 3rd month at 9 AM UTC (~90 day cycle)
+    - cron: '0 9 1 */3 *'
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/devsecops-github-actions
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Send Slack reminder
+        run: |
+          WEBHOOK=$(aws ssm get-parameter \
+            --name "/devsecops/slack-devops-webhook" \
+            --with-decryption \
+            --query 'Parameter.Value' \
+            --output text)
+
+          curl -sfX POST "$WEBHOOK" \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": ":key: *Tailscale Auth Key Rotation Needed*\nThe KinD Tailscale operator auth key expires in ~10 days.\n\n*Steps:*\n1. Generate new auth key in Tailscale admin console (reusable + ephemeral + tag:k8s)\n2. Update SSM:\n```\naws ssm put-parameter --name /devsecops/tailscale-auth-key --value NEW_KEY --type SecureString --overwrite\n```\n3. Re-apply vault/config:\n```\ncd terraform/live && terragrunt apply vault/config --non-interactive\n```\n4. Restart Tailscale pod:\n```\nkubectl rollout restart deployment tailscale -n tailscale\n```"
+            }'
