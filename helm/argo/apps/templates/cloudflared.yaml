@@ -1,5 +1,5 @@
-# Wave 9 — CloudFlare Tunnel: cloudflared
-# Dependencies: gateway (wave 5), VSO (wave 3), keycloak (wave 6)
+# Wave 7 — CloudFlare Tunnel: cloudflared
+# Dependencies: gateway (wave 5), VSO (wave 4), keycloak (wave 6)
 {{- if .Values.applications.cloudflared.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -7,7 +7,7 @@ metadata:
   name: cloudflared
   namespace: {{ .Release.Namespace }}
   annotations:
-    argocd.argoproj.io/sync-wave: "9"
+    argocd.argoproj.io/sync-wave: "7"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:

@@ -96,14 +96,14 @@ fs.inotify.max_user_instances=1024
 fs.inotify.max_user_watches=16384
 ```
 
-Configure host DNS for `*.onprem` resolution (one-time, per machine):
+Configure host DNS for `*.itamarratson.com` resolution (one-time, per machine):
 
 ```bash
 sudo ./scripts/setup-host-dns.sh
 ```
 
 This writes `/etc/systemd/resolved.conf.d/kind-gateway.conf` so that systemd-resolved
-forwards `*.onprem` queries to the dnsmasq instance that Terraform starts on port 5353.
+forwards `*.itamarratson.com` queries to the dnsmasq instance that Terraform starts on port 5353.
 Run once before the first `terragrunt run --all apply`.
 
 ### Secrets Configuration
@@ -134,7 +134,7 @@ for full admin procedures.
 | 4 | Infrastructure foundations | cert-manager, VSO, Sealed-Secrets, Argo-Rollouts, Strimzi |
 | 5 | Infrastructure services | trust-manager, Gateway, Kafka, Tailscale |
 | 6 | Identity & secrets | Keycloak, Vault, Zot |
-| 7 | OIDC proxy | kube-oidc-proxy |
+| 7 | OIDC proxy & tunnels | kube-oidc-proxy, Cloudflared |
 | 8 | Observability | Monitoring, Kafka-UI, Headlamp |
 | 9 | Demo apps | http-echo, juice-shop |
 
@@ -148,16 +148,16 @@ watch 'kubectl get pods -A --sort-by=.metadata.creationTimestamp --no-headers | 
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
-| Echo | <https://echo.onprem> | - |
-| Juice Shop | <https://juice-shop.onprem> | - |
-| Kafka UI | <https://kafka-ui.onprem> | - |
-| Hubble UI | <https://hubble.onprem> | - |
-| Zot Registry | <http://zot.onprem> | - |
-| Headlamp | <https://headlamp.onprem> | SSO via Keycloak (testuser/testuser) |
-| Grafana | <https://grafana.onprem> | SSO via Keycloak or secrets.tfvars: grafana_admin |
-| ArgoCD | <https://argocd.onprem> | SSO via Keycloak or admin/secrets.tfvars: argocd_admin |
-| Vault UI | <https://vault.onprem> | SSO via Keycloak (OIDC) or root token below |
-| Keycloak | <https://keycloak.onprem> | secrets.tfvars: keycloak_admin |
+| Echo | <https://echo.itamarratson.com> | - |
+| Juice Shop | <https://juice-shop.itamarratson.com> | - |
+| Kafka UI | <https://kafka-ui.itamarratson.com> | - |
+| Hubble UI | <https://hubble.itamarratson.com> | - |
+| Zot Registry | <http://zot.itamarratson.com> | - |
+| Headlamp | <https://headlamp.itamarratson.com> | SSO via Keycloak (testuser/testuser) |
+| Grafana | <https://grafana.itamarratson.com> | SSO via Keycloak or secrets.tfvars: grafana_admin |
+| ArgoCD | <https://argocd.itamarratson.com> | SSO via Keycloak or admin/secrets.tfvars: argocd_admin |
+| Vault UI | <https://vault.itamarratson.com> | SSO via Keycloak (OIDC) or root token below |
+| Keycloak | <https://keycloak.itamarratson.com> | secrets.tfvars: keycloak_admin |
 
 **Vault root token:**
 
