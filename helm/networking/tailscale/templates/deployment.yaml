@@ -38,8 +38,10 @@ spec:
               value: "true"
             - name: TS_ROUTES
               value: {{ join "," .Values.routes | quote }}
+            - name: TS_SOCKET
+              value: /tmp/tailscale.sock
             - name: TS_HOSTNAME
-              value: {{ .Values.cluster.name | default "kind-on-prem" }}
+              value: {{ .Values.cluster.name | default "on-prem" }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           securityContext:
@@ -51,3 +53,9 @@ spec:
             capabilities:
               drop:
                 - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
