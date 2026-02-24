@@ -152,7 +152,7 @@ watch 'kubectl get pods -A --sort-by=.metadata.creationTimestamp --no-headers | 
 | Juice Shop | <https://juice-shop.itamarratson.com> | - |
 | Kafka UI | <https://kafka-ui.itamarratson.com> | - |
 | Hubble UI | <https://hubble.itamarratson.com> | - |
-| Zot Registry | <http://zot.itamarratson.com> | - |
+| Zot Registry | <https://zot.itamarratson.com> | - |
 | Headlamp | <https://headlamp.itamarratson.com> | SSO via Keycloak (testuser/testuser) |
 | Grafana | <https://grafana.itamarratson.com> | SSO via Keycloak or secrets.tfvars: grafana_admin |
 | ArgoCD | <https://argocd.itamarratson.com> | SSO via Keycloak or admin/secrets.tfvars: argocd_admin |
