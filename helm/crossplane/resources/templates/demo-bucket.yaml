@@ -1,0 +1,14 @@
+apiVersion: storage.platform.io/v1alpha1
+kind: ObjectStorageBucket
+metadata:
+  name: {{ .Values.demoBucket.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  region: {{ .Values.aws.region | quote }}
+  acl: private
+  tags:
+    project: {{ .Values.project.name | quote }}
+    environment: {{ .Values.project.environment | quote }}
+  crossplane:
+    compositionRef:
+      name: objectstoragebuckets.aws.storage.platform.io

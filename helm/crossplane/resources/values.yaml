@@ -1,0 +1,9 @@
+demoBucket:
+  name: devsecops-demo-bucket
+
+aws:
+  region: ""  # Overridden by globals.yaml
+
+project:
+  name: ""         # Overridden by globals.yaml
+  environment: ""  # Overridden by globals.yaml

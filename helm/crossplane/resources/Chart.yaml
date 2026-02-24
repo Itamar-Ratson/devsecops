@@ -1,0 +1,4 @@
+apiVersion: v2
+name: crossplane-resources
+description: Crossplane-managed cloud resources (demo S3 bucket)
+version: 1.0.0
