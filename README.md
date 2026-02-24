@@ -105,18 +105,6 @@ This writes `/etc/systemd/resolved.conf.d/kind-gateway.conf` so that systemd-res
 forwards `*.onprem` queries to the dnsmasq instance that Terraform starts on port 5353.
 Run once before the first `terragrunt run --all apply`.
 
-### Team members (day-to-day)
-
-```bash
-# 1. Configure AWS with the access key your admin provided
-aws configure
-
-# 2. Clone the repo and apply (no secrets files needed)
-git clone git@github.com:itamar-ratson/devsecops.git
-cd devsecops/terraform/live
-terragrunt run --all apply --non-interactive
-```
-
 ### Secrets Configuration
 
 The admin fills in `terraform/live/secrets.tfvars` once to bootstrap SSM. After that, secrets
