@@ -1,0 +1,4 @@
+apiVersion: v2
+name: crossplane-providers
+description: Crossplane AWS S3 provider and composition functions
+version: 1.0.0
