@@ -23,6 +23,7 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![Cilium Network Policies](https://img.shields.io/badge/Network_Policies-F8C517?style=flat&logo=cilium&logoColor=black)
 ![CoreDNS](https://img.shields.io/badge/CoreDNS-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![dnsmasq](https://img.shields.io/badge/dnsmasq-4A90D9?style=flat&logoColor=white)
+![Tailscale](https://img.shields.io/badge/Tailscale-000000?style=flat&logo=tailscale&logoColor=white)
 
 **Security & Identity**<br>
 ![Tetragon](https://img.shields.io/badge/Tetragon-F8C517?style=flat&logo=cilium&logoColor=black)
@@ -121,6 +122,8 @@ for full admin procedures.
 | `argocd_admin.password_hash` | `htpasswd -nbBC 10 "" 'your-password' \| tr -d ':\n'` |
 | `argocd_admin.server_secret_key` | `openssl rand -base64 32` |
 | `alertmanager_webhooks` (optional) | PagerDuty/Slack webhook URLs (or leave as `"DISABLED"`) |
+| `tailscale_auth_key` | Tailscale admin → Keys → Generate (reusable + ephemeral + tag:k8s) |
+| `slack_devops_webhook` | Slack app → Incoming Webhooks → Add to channel |
 
 | Wave | Role | Components |
 |------|------|------------|
@@ -129,7 +132,7 @@ for full admin procedures.
 | 2 | Security: enforcement | Kyverno, Tetragon, Trivy |
 | 3 | Security: policies | Kyverno-policies |
 | 4 | Infrastructure foundations | cert-manager, VSO, Sealed-Secrets, Argo-Rollouts, Strimzi |
-| 5 | Infrastructure services | trust-manager, Gateway, Kafka |
+| 5 | Infrastructure services | trust-manager, Gateway, Kafka, Tailscale |
 | 6 | Identity & secrets | Keycloak, Vault, Zot |
 | 7 | OIDC proxy | kube-oidc-proxy |
 | 8 | Observability | Monitoring, Kafka-UI, Headlamp |
@@ -167,6 +170,14 @@ kubectl -n vault get secret vault-root-token -o jsonpath="{.data.token}" | base6
 ```bash
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
+
+**Tailscale status:**
+
+```bash
+kubectl logs -n tailscale -l app.kubernetes.io/name=tailscale --tail=5
+```
+
+Look for `Startup complete` and `machineAuthorized=true`. The device should appear in the [Tailscale admin console](https://login.tailscale.com/admin/machines) as `on-prem` with advertised routes `10.244.0.0/16` and `10.96.0.0/12`.
 
 ## Disabled Components
 
