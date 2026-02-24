@@ -1,0 +1,4 @@
+apiVersion: v2
+name: crossplane-compositions
+description: Crossplane XRD, Composition, and ProviderConfig for AWS S3
+version: 1.0.0

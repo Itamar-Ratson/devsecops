@@ -1,0 +1,36 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: objectstoragebuckets.storage.platform.io
+spec:
+  scope: Namespaced
+  group: storage.platform.io
+  names:
+    kind: ObjectStorageBucket
+    plural: objectstoragebuckets
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                region:
+                  type: string
+                  default: {{ .Values.aws.region | quote }}
+                acl:
+                  type: string
+                  enum:
+                    - private
+                    - public-read
+                  default: private
+                tags:
+                  type: object
+                  additionalProperties:
+                    type: string
+              required:
+                - region

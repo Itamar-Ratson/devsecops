@@ -1,0 +1,36 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: objectstoragebuckets.aws.storage.platform.io
+spec:
+  compositeTypeRef:
+    apiVersion: storage.platform.io/v1alpha1
+    kind: ObjectStorageBucket
+  mode: Pipeline
+  pipeline:
+    - step: patch-and-transform
+      functionRef:
+        name: function-patch-and-transform
+      input:
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        resources:
+          - name: s3-bucket
+            base:
+              apiVersion: s3.aws.m.upbound.io/v1beta1
+              kind: Bucket
+              spec:
+                forProvider:
+                  region: {{ .Values.aws.region | quote }}
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.region
+                toFieldPath: spec.forProvider.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.acl
+                toFieldPath: spec.forProvider.objectOwnership
+                transforms:
+                  - type: map
+                    map:
+                      private: BucketOwnerEnforced
+                      public-read: ObjectWriter
