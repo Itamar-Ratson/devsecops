@@ -8,3 +8,7 @@ cert-manager:
   # CRDs are installed separately in README setup (best practice)
   crds:
     enabled: false
+  # Use external DNS for ACME DNS-01 challenges — CoreDNS rewrites
+  # *.itamarratson.com to the gateway, breaking SOA lookups.
+  dns01RecursiveNameservers: "1.1.1.1:53"
+  dns01RecursiveNameserversOnly: true

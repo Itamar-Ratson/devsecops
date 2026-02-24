@@ -58,4 +58,13 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
+    # External DNS for DNS-01 challenge verification (bypasses CoreDNS split-horizon)
+    - toCIDR:
+        - 1.1.1.1/32
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
 {{- end }}
