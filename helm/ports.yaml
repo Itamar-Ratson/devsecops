@@ -148,3 +148,8 @@ ports:
   # Tailscale
   tailscale:
     metrics: 9988
+
+  # Crossplane
+  crossplane:
+    webhook: 9443
+    metrics: 8080

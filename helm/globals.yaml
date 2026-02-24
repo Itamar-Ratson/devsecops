@@ -8,3 +8,12 @@ cloudflare:
   # CloudFlare Zero Trust team domain (e.g., "myteam" from myteam.cloudflareaccess.com)
   # Set this before enabling cloudflare — used in Keycloak OIDC redirect URIs
   teamDomain: "itamarratson"
+
+# AWS — default region for Crossplane-managed resources
+aws:
+  region: eu-north-1
+
+# Project metadata — used in resource tags
+project:
+  name: devsecops
+  environment: dev
