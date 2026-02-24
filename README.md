@@ -181,20 +181,16 @@ The following components are disabled to fit within 16GB RAM. Code is preserved 
 
 ## Cleanup
 
-Destroy the cluster stack while preserving AWS resources, transit Vault, and the registry cache:
+Cloud (AWS, Cloudflare) and on-prem (transit Vault, registry cache) modules are excluded from destroy by default via `exclude` blocks. Override with feature flags when needed:
 
 ```bash
-terragrunt run --all destroy --non-interactive \
-  --filter "!path:aws/iam" \
-  --filter "!path:vault/transit" \
-  --filter "!path:registry/cache"
+# Destroy K8s only (default — cloud and on-prem preserved)
+cd terraform/live && terragrunt run --all destroy --non-interactive
+
+# Also destroy on-prem Docker containers
+cd terraform/live && terragrunt run --all destroy --non-interactive --feature destroy_onprem=true
+
+# Full teardown
+cd terraform/live && terragrunt run --all destroy --non-interactive --feature destroy_onprem=true --feature destroy_cloud=true
 ```
 
-### Shell Aliases
-
-Add to `~/.bash_aliases` for convenience:
-
-```bash
-tg-apply()  { terragrunt run --all apply --non-interactive --working-dir terraform/live; }
-tg-destroy() { terragrunt run --all destroy --non-interactive --working-dir terraform/live --queue-exclude-dir "aws/*" --queue-exclude-dir "vault/transit" --queue-exclude-dir "registry/*"; }
-```

@@ -1,4 +1,14 @@
 # terraform/live/vault/transit/workspace/terragrunt.hcl
+
+feature "destroy_onprem" {
+  default = false
+}
+
+exclude {
+  if      = !feature.destroy_onprem.value
+  actions = ["destroy"]
+}
+
 terraform {
   source = "../../../../modules/hcp-workspace"
 

@@ -1,4 +1,14 @@
 # terraform/live/aws/ssm/workspace/terragrunt.hcl
+
+feature "destroy_cloud" {
+  default = false
+}
+
+exclude {
+  if      = !feature.destroy_cloud.value
+  actions = ["destroy"]
+}
+
 terraform {
   source = "../../../../modules/hcp-workspace"
 

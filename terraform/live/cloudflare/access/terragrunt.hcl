@@ -1,3 +1,12 @@
+feature "destroy_cloud" {
+  default = false
+}
+
+exclude {
+  if      = !feature.destroy_cloud.value
+  actions = ["destroy"]
+}
+
 terraform {
   source = "../../../modules/cloudflare/access"
 }

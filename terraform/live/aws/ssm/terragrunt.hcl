@@ -5,6 +5,15 @@
 #   1. Ensure terraform/live/secrets.tfvars is fully populated
 #   2. cd terraform/live/aws/ssm && terragrunt apply --non-interactive
 
+feature "destroy_cloud" {
+  default = false
+}
+
+exclude {
+  if      = !feature.destroy_cloud.value
+  actions = ["destroy"]
+}
+
 terraform {
   source = "../../../modules/aws/ssm"
 

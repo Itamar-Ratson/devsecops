@@ -1,3 +1,12 @@
+feature "destroy_onprem" {
+  default = false
+}
+
+exclude {
+  if      = !feature.destroy_onprem.value
+  actions = ["destroy"]
+}
+
 terraform {
   source = "../../../modules/vault/transit"
 
