@@ -19,3 +19,6 @@ applications:
   # Juice Shop — disabled to save ~256Mi. Enabled in CI via ci-values.yaml for DAST.
   juiceShop:
     enabled: false
+  # Crossplane — disabled by default to save resources + avoid AWS costs.
+  crossplane:
+    enabled: false

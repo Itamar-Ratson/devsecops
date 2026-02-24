@@ -1,0 +1,39 @@
+{{- if .Values.applications.crossplane.enabled }}
+# Wave 9 — Demo: S3 bucket via Crossplane platform API
+# Dependencies: crossplane-compositions (wave 6)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crossplane-resources
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.repoURL }}
+    targetRevision: {{ .Values.targetRevision }}
+    path: helm/crossplane/resources
+    helm:
+      valueFiles:
+        - ../../globals.yaml
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: crossplane
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m
+{{- end }}
