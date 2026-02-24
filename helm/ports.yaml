@@ -144,3 +144,7 @@ ports:
   # kube-oidc-proxy
   kubeOidcProxy:
     https: 8443
+
+  # Tailscale
+  tailscale:
+    metrics: 9988
