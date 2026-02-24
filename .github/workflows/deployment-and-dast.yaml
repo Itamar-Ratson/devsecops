@@ -69,9 +69,9 @@ jobs:
           # Secrets (github_token, argocd_oidc_client_secret) are now read from
           # SSM by run_cmd in terragrunt.hcl using the AWS credentials above.
           cat > terraform/live/k8s/bootstrap/argocd/ci.auto.tfvars << EOF
-          git_repo_url       = "https://github.com/${{ github.repository }}"
-          create_deploy_key  = false
-          juice_shop_enabled = true
+          git_repo_url      = "https://github.com/${{ github.repository }}"
+          create_deploy_key = false
+          ci_values         = true
           EOF
 
       - name: Build Helm chart dependencies

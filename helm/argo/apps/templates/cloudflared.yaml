@@ -1,6 +1,6 @@
 # Wave 9 — CloudFlare Tunnel: cloudflared
 # Dependencies: gateway (wave 5), VSO (wave 3), keycloak (wave 6)
-{{- if .Values.cloudflare.enabled }}
+{{- if .Values.applications.cloudflared.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

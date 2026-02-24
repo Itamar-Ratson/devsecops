@@ -71,8 +71,8 @@ variable "acme_email" {
   default     = ""
 }
 
-variable "juice_shop_enabled" {
-  description = "Enable the Juice Shop ArgoCD application (CI sets true, local defaults false to save resources)"
+variable "ci_values" {
+  description = "Include ci-values.yaml in the ArgoCD root Application (enables CI-only apps like Juice Shop)"
   type        = bool
   default     = false
 }

@@ -10,9 +10,12 @@ acmeEmail: ""
 
 # Per-application toggles — disabled by default to save resources
 applications:
+  # Cloudflare Tunnel — enabled by default for external access via cloudflared.
+  cloudflared:
+    enabled: true
   # Kafka UI — disabled to save ~256Mi. Re-enable for visual topic/consumer debugging.
   kafkaUi:
     enabled: false
-  # Juice Shop — disabled to save ~256Mi. Re-enable for OWASP security demos.
+  # Juice Shop — disabled to save ~256Mi. Enabled in CI via ci-values.yaml for DAST.
   juiceShop:
     enabled: false

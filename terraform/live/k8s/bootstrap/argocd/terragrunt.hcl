@@ -8,7 +8,7 @@ include "root" {
 
 # Fetch secrets from SSM at plan/apply time.
 # CI also has AWS credentials (via GitHub OIDC AssumeRole), so these succeed in CI too.
-# Non-sensitive CI overrides (create_deploy_key, juice_shop_enabled, git_repo_url for HTTPS)
+# Non-sensitive CI overrides (create_deploy_key, ci_values, git_repo_url for HTTPS)
 # are written to ci.auto.tfvars by the workflow; auto.tfvars override these locals.
 locals {
   github_token              = run_cmd("--terragrunt-quiet", "aws", "ssm", "get-parameter", "--name", "/devsecops/github-token", "--with-decryption", "--query", "Parameter.Value", "--output", "text")

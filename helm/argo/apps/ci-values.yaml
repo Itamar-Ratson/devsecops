@@ -1,0 +1,8 @@
+# CI-only overrides — included when Terraform ci_values = true.
+applications:
+  # Enabled in CI for DAST testing (disabled locally to save resources).
+  juiceShop:
+    enabled: true
+  # Disabled in CI — no Cloudflare tunnel configured.
+  cloudflared:
+    enabled: false

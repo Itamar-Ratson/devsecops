@@ -163,13 +163,15 @@ resource "kubernetes_manifest" "argocd_root_application" {
         targetRevision = "HEAD"
         path           = "helm/argo/apps"
         helm = {
-          valueFiles = ["values.yaml", "../../globals.yaml"]
+          valueFiles = concat(
+            ["values.yaml", "../../globals.yaml"],
+            var.ci_values ? ["ci-values.yaml"] : [],
+          )
           valuesObject = {
             repoURL         = var.git_repo_url
             transitVaultIP  = var.vault_cluster_ip
             cacheRegistryIP = var.cache_cluster_ip
             acmeEmail       = var.acme_email
-            applications    = { juiceShop = { enabled = var.juice_shop_enabled } }
           }
         }
       }
