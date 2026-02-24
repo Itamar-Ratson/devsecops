@@ -12,6 +12,7 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![cert-manager](https://img.shields.io/badge/cert--manager-0A5CBF?style=flat&logo=letsencrypt&logoColor=white)
 ![trust-manager](https://img.shields.io/badge/trust--manager-0A5CBF?style=flat&logo=letsencrypt&logoColor=white)
 ![Zot](https://img.shields.io/badge/Zot-4A154B?style=flat&logo=oci&logoColor=white)
+![Let's Encrypt](https://img.shields.io/badge/Let's_Encrypt-003A70?style=flat&logo=letsencrypt&logoColor=white)
 
 **Networking**<br>
 ![Cilium](https://img.shields.io/badge/Cilium-F8C517?style=flat&logo=cilium&logoColor=black)
@@ -54,6 +55,10 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![IAM](https://img.shields.io/badge/IAM-232F3E?style=flat&logo=amazoniam&logoColor=white)
 ![SSM Parameter Store](https://img.shields.io/badge/SSM_Parameter_Store-232F3E?style=flat&logo=amazonsystemsmanager&logoColor=white)
 ![KMS](https://img.shields.io/badge/KMS-232F3E?style=flat&logo=amazonwebservices&logoColor=white)
+
+**Cloudflare**<br>
+![Cloudflare Tunnel](https://img.shields.io/badge/Cloudflare_Tunnel-F38020?style=flat&logo=cloudflare&logoColor=white)
+![Cloudflare Access](https://img.shields.io/badge/Cloudflare_Access-F38020?style=flat&logo=cloudflare&logoColor=white)
 
 **GitOps & CI/CD**<br>
 ![ArgoCD](https://img.shields.io/badge/ArgoCD-EF7B4D?style=flat&logo=argo&logoColor=white)
