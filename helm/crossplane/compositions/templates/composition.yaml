@@ -26,9 +26,21 @@ spec:
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.region
                 toFieldPath: spec.forProvider.region
+
+          - name: s3-bucket-ownership
+            base:
+              apiVersion: s3.aws.m.upbound.io/v1beta1
+              kind: BucketOwnershipControls
+              spec:
+                forProvider:
+                  bucketSelector:
+                    matchControllerRef: true
+                  rule:
+                    objectOwnership: BucketOwnerEnforced
+            patches:
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.acl
-                toFieldPath: spec.forProvider.objectOwnership
+                toFieldPath: spec.forProvider.rule.objectOwnership
                 transforms:
                   - type: map
                     map:
