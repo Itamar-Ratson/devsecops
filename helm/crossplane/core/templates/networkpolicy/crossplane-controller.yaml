@@ -1,5 +1,11 @@
 ---
-# Crossplane controller — needs AWS API egress + webhook ingress
+# Crossplane controller — needs package registry egress + webhook ingress
+#
+# NOTE: FQDN-based egress (toFQDNs) does not work in this cluster because
+# the allow-cluster-egress CiliumClusterwideNetworkPolicy allows DNS traffic
+# at L3/L4 before the per-endpoint DNS L7 proxy can intercept it. Without
+# DNS interception, the FQDN cache stays empty and toFQDNs rules block all
+# traffic. We use toEntities: world with port restrictions instead.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -34,27 +40,9 @@ spec:
               protocol: TCP
 
   egress:
-    # DNS with L7 interception — required for Cilium to populate FQDN cache
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.dns }}"
-              protocol: ANY
-          rules:
-            dns:
-              - matchPattern: "*"
-
-    # Allow HTTPS to Crossplane package registry + AWS APIs
-    # xpkg.crossplane.io → gateway.scarf.sh → ghcr.io → pkg-containers.githubusercontent.com
-    - toFQDNs:
-        - matchName: "xpkg.crossplane.io"
-        - matchName: "gateway.scarf.sh"
-        - matchName: "ghcr.io"
-        - matchPattern: "*.githubusercontent.com"
-        - matchPattern: "*.amazonaws.com"
+    # Allow HTTPS to package registries + AWS APIs
+    - toEntities:
+        - world
       toPorts:
         - ports:
             - port: "443"
@@ -80,8 +68,8 @@ spec:
     - toEntities:
         - kube-apiserver
 ---
-# Provider pods — dynamically created by Crossplane when providers install.
-# Uses pkg.crossplane.io/revision label prefix to match all provider pods.
+# Provider and function pods — dynamically created by Crossplane.
+# Uses pkg.crossplane.io/revision label to match all provider/function pods.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -94,22 +82,9 @@ spec:
         operator: Exists
 
   egress:
-    # DNS with L7 interception for FQDN resolution
-    - toEndpoints:
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "{{ .Values.ports.dns }}"
-              protocol: ANY
-          rules:
-            dns:
-              - matchPattern: "*"
-
     # Allow HTTPS to AWS APIs
-    - toFQDNs:
-        - matchPattern: "*.amazonaws.com"
+    - toEntities:
+        - world
       toPorts:
         - ports:
             - port: "443"
@@ -119,7 +94,7 @@ spec:
     - toEntities:
         - kube-apiserver
 
-    # Allow gRPC to function pods (Composition pipeline)
+    # Allow gRPC between provider/function pods (Composition pipeline)
     - toEndpoints:
         - matchExpressions:
             - key: pkg.crossplane.io/revision
