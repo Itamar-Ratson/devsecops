@@ -33,11 +33,15 @@ spec:
               kind: BucketOwnershipControls
               spec:
                 forProvider:
+                  region: {{ .Values.aws.region | quote }}
                   bucketSelector:
                     matchControllerRef: true
                   rule:
                     objectOwnership: BucketOwnerEnforced
             patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.region
+                toFieldPath: spec.forProvider.region
               - type: FromCompositeFieldPath
                 fromFieldPath: spec.acl
                 toFieldPath: spec.forProvider.rule.objectOwnership
