@@ -48,11 +48,12 @@ spec:
               - matchPattern: "*"
 
     # Allow HTTPS to Crossplane package registry + AWS APIs
-    # xpkg.crossplane.io → gateway.scarf.sh (analytics) → ghcr.io (OCI images)
+    # xpkg.crossplane.io → gateway.scarf.sh → ghcr.io → pkg-containers.githubusercontent.com
     - toFQDNs:
         - matchName: "xpkg.crossplane.io"
         - matchName: "gateway.scarf.sh"
         - matchName: "ghcr.io"
+        - matchPattern: "*.githubusercontent.com"
         - matchPattern: "*.amazonaws.com"
       toPorts:
         - ports:
