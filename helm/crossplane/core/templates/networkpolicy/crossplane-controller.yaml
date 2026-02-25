@@ -79,3 +79,52 @@ spec:
     # Allow Kubernetes API access (manages RBAC resources)
     - toEntities:
         - kube-apiserver
+---
+# Provider pods — dynamically created by Crossplane when providers install.
+# Uses pkg.crossplane.io/revision label prefix to match all provider pods.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crossplane-providers
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchExpressions:
+      - key: pkg.crossplane.io/revision
+        operator: Exists
+
+  egress:
+    # DNS with L7 interception for FQDN resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: "*"
+
+    # Allow HTTPS to AWS APIs
+    - toFQDNs:
+        - matchPattern: "*.amazonaws.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+
+    # Allow Kubernetes API access (providers manage CRs)
+    - toEntities:
+        - kube-apiserver
+
+    # Allow gRPC to function pods (Composition pipeline)
+    - toEndpoints:
+        - matchExpressions:
+            - key: pkg.crossplane.io/revision
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "9443"
+              protocol: TCP
