@@ -34,13 +34,25 @@ spec:
               protocol: TCP
 
   egress:
-    # Allow HTTPS to AWS APIs (FQDN-based for zero-trust)
+    # Allow DNS for FQDN resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP
+
+    # Allow HTTPS to Crossplane package registry + AWS APIs
     - toFQDNs:
+        - matchName: "xpkg.crossplane.io"
         - matchPattern: "*.amazonaws.com"
       toPorts:
         - ports:
             - port: "443"
               protocol: TCP
+
     # Allow Kubernetes API access
     - toEntities:
         - kube-apiserver
