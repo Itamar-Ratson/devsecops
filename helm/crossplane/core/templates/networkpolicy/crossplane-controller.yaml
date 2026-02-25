@@ -45,8 +45,11 @@ spec:
               protocol: UDP
 
     # Allow HTTPS to Crossplane package registry + AWS APIs
+    # xpkg.crossplane.io → gateway.scarf.sh (analytics) → ghcr.io (OCI images)
     - toFQDNs:
         - matchName: "xpkg.crossplane.io"
+        - matchName: "gateway.scarf.sh"
+        - matchName: "ghcr.io"
         - matchPattern: "*.amazonaws.com"
       toPorts:
         - ports:
