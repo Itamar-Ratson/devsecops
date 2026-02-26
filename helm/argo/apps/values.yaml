@@ -22,3 +22,9 @@ applications:
   # Crossplane — AWS infrastructure provisioning via platform API.
   crossplane:
     enabled: true
+  # EKS via Crossplane — provisions EKS cluster and spoke agent apps.
+  eks:
+    enabled: true
+  # Spoke agents — ApplicationSet deploying apps to spoke clusters (EKS).
+  spokeAgents:
+    enabled: true

@@ -1,3 +1,4 @@
+{{- if eq .Values.networkPolicy.type "cilium" }}
 ---
 # Allow ingress to http-echo from Gateway (Cilium Gateway uses ingress identity)
 apiVersion: cilium.io/v2
@@ -24,3 +25,37 @@ spec:
         - ports:
             - port: "{{ .Values.ports.httpEcho }}"
               protocol: TCP
+{{- else if eq .Values.networkPolicy.type "kubernetes" }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: http-echo
+spec:
+  podSelector:
+    matchLabels:
+      app: http-echo
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cloudflared
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: cloudflared
+      ports:
+        - protocol: TCP
+          port: {{ .Values.ports.httpEcho }}
+  egress:
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: {{ .Values.ports.dns }}
+{{- end }}

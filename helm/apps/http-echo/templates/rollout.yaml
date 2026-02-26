@@ -1,3 +1,4 @@
+{{- if .Values.rollout.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
@@ -18,7 +19,7 @@ spec:
         - name: http-echo
           image: hashicorp/http-echo:latest
           args:
-            - -text=hello world
+            - -text={{ .Values.message }}
           ports:
             - containerPort: {{ .Values.ports.httpEcho }}
   strategy:
@@ -42,3 +43,4 @@ spec:
             templates:
               - templateName: http-echo-success-rate
         - setWeight: 100
+{{- end }}

@@ -1,0 +1,71 @@
+{{- if .Values.applications.spokeAgents.enabled }}
+# Wave 10 — Spoke agents: deploys apps to spoke clusters detected by ArgoCD
+# Dependencies: EKS cluster ready (Crossplane Object creates ArgoCD cluster secret)
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: spoke-agents
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  generators:
+    - matrix:
+        generators:
+          - clusters:
+              selector:
+                matchLabels:
+                  role: spoke
+          - list:
+              elements:
+                - name: external-secrets
+                  path: helm/secrets/external-secrets
+                  namespace: external-secrets
+                  wave: "1"
+                - name: tailscale
+                  path: helm/networking/tailscale
+                  namespace: tailscale
+                  wave: "2"
+                - name: cloudflared
+                  path: helm/networking/cloudflared
+                  namespace: cloudflared
+                  wave: "2"
+                - name: http-echo
+                  path: helm/apps/http-echo
+                  namespace: apps
+                  wave: "3"
+  template:
+    metadata:
+      name: '{{`{{name}}`}}-{{`{{nameNormalized}}`}}'
+      annotations:
+        argocd.argoproj.io/sync-wave: '{{`{{wave}}`}}'
+    spec:
+      project: default
+      source:
+        repoURL: {{ .Values.repoURL }}
+        targetRevision: {{ .Values.targetRevision }}
+        path: '{{`{{path}}`}}'
+        helm:
+          ignoreMissingValueFiles: true
+          valueFiles:
+            - ../../ports.yaml
+            - ../../globals.yaml
+            - values.yaml
+            - values-eks.yaml
+      destination:
+        server: '{{`{{server}}`}}'
+        namespace: '{{`{{namespace}}`}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 30s
+            factor: 2
+            maxDuration: 5m
+{{- end }}

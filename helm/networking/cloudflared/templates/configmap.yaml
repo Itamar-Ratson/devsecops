@@ -6,12 +6,17 @@ metadata:
   labels:
     app.kubernetes.io/name: cloudflared
 data:
-  # Single catch-all ingress rule: all traffic goes to Cilium Gateway.
-  # Hostname-based routing is handled by HTTPRoutes on the gateway, not here.
   config.yaml: |
     ingress:
+    {{- if .Values.directIngress.enabled }}
+      {{- range .Values.directIngress.rules }}
+      - hostname: {{ .hostname | quote }}
+        service: {{ .service }}
+      {{- end }}
+    {{- else }}
       - hostname: "*.{{ .Values.cloudflare.domain }}"
         service: https://cilium-gateway-{{ .Values.gateway.name }}.{{ .Values.gateway.namespace }}.svc.cluster.local:{{ .Values.ports.gateway.https }}
         originRequest:
           noTLSVerify: true
+    {{- end }}
       - service: http_status:404

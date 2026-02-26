@@ -1,0 +1,21 @@
+apiVersion: infrastructure.platform.io/v1alpha1
+kind: EKSCluster
+metadata:
+  name: {{ .Values.eksCluster.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  region: {{ .Values.aws.region | quote }}
+  accountId: {{ .Values.aws.accountId | quote }}
+  kubernetesVersion: {{ .Values.eksCluster.kubernetesVersion | quote }}
+  vpcCidr: {{ .Values.eksCluster.vpcCidr | quote }}
+  serviceCidr: {{ .Values.eksCluster.serviceCidr | quote }}
+  nodeInstanceTypes:
+    {{- toYaml .Values.eksCluster.nodeInstanceTypes | nindent 4 }}
+  nodeDesiredSize: {{ .Values.eksCluster.nodeDesiredSize }}
+  nodeMinSize: {{ .Values.eksCluster.nodeMinSize }}
+  nodeMaxSize: {{ .Values.eksCluster.nodeMaxSize }}
+  publicAccessCidrs:
+    {{- toYaml .Values.eksCluster.publicAccessCidrs | nindent 4 }}
+  crossplane:
+    compositionRef:
+      name: eksclusters.aws.infrastructure.platform.io

@@ -1,0 +1,10 @@
+message: "Hello world, from EKS"
+
+rollout:
+  enabled: false
+
+httpRoute:
+  enabled: false
+
+networkPolicy:
+  type: kubernetes

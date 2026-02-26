@@ -184,3 +184,13 @@ resource "aws_ssm_parameter" "aws_secret_access_key" {
   value     = var.aws_credentials.secret_access_key
   overwrite = true
 }
+
+# -- EKS cluster secrets -------------------------------------------------------
+
+resource "aws_ssm_parameter" "tailscale_eks_auth_key" {
+  count     = var.tailscale_eks_auth_key != "" ? 1 : 0
+  name      = "${local.prefix}/tailscale-eks-auth-key"
+  type      = "SecureString"
+  value     = var.tailscale_eks_auth_key
+  overwrite = true
+}

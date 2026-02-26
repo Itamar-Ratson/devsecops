@@ -1,0 +1,8 @@
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-aws-iam
+spec:
+  package: "{{ .Values.providers.awsIam.package }}:{{ .Values.providers.awsIam.version }}"
+  packagePullPolicy: IfNotPresent
+  revisionHistoryLimit: 1

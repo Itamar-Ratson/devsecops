@@ -9,9 +9,10 @@ cloudflare:
   # Set this before enabling cloudflare — used in Keycloak OIDC redirect URIs
   teamDomain: "itamarratson"
 
-# AWS — default region for Crossplane-managed resources
+# AWS — default region and account for Crossplane-managed resources
 aws:
   region: eu-north-1
+  accountId: "779846824064"
 
 # Project metadata — used in resource tags
 project:

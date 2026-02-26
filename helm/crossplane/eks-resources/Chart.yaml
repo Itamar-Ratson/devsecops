@@ -1,0 +1,4 @@
+apiVersion: v2
+name: crossplane-eks-resources
+description: EKS cluster claim via Crossplane platform API
+version: 1.0.0

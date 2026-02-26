@@ -1,0 +1,10 @@
+routes:
+  - "10.0.0.0/16"
+  - "10.100.0.0/16"
+
+vaultSecrets:
+  enabled: false
+
+externalSecrets:
+  enabled: true
+  ssmPath: /devsecops/tailscale-eks-auth-key

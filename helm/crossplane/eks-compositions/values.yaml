@@ -1,0 +1,4 @@
+eks:
+  publicAccessCidrs:
+    # Tailscale CGNAT range — add your home IP via globals.yaml override
+    - "100.64.0.0/10"

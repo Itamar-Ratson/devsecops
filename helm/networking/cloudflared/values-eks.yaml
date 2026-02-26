@@ -1,0 +1,18 @@
+gateway:
+  name: ""
+
+vaultSecrets:
+  enabled: false
+
+externalSecrets:
+  enabled: true
+  ssmPath: /devsecops/cloudflare-eks-tunnel-token
+
+networkPolicy:
+  type: kubernetes
+
+directIngress:
+  enabled: true
+  rules:
+    - hostname: eks-echo.itamarratson.com
+      service: http://http-echo.apps.svc:5678  # ports.httpEcho

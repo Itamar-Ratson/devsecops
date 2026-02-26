@@ -1,0 +1,8 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: function-auto-ready
+spec:
+  package: "{{ .Values.functions.autoReady.package }}:{{ .Values.functions.autoReady.version }}"
+  packagePullPolicy: IfNotPresent
+  revisionHistoryLimit: 1

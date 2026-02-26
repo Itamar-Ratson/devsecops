@@ -62,6 +62,20 @@ argo-cd:
   controller:
     replicas: 1
 
+    # AWS credentials for EKS spoke cluster authentication (awsAuthConfig).
+    # Secret created by VaultStaticSecret in eks-compositions chart (wave 7).
+    # optional: true allows controller to start before the secret exists.
+    # kubelet auto-refreshes volume-mounted secrets when the secret appears.
+    volumes:
+      - name: aws-credentials
+        secret:
+          secretName: argocd-aws-creds
+          optional: true
+    volumeMounts:
+      - name: aws-credentials
+        mountPath: /home/argocd/.aws
+        readOnly: true
+
     resources:
       limits:
         cpu: "1"

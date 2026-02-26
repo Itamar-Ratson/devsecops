@@ -1,0 +1,39 @@
+{{- if and .Values.applications.crossplane.enabled .Values.applications.eks.enabled }}
+# Wave 8 — Infrastructure: EKS cluster claim
+# Dependencies: crossplane-eks-compositions (wave 7)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crossplane-eks-resources
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.repoURL }}
+    targetRevision: {{ .Values.targetRevision }}
+    path: helm/crossplane/eks-resources
+    helm:
+      valueFiles:
+        - ../../globals.yaml
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: crossplane
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m
+{{- end }}

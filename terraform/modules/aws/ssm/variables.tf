@@ -89,3 +89,10 @@ variable "aws_credentials" {
   })
   sensitive = true
 }
+
+variable "tailscale_eks_auth_key" {
+  description = "Tailscale auth key for EKS subnet router (reusable + ephemeral + tag:eks)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}

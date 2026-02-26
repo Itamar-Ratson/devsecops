@@ -1,0 +1,77 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: eksclusters.infrastructure.platform.io
+spec:
+  scope: Namespaced
+  group: infrastructure.platform.io
+  names:
+    kind: EKSCluster
+    plural: eksclusters
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                region:
+                  type: string
+                accountId:
+                  type: string
+                kubernetesVersion:
+                  type: string
+                  default: "1.35"
+                vpcCidr:
+                  type: string
+                  default: "10.0.0.0/16"
+                serviceCidr:
+                  type: string
+                  default: "10.100.0.0/16"
+                nodeInstanceTypes:
+                  type: array
+                  items:
+                    type: string
+                  default: ["t3.medium"]
+                nodeDesiredSize:
+                  type: integer
+                  default: 2
+                nodeMinSize:
+                  type: integer
+                  default: 1
+                nodeMaxSize:
+                  type: integer
+                  default: 3
+                publicAccessCidrs:
+                  type: array
+                  items:
+                    type: string
+                  default: ["100.64.0.0/10"]
+              required:
+                - region
+                - accountId
+            status:
+              type: object
+              properties:
+                clusterEndpoint:
+                  type: string
+                clusterCa:
+                  type: string
+                oidcIssuerUrl:
+                  type: string
+                oidcIssuerHost:
+                  type: string
+                oidcProviderArn:
+                  type: string
+                esoRoleArn:
+                  type: string
+                argocdRoleArn:
+                  type: string
+                clusterName:
+                  type: string
+                vpcId:
+                  type: string

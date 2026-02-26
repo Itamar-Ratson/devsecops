@@ -7,6 +7,20 @@ gateway:
 vaultSecrets:
   enabled: true
 
+# External Secrets — tunnel token delivered via ESO (for EKS)
+externalSecrets:
+  enabled: false
+  ssmPath: ""
+
+# Direct ingress — route directly to K8s services (no gateway)
+directIngress:
+  enabled: false
+  rules: []
+
+# Network policy mode: "cilium" (KinD default) or "kubernetes" (EKS)
+networkPolicy:
+  type: cilium
+
 image:
   repository: cloudflare/cloudflared
   tag: "2026.2.0"

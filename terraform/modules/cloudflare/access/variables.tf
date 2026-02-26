@@ -42,6 +42,7 @@ variable "protected_services" {
     "vault",
     "headlamp",
     "kafka-ui",
+    "eks-echo",
   ]
 }
 

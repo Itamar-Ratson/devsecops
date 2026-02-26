@@ -1,3 +1,14 @@
 gateway:
   name: main-gateway
   namespace: gateway
+
+message: "hello world"
+
+rollout:
+  enabled: true
+
+httpRoute:
+  enabled: true
+
+networkPolicy:
+  type: cilium

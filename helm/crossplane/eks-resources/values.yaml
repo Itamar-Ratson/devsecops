@@ -1,0 +1,12 @@
+eksCluster:
+  name: devsecops-eks
+  kubernetesVersion: "1.35"
+  vpcCidr: "10.0.0.0/16"
+  serviceCidr: "10.100.0.0/16"
+  nodeInstanceTypes:
+    - "t3.medium"
+  nodeDesiredSize: 2
+  nodeMinSize: 1
+  nodeMaxSize: 3
+  publicAccessCidrs:
+    - "100.64.0.0/10"

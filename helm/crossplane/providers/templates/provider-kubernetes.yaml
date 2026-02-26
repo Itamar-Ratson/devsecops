@@ -1,0 +1,8 @@
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-kubernetes
+spec:
+  package: "{{ .Values.providers.kubernetes.package }}:{{ .Values.providers.kubernetes.version }}"
+  packagePullPolicy: IfNotPresent
+  revisionHistoryLimit: 1
