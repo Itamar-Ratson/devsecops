@@ -1,0 +1,4 @@
+apiVersion: v2
+name: gateway-eks
+description: Cilium Gateway API for EKS (no L2/LB-IPAM — uses AWS NLB)
+version: 1.0.0

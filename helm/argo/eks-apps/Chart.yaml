@@ -1,0 +1,5 @@
+apiVersion: v2
+name: eks-apps
+description: ArgoCD Application CRs for EKS cluster workloads
+version: 0.1.0
+type: application

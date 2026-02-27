@@ -1,0 +1,48 @@
+# Wave 2 — Networking: Network Policies (EKS)
+# Default-deny + cluster egress + ESO world egress
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: eks-network-policies
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.repoURL }}
+    targetRevision: {{ .Values.targetRevision }}
+    path: helm/networking/network-policies/eks
+    helm:
+      valueFiles:
+        - ../../../ports.yaml
+  destination:
+    server: {{ .Values.eksClusterServer }}
+    namespace: kube-system
+  ignoreDifferences:
+    # Cilium mutates CNP/CCNP status and adds internal fields.
+    # Only ignore the specific paths Cilium writes to, not the entire /spec.
+    - group: cilium.io
+      kind: CiliumClusterwideNetworkPolicy
+      jsonPointers:
+        - /status
+    - group: cilium.io
+      kind: CiliumNetworkPolicy
+      jsonPointers:
+        - /status
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m

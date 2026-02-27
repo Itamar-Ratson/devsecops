@@ -1,9 +1,9 @@
-# Wave 1 — Networking: Cilium CNI + service mesh
-# Dependencies: none (Terraform bootstraps Cilium before ArgoCD; this app adopts the release)
+# Wave 1 — Networking: Cilium CNI (EKS — ENI mode)
+# Terraform bootstraps Cilium before ArgoCD; this app adopts the release
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cilium
+  name: eks-cilium
   namespace: {{ .Release.Namespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -19,11 +19,10 @@ spec:
       valueFiles:
         - ../../ports.yaml
         - values.yaml
-        - values-kind.yaml
+        - values-eks.yaml
   destination:
-    server: https://kubernetes.default.svc
+    server: {{ .Values.eksClusterServer }}
     namespace: kube-system
-  # Hubble auto-rotates TLS certs via Helm; suppress spurious diff on those secrets.
   ignoreDifferences:
     - kind: Secret
       name: hubble-ca-cert

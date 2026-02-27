@@ -1,0 +1,3 @@
+# Defaults for values normally supplied via ports.yaml
+ports:
+  dns: 53

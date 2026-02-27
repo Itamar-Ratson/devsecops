@@ -1,0 +1,76 @@
+---
+# Allow ESO to reach AWS SSM/STS endpoints (HTTPS)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-eso-aws
+  namespace: external-secrets
+spec:
+  description: "Allow ESO to reach AWS APIs"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: external-secrets
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# Allow ESO webhook controller to reach AWS
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-eso-webhook-aws
+  namespace: external-secrets
+spec:
+  description: "Allow ESO webhook to reach AWS APIs"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: external-secrets-webhook
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# Allow ESO cert-controller to reach AWS
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-eso-cert-controller-aws
+  namespace: external-secrets
+spec:
+  description: "Allow ESO cert-controller to reach AWS APIs"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: external-secrets-cert-controller
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# Allow kube-apiserver to reach ESO webhook (admission calls)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-eso-webhook-ingress
+  namespace: external-secrets
+spec:
+  description: "Allow API server admission webhook calls to ESO"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: external-secrets-webhook
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "10250"
+              protocol: TCP

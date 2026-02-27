@@ -1,0 +1,5 @@
+repoURL: "https://github.com/Itamar-Ratson/devsecops.git"
+targetRevision: HEAD
+
+# EKS cluster API server URL — overridden by Terraform at registration time
+eksClusterServer: "https://eks.example.com"

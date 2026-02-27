@@ -31,7 +31,10 @@ resource "helm_release" "cilium" {
   wait_for_jobs = true
   timeout       = 600
 
-  values = [file("${var.helm_values_dir}/ports.yaml")]
+  values = [
+    file("${var.helm_values_dir}/ports.yaml"),
+    file("${var.helm_values_dir}/networking/cilium/values-kind.yaml"),
+  ]
 
   depends_on = [null_resource.gateway_api_crds, null_resource.prometheus_operator_crds, null_resource.cert_manager_crds]
 

@@ -1,0 +1,21 @@
+# EKS-specific Cilium overrides
+# Applied after values.yaml: helm install -f values.yaml -f values-eks.yaml
+cilium:
+  # Cilium fully replaces kube-proxy via eBPF — kube-proxy addon is NOT installed
+  kubeProxyReplacement: true
+  eni:
+    enabled: true
+    awsReleaseExcessIPs: true
+  ipam:
+    mode: eni
+  routingMode: native
+  egressMasqueradeInterfaces: eth0
+  nodeinit:
+    enabled: true
+    reconfigureKubelet: true
+    removeCbrBridge: false
+    restartPods: false
+  l2announcements:
+    enabled: false
+  hostPort:
+    enabled: false

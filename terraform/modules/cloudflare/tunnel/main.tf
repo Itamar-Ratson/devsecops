@@ -13,6 +13,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.0"
     }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
   }
 }
 
@@ -72,4 +76,15 @@ resource "vault_kv_secret_v2" "tunnel_token" {
   data_json = jsonencode({
     "tunnel-token" = data.cloudflare_zero_trust_tunnel_cloudflared_token.this.token
   })
+}
+
+# ============================================================================
+# Store tunnel token in SSM for EKS cloudflared (ESO delivers to pod)
+# ============================================================================
+
+resource "aws_ssm_parameter" "tunnel_token" {
+  name      = var.ssm_parameter_path
+  type      = "SecureString"
+  value     = data.cloudflare_zero_trust_tunnel_cloudflared_token.this.token
+  overwrite = true
 }

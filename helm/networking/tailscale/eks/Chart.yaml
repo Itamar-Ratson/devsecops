@@ -1,0 +1,5 @@
+apiVersion: v2
+name: tailscale-eks
+description: Tailscale subnet router for EKS multi-cluster connectivity
+version: 0.1.0
+type: application

@@ -3,10 +3,6 @@ cilium:
     enabled: true
     type: wireguard
   kubeProxyReplacement: true
-  hostPort:
-    enabled: true
-  socketLB:
-    hostNamespaceOnly: true
   # Cilium agent resources - based on actual usage of 104m/38m per node
   resources:
     requests:
@@ -27,8 +23,6 @@ cilium:
     port: 9962
     serviceMonitor:
       enabled: true
-  l2announcements:
-    enabled: true
   gatewayAPI:
     enabled: true
     gatewayClass:

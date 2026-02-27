@@ -42,4 +42,17 @@ inputs = {
   cloudflare_zone_id    = local.cloudflare_zone_id
   vault_address         = dependency.transit_vault.outputs.vault_address
   vault_token           = dependency.transit_vault.outputs.vault_token
+
+  # Include EKS service hostnames alongside KinD services
+  services = [
+    "grafana",
+    "argocd",
+    "vault",
+    "keycloak",
+    "headlamp",
+    "kafka-ui",
+    "juice-shop",
+    "echo",
+    "eks-echo",
+  ]
 }

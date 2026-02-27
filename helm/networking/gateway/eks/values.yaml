@@ -1,0 +1,9 @@
+tls:
+  issuerName: selfsigned
+
+className: cilium
+controllerName: io.cilium/gateway-controller
+
+# Defaults for values normally supplied via globals.yaml
+cloudflare:
+  domain: itamarratson.com

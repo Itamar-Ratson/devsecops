@@ -1,0 +1,9 @@
+# KinD-specific Cilium overrides
+# Applied after values.yaml: helm install -f values.yaml -f values-kind.yaml
+cilium:
+  hostPort:
+    enabled: true
+  socketLB:
+    hostNamespaceOnly: true
+  l2announcements:
+    enabled: true

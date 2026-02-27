@@ -1,0 +1,37 @@
+---
+# 1. Allow DNS egress for all pods
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-dns
+spec:
+  description: "Allow all pods to perform DNS lookups to CoreDNS"
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: ANY
+          rules:
+            dns:
+              - matchPattern: "*"
+---
+# 2. Allow API server access for all pods (port-restricted)
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: allow-apiserver
+spec:
+  description: "Allow all pods to access Kubernetes API server on port 443"
+  endpointSelector: {}
+  egress:
+    - toEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP

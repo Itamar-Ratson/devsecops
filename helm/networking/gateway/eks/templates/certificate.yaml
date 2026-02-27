@@ -1,0 +1,16 @@
+{{- $cn := printf "*.%s" (.Values.cloudflare.domain | default "itamarratson.com") -}}
+{{- $cert := genSelfSignedCert $cn nil (list $cn) 3650 -}}
+# Self-signed TLS Secret for the Cilium Gateway HTTPS listener.
+# On EKS, Cloudflare terminates public TLS; this cert covers the internal
+# hop from cloudflared to the gateway (noTLSVerify: true in cloudflared config).
+# TODO: Replace with cert-manager + Let's Encrypt when added to EKS.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gateway-tls
+  labels:
+    app.kubernetes.io/name: gateway
+type: kubernetes.io/tls
+data:
+  tls.crt: {{ $cert.Cert | b64enc | quote }}
+  tls.key: {{ $cert.Key | b64enc | quote }}

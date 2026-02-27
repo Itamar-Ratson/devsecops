@@ -1,0 +1,31 @@
+# Gateway configuration — cloudflared routes through the Cilium Gateway
+gateway:
+  name: main-gateway
+  namespace: gateway
+
+# Defaults for values normally supplied via globals.yaml and ports.yaml
+cloudflare:
+  domain: itamarratson.com
+ports:
+  gateway:
+    https: 443
+
+image:
+  repository: cloudflare/cloudflared
+  tag: "2026.2.0"
+  pullPolicy: IfNotPresent
+
+metricsPort: 2000
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+# ExternalSecret — tunnel token delivered via ESO from SSM
+externalSecret:
+  ssmKey: /devsecops/cloudflare-tunnel-token
+  secretStore: aws-ssm

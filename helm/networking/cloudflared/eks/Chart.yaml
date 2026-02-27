@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cloudflared-eks
+description: CloudFlare Tunnel connector for EKS cluster (ESO for secrets)
+version: 0.1.0
+type: application

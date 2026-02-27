@@ -45,3 +45,9 @@ variable "vault_token" {
   type        = string
   sensitive   = true
 }
+
+variable "ssm_parameter_path" {
+  description = "SSM parameter path for storing the tunnel token (for ESO on EKS)"
+  type        = string
+  default     = "/devsecops/cloudflare-tunnel-token"
+}

@@ -1,0 +1,43 @@
+# Wave 4 — CloudFlare Tunnel: cloudflared (EKS)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: eks-cloudflared
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.repoURL }}
+    targetRevision: {{ .Values.targetRevision }}
+    path: helm/networking/cloudflared/eks
+    helm:
+      valueFiles:
+        - ../../../ports.yaml
+        - ../../../globals.yaml
+        - values.yaml
+  destination:
+    server: {{ .Values.eksClusterServer }}
+    namespace: cloudflare
+  ignoreDifferences:
+    - group: cilium.io
+      kind: CiliumNetworkPolicy
+      jsonPointers:
+        - /status
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 15
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m

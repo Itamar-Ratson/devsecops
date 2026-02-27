@@ -168,3 +168,12 @@ resource "aws_ssm_parameter" "slack_devops_webhook" {
   value     = var.slack_devops_webhook
   overwrite = true
 }
+
+# -- Tailscale (EKS) ----------------------------------------------------------
+
+resource "aws_ssm_parameter" "tailscale_eks_auth_key" {
+  name      = "${local.prefix}/tailscale-eks-auth-key"
+  type      = "SecureString"
+  value     = var.tailscale_eks_auth_key
+  overwrite = true
+}

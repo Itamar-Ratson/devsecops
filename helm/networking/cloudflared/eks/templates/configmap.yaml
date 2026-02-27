@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflared-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: cloudflared
+data:
+  # Route EKS-prefixed hostnames to the Cilium Gateway on EKS.
+  # Non-EKS hostnames are handled by the KinD cloudflared instance.
+  config.yaml: |
+    ingress:
+      - hostname: "eks-*.{{ .Values.cloudflare.domain }}"
+        service: https://cilium-gateway-{{ .Values.gateway.name }}.{{ .Values.gateway.namespace }}.svc.cluster.local:{{ .Values.ports.gateway.https }}
+        originRequest:
+          noTLSVerify: true
+      - service: http_status:404

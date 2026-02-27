@@ -80,3 +80,9 @@ variable "slack_devops_webhook" {
   type        = string
   sensitive   = true
 }
+
+variable "tailscale_eks_auth_key" {
+  description = "Tailscale auth key for EKS subnet router (reusable + ephemeral + tag:k8s)"
+  type        = string
+  sensitive   = true
+}
