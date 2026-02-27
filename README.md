@@ -53,9 +53,14 @@ A zero-trust Kubernetes development environment with comprehensive security and 
 ![Strimzi](https://img.shields.io/badge/Strimzi-191A1C?style=flat&logo=apachekafka&logoColor=white)
 
 **AWS**<br>
+![EKS](https://img.shields.io/badge/EKS-FF9900?style=flat&logo=amazoneks&logoColor=white)
+![EC2](https://img.shields.io/badge/EC2-FF9900?style=flat&logo=amazonec2&logoColor=white)
+![VPC](https://img.shields.io/badge/VPC-232F3E?style=flat&logo=amazonwebservices&logoColor=white)
+![NAT Gateway](https://img.shields.io/badge/NAT_Gateway-232F3E?style=flat&logo=amazonwebservices&logoColor=white)
 ![IAM](https://img.shields.io/badge/IAM-232F3E?style=flat&logo=amazoniam&logoColor=white)
 ![SSM Parameter Store](https://img.shields.io/badge/SSM_Parameter_Store-232F3E?style=flat&logo=amazonsystemsmanager&logoColor=white)
 ![KMS](https://img.shields.io/badge/KMS-232F3E?style=flat&logo=amazonwebservices&logoColor=white)
+![External Secrets Operator](https://img.shields.io/badge/External_Secrets-326CE5?style=flat&logo=kubernetes&logoColor=white)
 
 **Cloudflare**<br>
 ![Cloudflare Tunnel](https://img.shields.io/badge/Cloudflare_Tunnel-F38020?style=flat&logo=cloudflare&logoColor=white)
@@ -105,6 +110,22 @@ sudo ./scripts/setup-host-dns.sh
 This writes `/etc/systemd/resolved.conf.d/kind-gateway.conf` so that systemd-resolved
 forwards `*.itamarratson.com` queries to the dnsmasq instance that Terraform starts on port 5353.
 Run once before the first `terragrunt run --all apply`.
+
+### Deploy
+
+By default, `terragrunt run --all apply` deploys the full stack: the local KinD cluster **and** a remote AWS EKS cluster connected to it via ArgoCD and Tailscale.
+
+```bash
+cd terraform/live && terragrunt run --all apply --non-interactive
+```
+
+To deploy the KinD cluster only (skip all AWS EKS resources):
+
+```bash
+cd terraform/live && terragrunt run --all apply --non-interactive --feature deploy_eks=false
+```
+
+The `deploy_eks` flag gates the VPC, EKS cluster, bootstrap (Cilium, ESO, CRDs), and ArgoCD registration modules. AWS IAM and SSM modules are always included — they seed secrets that both clusters use.
 
 ### Secrets Configuration
 
