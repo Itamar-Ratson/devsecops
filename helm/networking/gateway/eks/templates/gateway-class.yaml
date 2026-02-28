@@ -16,3 +16,4 @@ spec:
     group: cilium.io
     kind: CiliumGatewayClassConfig
     name: {{ .Values.className }}-config
+    namespace: {{ .Release.Namespace }}
