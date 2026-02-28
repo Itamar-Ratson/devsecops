@@ -24,10 +24,10 @@ variable "cache_container_id" {
   type        = string
 }
 
-variable "dns_passthrough_prefixes" {
-  description = "Hostname prefixes that should bypass local DNS and resolve via public DNS (e.g. eks- for EKS tunnel hostnames)"
+variable "dns_passthrough_hostnames" {
+  description = "Subdomains that should bypass local DNS and resolve via public DNS (e.g. eks-echo for EKS tunnel)"
   type        = list(string)
-  default     = ["eks-"]
+  default     = []
 }
 
 variable "helm_values_dir" {
