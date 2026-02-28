@@ -48,8 +48,8 @@ spec:
             exec:
               command:
                 - /usr/local/bin/tailscale
+                - --socket=/tmp/tailscale.sock
                 - status
-                - --json
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 5
@@ -58,8 +58,8 @@ spec:
             exec:
               command:
                 - /usr/local/bin/tailscale
+                - --socket=/tmp/tailscale.sock
                 - status
-                - --json
             initialDelaySeconds: 15
             periodSeconds: 15
             timeoutSeconds: 5
