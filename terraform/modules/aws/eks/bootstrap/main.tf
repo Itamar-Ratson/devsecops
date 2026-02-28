@@ -82,11 +82,11 @@ resource "kubernetes_cluster_role_v1" "argocd_manager" {
     verbs      = ["create", "update", "patch", "delete"]
   }
 
-  # ArgoCD needs to read CRD definitions
+  # ArgoCD needs to manage CRD definitions (server-side diff uses dry-run PATCH)
   rule {
     api_groups = ["apiextensions.k8s.io"]
     resources  = ["customresourcedefinitions"]
-    verbs      = ["get", "list", "watch"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
   }
 }
 
