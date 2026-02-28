@@ -30,5 +30,5 @@ resources:
 
 # ExternalSecret — tunnel token delivered via ESO from SSM
 externalSecret:
-  ssmKey: /devsecops/cloudflare-tunnel-token
+  ssmKey: /devsecops/cloudflare-eks-tunnel-token
   secretStore: aws-ssm
