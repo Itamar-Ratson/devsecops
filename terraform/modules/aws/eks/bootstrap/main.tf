@@ -53,39 +53,17 @@ resource "kubernetes_secret_v1" "argocd_manager_token" {
   type = "kubernetes.io/service-account-token"
 }
 
-# Scoped ClusterRole for ArgoCD — not cluster-admin.
-# Grants the minimum permissions ArgoCD needs to manage workloads.
+# ClusterRole for ArgoCD remote cluster management.
+# ServerSideApply diffs require dry-run PATCH on every managed resource type,
+# making scoped rules impractical — each new CRD would break the diff.
 resource "kubernetes_cluster_role_v1" "argocd_manager" {
   metadata {
     name = "argocd-manager"
   }
 
-  # ArgoCD needs read access to ALL API groups for cluster cache / server-side diffs.
-  # Without this, any unknown CRD (e.g. vpcresources.k8s.aws) breaks cache sync entirely.
   rule {
     api_groups = ["*"]
     resources  = ["*"]
-    verbs      = ["get", "list", "watch"]
-  }
-
-  # ArgoCD needs to create/update/delete workload resources it manages
-  rule {
-    api_groups = ["", "apps", "batch", "networking.k8s.io", "rbac.authorization.k8s.io", "policy"]
-    resources  = ["*"]
-    verbs      = ["create", "update", "patch", "delete"]
-  }
-
-  # ArgoCD-managed CRDs: Cilium, Gateway API, ESO, Prometheus, cert-manager
-  rule {
-    api_groups = ["argoproj.io", "cilium.io", "gateway.networking.k8s.io", "external-secrets.io", "monitoring.coreos.com", "cert-manager.io"]
-    resources  = ["*"]
-    verbs      = ["create", "update", "patch", "delete"]
-  }
-
-  # ArgoCD needs to manage CRD definitions (server-side diff uses dry-run PATCH)
-  rule {
-    api_groups = ["apiextensions.k8s.io"]
-    resources  = ["customresourcedefinitions"]
     verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
   }
 }
