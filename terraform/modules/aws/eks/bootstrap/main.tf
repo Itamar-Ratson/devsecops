@@ -64,7 +64,7 @@ resource "kubernetes_cluster_role_v1" "argocd_manager" {
   rule {
     api_groups = ["*"]
     resources  = ["*"]
-    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
   }
 }
 
