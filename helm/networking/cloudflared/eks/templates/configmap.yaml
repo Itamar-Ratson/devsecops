@@ -6,12 +6,16 @@ metadata:
   labels:
     app.kubernetes.io/name: cloudflared
 data:
-  # Route EKS-prefixed hostnames to the Cilium Gateway on EKS.
+  # Route EKS hostnames to the Cilium Gateway on EKS.
   # Non-EKS hostnames are handled by the KinD cloudflared instance.
+  # Cloudflared does not support prefix wildcards (e.g. "eks-*"), so each
+  # hostname must be listed explicitly.
   config.yaml: |
     ingress:
-      - hostname: "eks-*.{{ .Values.cloudflare.domain }}"
-        service: https://cilium-gateway-{{ .Values.gateway.name }}.{{ .Values.gateway.namespace }}.svc.cluster.local:{{ .Values.ports.gateway.https }}
+      {{- range .Values.cloudflare.hostnames }}
+      - hostname: "{{ . }}.{{ $.Values.cloudflare.domain }}"
+        service: https://cilium-gateway-{{ $.Values.gateway.name }}.{{ $.Values.gateway.namespace }}.svc.cluster.local:{{ $.Values.ports.gateway.https }}
         originRequest:
           noTLSVerify: true
+      {{- end }}
       - service: http_status:404
