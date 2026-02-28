@@ -52,6 +52,7 @@ spec:
                 - --json
             initialDelaySeconds: 30
             periodSeconds: 30
+            timeoutSeconds: 5
             failureThreshold: 3
           readinessProbe:
             exec:
@@ -61,6 +62,7 @@ spec:
                 - --json
             initialDelaySeconds: 15
             periodSeconds: 15
+            timeoutSeconds: 5
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000
