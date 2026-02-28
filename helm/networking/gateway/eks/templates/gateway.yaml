@@ -20,7 +20,4 @@ spec:
           - name: gateway-tls
       allowedRoutes:
         namespaces:
-          from: Selector
-          selector:
-            matchLabels:
-              gateway.networking.k8s.io/route-allowed: "true"
+          from: All

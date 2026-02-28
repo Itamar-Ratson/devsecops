@@ -1,0 +1,15 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: http-echo
+spec:
+  endpointSelector:
+    matchLabels:
+      app: http-echo
+  ingress:
+    - fromEntities:
+        - ingress
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.httpEcho }}"
+              protocol: TCP

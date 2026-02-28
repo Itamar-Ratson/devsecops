@@ -1,0 +1,4 @@
+apiVersion: v2
+name: http-echo-eks
+description: Simple HTTP echo for EKS (no Argo Rollouts)
+version: 0.1.0

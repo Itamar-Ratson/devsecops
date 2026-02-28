@@ -52,7 +52,7 @@ spec:
                 - status
             initialDelaySeconds: 30
             periodSeconds: 30
-            timeoutSeconds: 5
+            timeoutSeconds: 1
             failureThreshold: 3
           readinessProbe:
             exec:
@@ -62,7 +62,7 @@ spec:
                 - status
             initialDelaySeconds: 15
             periodSeconds: 15
-            timeoutSeconds: 5
+            timeoutSeconds: 1
           securityContext:
             runAsNonRoot: true
             runAsUser: 1000

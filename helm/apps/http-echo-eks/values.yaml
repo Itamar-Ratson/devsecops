@@ -1,0 +1,10 @@
+gateway:
+  name: main-gateway
+  namespace: gateway
+
+# Defaults for values normally supplied via globals.yaml and ports.yaml
+cloudflare:
+  domain: itamarratson.com
+ports:
+  httpEcho: 5678
+  httpService: 80
