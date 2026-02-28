@@ -168,8 +168,9 @@ resource "null_resource" "host_dns" {
   depends_on = [null_resource.connect_cache_to_kind]
 
   triggers = {
-    gateway_lb_ip = local.gateway_lb_ip
-    domain        = local.domain
+    gateway_lb_ip          = local.gateway_lb_ip
+    domain                 = local.domain
+    dns_passthrough_prefixes = join(",", var.dns_passthrough_prefixes)
   }
 
   provisioner "local-exec" {
