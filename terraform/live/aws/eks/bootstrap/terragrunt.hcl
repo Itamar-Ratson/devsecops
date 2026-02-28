@@ -39,5 +39,4 @@ inputs = {
   cluster_name             = dependency.eks_cluster.outputs.cluster_name
   cluster_oidc_provider_arn = dependency.eks_cluster.outputs.cluster_oidc_provider_arn
   cluster_oidc_issuer_url  = dependency.eks_cluster.outputs.cluster_oidc_issuer_url
-  helm_values_dir          = "${get_repo_root()}/helm"
 }

@@ -55,3 +55,20 @@ variable "node_max_size" {
   type        = number
   default     = 3
 }
+
+variable "helm_values_dir" {
+  description = "Absolute path to the helm/ directory containing chart values"
+  type        = string
+}
+
+variable "gateway_api_version" {
+  description = "Gateway API CRD version"
+  type        = string
+  default     = "v1.4.0"
+}
+
+variable "prometheus_operator_version" {
+  description = "Prometheus Operator CRD version"
+  type        = string
+  default     = "v0.88.1"
+}

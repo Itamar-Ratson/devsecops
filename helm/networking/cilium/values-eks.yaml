@@ -3,6 +3,9 @@
 cilium:
   # Cilium fully replaces kube-proxy via eBPF — kube-proxy addon is NOT installed
   kubeProxyReplacement: true
+  # k8sServiceHost/Port set dynamically by Terraform (EKS API endpoint) —
+  # required because without kube-proxy, Cilium can't reach the API server
+  # via the ClusterIP during bootstrap.
   eni:
     enabled: true
     awsReleaseExcessIPs: true

@@ -23,8 +23,3 @@ output "cluster_oidc_issuer_url" {
   description = "OIDC issuer URL"
   value       = module.eks.cluster_oidc_issuer_url
 }
-
-output "node_security_group_id" {
-  description = "Node security group ID"
-  value       = module.eks.node_security_group_id
-}

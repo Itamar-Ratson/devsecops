@@ -1,3 +1,12 @@
+feature "warm_cache" {
+  default = true
+}
+
+exclude {
+  if      = !feature.warm_cache.value
+  actions = ["apply", "plan", "destroy"]
+}
+
 terraform {
   source = "../../../modules/registry/warm"
 }

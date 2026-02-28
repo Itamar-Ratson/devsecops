@@ -29,20 +29,3 @@ variable "cluster_oidc_issuer_url" {
   description = "OIDC issuer URL (without https://)"
   type        = string
 }
-
-variable "helm_values_dir" {
-  description = "Absolute path to the helm/ directory containing chart values"
-  type        = string
-}
-
-variable "gateway_api_version" {
-  description = "Gateway API CRD version"
-  type        = string
-  default     = "v1.4.0"
-}
-
-variable "prometheus_operator_version" {
-  description = "Prometheus Operator CRD version"
-  type        = string
-  default     = "v0.88.1"
-}

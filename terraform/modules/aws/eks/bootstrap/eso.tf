@@ -88,12 +88,10 @@ resource "helm_release" "external_secrets" {
   wait             = true
   timeout          = 300
 
-  set {
+  set = [{
     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
     value = aws_iam_role.eso.arn
-  }
-
-  depends_on = [null_resource.wait_nodes_ready]
+  }]
 
   # ArgoCD adopts this release after bootstrap and owns all day-2 changes.
   lifecycle {
@@ -102,8 +100,10 @@ resource "helm_release" "external_secrets" {
 }
 
 # ClusterSecretStore pointing to SSM ParameterStore
-resource "kubernetes_manifest" "cluster_secret_store" {
-  manifest = {
+# Uses kubectl_manifest instead of kubernetes_manifest because the ESO CRDs
+# don't exist at plan time on a clean apply.
+resource "kubectl_manifest" "cluster_secret_store" {
+  yaml_body = yamlencode({
     apiVersion = "external-secrets.io/v1beta1"
     kind       = "ClusterSecretStore"
     metadata = {
@@ -125,7 +125,7 @@ resource "kubernetes_manifest" "cluster_secret_store" {
         }
       }
     }
-  }
+  })
 
   depends_on = [helm_release.external_secrets]
 }

@@ -34,4 +34,5 @@ dependencies {
 inputs = {
   vpc_id             = dependency.vpc.outputs.vpc_id
   private_subnet_ids = dependency.vpc.outputs.private_subnet_ids
+  helm_values_dir    = "${get_repo_root()}/helm"
 }

@@ -1,3 +1,30 @@
+data "aws_region" "current" {}
+
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", data.aws_region.current.name]
+  }
+}
+
+provider "helm" {
+  kubernetes = {
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+    exec = {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "aws"
+      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", data.aws_region.current.name]
+    }
+  }
+}
+
+# ============================================================================
+# EKS Control Plane (no node groups — created separately after Cilium)
+# ============================================================================
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
@@ -11,14 +38,12 @@ module "eks" {
   # Prevent aws-vpc-cni from being installed (Cilium replaces it)
   bootstrap_self_managed_addons = false
 
-  # Only install CoreDNS as a managed addon.
   # kube-proxy is NOT installed — Cilium replaces it via eBPF (kubeProxyReplacement: true).
   # vpc-cni is NOT installed — Cilium ENI mode provides pod networking.
   cluster_addons = {
     coredns = {
       most_recent = true
       configuration_values = jsonencode({
-        # CoreDNS starts in Pending until Cilium provides networking
         tolerations = [{
           key      = "node.cilium.io/agent-not-ready"
           operator = "Exists"
@@ -37,46 +62,51 @@ module "eks" {
   # Allow Terraform/ArgoCD access
   enable_cluster_creator_admin_permissions = true
 
-  # Managed node group
-  eks_managed_node_groups = {
-    spot-workers = {
-      instance_types = var.instance_types
-      capacity_type  = var.capacity_type
-      ami_type       = "AL2023_x86_64_STANDARD"
-
-      min_size     = var.node_min_size
-      desired_size = var.node_desired_size
-      max_size     = var.node_max_size
-
-      # Cilium taint: prevent scheduling until agent is ready
-      taints = {
-        cilium = {
-          key    = "node.cilium.io/agent-not-ready"
-          value  = ""
-          effect = "NO_EXECUTE"
-        }
-      }
-
-      labels = {
-        "node.kubernetes.io/purpose" = "workload"
-      }
-    }
-  }
-
-  # Allow all traffic between nodes (Cilium ENI mode needs pod-to-pod via VPC fabric)
-  node_security_group_additional_rules = {
-    ingress_self_all = {
-      description = "Node to node all traffic (Cilium ENI mode)"
-      protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
-      type        = "ingress"
-      self        = true
-    }
-  }
-
   tags = {
     Project   = "devsecops"
     ManagedBy = "terraform"
+  }
+}
+
+# Write kubeconfig to disk for kubectl commands in null_resource provisioners
+resource "local_sensitive_file" "kubeconfig" {
+  content = yamlencode({
+    apiVersion = "v1"
+    kind       = "Config"
+    clusters = [{
+      cluster = {
+        server                     = module.eks.cluster_endpoint
+        certificate-authority-data = module.eks.cluster_certificate_authority_data
+      }
+      name = var.cluster_name
+    }]
+    contexts = [{
+      context = {
+        cluster = var.cluster_name
+        user    = var.cluster_name
+      }
+      name = var.cluster_name
+    }]
+    current-context = var.cluster_name
+    users = [{
+      name = var.cluster_name
+      user = {
+        exec = {
+          apiVersion = "client.authentication.k8s.io/v1beta1"
+          command    = "aws"
+          args       = ["eks", "get-token", "--cluster-name", var.cluster_name, "--region", data.aws_region.current.name]
+        }
+      }
+    }]
+  })
+  filename = "/tmp/devsecops-eks-kubeconfig"
+}
+
+# Add EKS cluster to user's kubeconfig
+resource "null_resource" "update_kubeconfig" {
+  depends_on = [module.eks]
+
+  provisioner "local-exec" {
+    command = "aws eks update-kubeconfig --name ${var.cluster_name} --region ${data.aws_region.current.name} --alias eks"
   }
 }

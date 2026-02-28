@@ -12,7 +12,7 @@ provider "helm" {
   kubernetes = {
     host                   = var.cluster_endpoint
     cluster_ca_certificate = base64decode(var.cluster_ca_data)
-    exec {
+    exec = {
       api_version = "client.authentication.k8s.io/v1beta1"
       command     = "aws"
       args        = ["eks", "get-token", "--cluster-name", var.cluster_name, "--region", var.aws_region]
@@ -20,87 +20,15 @@ provider "helm" {
   }
 }
 
-# Write kubeconfig to disk for kubectl commands in null_resource provisioners
-resource "local_sensitive_file" "kubeconfig" {
-  content = yamlencode({
-    apiVersion = "v1"
-    kind       = "Config"
-    clusters = [{
-      cluster = {
-        server                     = var.cluster_endpoint
-        certificate-authority-data = var.cluster_ca_data
-      }
-      name = var.cluster_name
-    }]
-    contexts = [{
-      context = {
-        cluster = var.cluster_name
-        user    = var.cluster_name
-      }
-      name = var.cluster_name
-    }]
-    current-context = var.cluster_name
-    users = [{
-      name = var.cluster_name
-      user = {
-        exec = {
-          apiVersion = "client.authentication.k8s.io/v1beta1"
-          command    = "aws"
-          args       = ["eks", "get-token", "--cluster-name", var.cluster_name, "--region", var.aws_region]
-        }
-      }
-    }]
-  })
-  filename = "/tmp/devsecops-eks-kubeconfig"
-}
-
-# ============================================================================
-# Cilium CNI
-# ============================================================================
-resource "helm_release" "cilium" {
-  name          = "cilium"
-  namespace     = "kube-system"
-  chart         = "${var.helm_values_dir}/networking/cilium"
-  wait          = true
-  wait_for_jobs = true
-  timeout       = 600
-
-  values = [
-    file("${var.helm_values_dir}/ports.yaml"),
-    file("${var.helm_values_dir}/networking/cilium/values-eks.yaml"),
-  ]
-
-  depends_on = [null_resource.gateway_api_crds, null_resource.prometheus_operator_crds]
-
-  # ArgoCD adopts this release after bootstrap and owns all day-2 changes.
-  # Terraform only creates and destroys — never updates.
-  lifecycle {
-    ignore_changes = all
+provider "kubectl" {
+  host                   = var.cluster_endpoint
+  cluster_ca_certificate = base64decode(var.cluster_ca_data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", var.cluster_name, "--region", var.aws_region]
   }
-}
-
-# Wait for all nodes to be ready after Cilium installation
-resource "null_resource" "wait_nodes_ready" {
-  depends_on = [helm_release.cilium]
-
-  provisioner "local-exec" {
-    environment = {
-      KUBECONFIG = local_sensitive_file.kubeconfig.filename
-    }
-    command = "kubectl wait --for=condition=Ready nodes --all --timeout=300s"
-  }
-}
-
-# Restart CoreDNS if it was stuck Pending before Cilium provided networking
-resource "null_resource" "coredns_restart" {
-  depends_on = [null_resource.wait_nodes_ready]
-
-  provisioner "local-exec" {
-    environment = {
-      KUBECONFIG = local_sensitive_file.kubeconfig.filename
-    }
-    command = "kubectl rollout restart deployment coredns -n kube-system && kubectl rollout status deployment coredns -n kube-system --timeout=60s"
-  }
+  load_config_file = false
 }
 
 # ============================================================================
