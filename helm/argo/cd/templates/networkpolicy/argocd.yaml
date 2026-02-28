@@ -212,6 +212,14 @@ spec:
     - toEntities:
         - kube-apiserver
 
+    # Allow HTTPS egress to remote cluster API servers (e.g. EKS)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.gateway.https }}"
+              protocol: TCP
+
     # Allow communication with repo-server
     - toEndpoints:
         - matchLabels:
