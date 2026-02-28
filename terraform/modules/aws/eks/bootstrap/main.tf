@@ -60,21 +60,29 @@ resource "kubernetes_cluster_role_v1" "argocd_manager" {
     name = "argocd-manager"
   }
 
-  # ArgoCD needs to list/watch/create/update/delete workload resources
+  # ArgoCD needs read access to ALL API groups for cluster cache / server-side diffs.
+  # Without this, any unknown CRD (e.g. vpcresources.k8s.aws) breaks cache sync entirely.
+  rule {
+    api_groups = ["*"]
+    resources  = ["*"]
+    verbs      = ["get", "list", "watch"]
+  }
+
+  # ArgoCD needs to create/update/delete workload resources it manages
   rule {
     api_groups = ["", "apps", "batch", "networking.k8s.io", "rbac.authorization.k8s.io", "policy"]
     resources  = ["*"]
-    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+    verbs      = ["create", "update", "patch", "delete"]
   }
 
-  # ArgoCD Application CRDs and Cilium CRDs
+  # ArgoCD-managed CRDs: Cilium, Gateway API, ESO, Prometheus, cert-manager
   rule {
     api_groups = ["argoproj.io", "cilium.io", "gateway.networking.k8s.io", "external-secrets.io", "monitoring.coreos.com", "cert-manager.io"]
     resources  = ["*"]
-    verbs      = ["get", "list", "watch", "create", "update", "patch", "delete"]
+    verbs      = ["create", "update", "patch", "delete"]
   }
 
-  # ArgoCD needs to read cluster state
+  # ArgoCD needs to read CRD definitions
   rule {
     api_groups = ["apiextensions.k8s.io"]
     resources  = ["customresourcedefinitions"]
