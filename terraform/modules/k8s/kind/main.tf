@@ -205,6 +205,9 @@ resource "null_resource" "host_dns" {
 port=5353
 bind-interfaces
 listen-address=127.0.0.1
+%{for prefix in var.dns_passthrough_prefixes~}
+server=/${prefix}${local.domain}/8.8.8.8
+%{endfor~}
 address=/.${local.domain}/${local.gateway_lb_ip}
 no-resolv
 no-hosts

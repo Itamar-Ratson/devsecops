@@ -86,7 +86,6 @@ resource "kubernetes_config_map_v1_data" "coredns" {
              lameduck 5s
           }
           ready
-          rewrite stop name regex (eks-.+\.${local.domain_regex}) {1}
           rewrite name regex (.+)\.${local.domain_regex} cilium-gateway-main-gateway.gateway.svc.cluster.local
           kubernetes cluster.local in-addr.arpa ip6.arpa {
              pods insecure
