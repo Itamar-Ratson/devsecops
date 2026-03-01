@@ -8,7 +8,7 @@ exclude {
 }
 
 terraform {
-  source = "../../../../modules/k8s/cluster-mesh-connect"
+  source = "../../../modules/k8s/cluster-mesh-connect"
 }
 
 include "root" {
@@ -20,7 +20,7 @@ dependencies {
 }
 
 dependency "kind_cluster" {
-  config_path = "../../kind"
+  config_path = "../kind"
 
   mock_outputs = {
     endpoint               = "https://127.0.0.1:6443"
@@ -34,7 +34,7 @@ dependency "kind_cluster" {
 }
 
 dependency "eks_cluster" {
-  config_path = "../../../aws/eks/cluster"
+  config_path = "../../aws/eks/cluster"
 
   mock_outputs = {
     cluster_endpoint                   = "https://mock.eks.amazonaws.com"

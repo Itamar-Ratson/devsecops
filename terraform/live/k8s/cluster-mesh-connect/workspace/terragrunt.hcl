@@ -1,5 +1,5 @@
 terraform {
-  source = "../../../../../modules/hcp-workspace"
+  source = "../../../../modules/hcp-workspace"
 
   extra_arguments "auto_approve" {
     commands  = ["apply", "destroy"]
