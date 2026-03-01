@@ -172,6 +172,75 @@ argo-cd:
         end
         return hs
 
+      # Gateway API health checks — ArgoCD has no built-in support for these.
+      # Without these, Gateway apps stay "Progressing" forever, blocking sync waves.
+      resource.customizations.health.gateway.networking.k8s.io_Gateway: |
+        hs = {}
+        if obj.status ~= nil and obj.status.conditions ~= nil then
+          for _, condition in ipairs(obj.status.conditions) do
+            if condition.type == "Accepted" and condition.status == "False" then
+              hs.status = "Degraded"
+              hs.message = condition.message
+              return hs
+            end
+            if condition.type == "Programmed" and condition.status == "True" then
+              hs.status = "Healthy"
+              hs.message = condition.message
+              return hs
+            end
+            if condition.type == "Programmed" and condition.status == "False" then
+              hs.status = "Progressing"
+              hs.message = condition.message
+              return hs
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for Gateway status"
+        return hs
+
+      resource.customizations.health.gateway.networking.k8s.io_GatewayClass: |
+        hs = {}
+        if obj.status ~= nil and obj.status.conditions ~= nil then
+          for _, condition in ipairs(obj.status.conditions) do
+            if condition.type == "Accepted" and condition.status == "True" then
+              hs.status = "Healthy"
+              hs.message = condition.message
+              return hs
+            end
+            if condition.type == "Accepted" and condition.status == "False" then
+              hs.status = "Degraded"
+              hs.message = condition.message
+              return hs
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for GatewayClass status"
+        return hs
+
+      resource.customizations.health.gateway.networking.k8s.io_HTTPRoute: |
+        hs = {}
+        if obj.status ~= nil and obj.status.parents ~= nil then
+          for _, parent in ipairs(obj.status.parents) do
+            if parent.conditions ~= nil then
+              for _, condition in ipairs(parent.conditions) do
+                if condition.type == "Accepted" and condition.status == "False" then
+                  hs.status = "Degraded"
+                  hs.message = condition.message
+                  return hs
+                end
+              end
+            end
+          end
+          hs.status = "Healthy"
+          hs.message = "Route accepted by all parents"
+          return hs
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for HTTPRoute status"
+        return hs
+
       # ArgoCD server URL (used for OIDC callbacks)
       # Uses public domain so OIDC works through Cloudflare tunnel
       url: https://argocd.itamarratson.com
