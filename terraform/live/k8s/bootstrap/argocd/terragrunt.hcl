@@ -46,8 +46,10 @@ dependency "kind_cluster" {
 # when vault-config is filtered in CI.
 # - k8s/bootstrap/cluster: CRDs (ArgoCD Application, CiliumNetworkPolicy, etc.)
 # - vault-config: Vault auth backend setup
+# - aws/eks/cluster: ArgoCD manages EKS apps — must be destroyed BEFORE EKS
+#   so finalizers can clean up remote resources while the cluster is still alive.
 dependencies {
-  paths = ["./workspace", "../cluster", "../../../vault/config"]
+  paths = ["./workspace", "../cluster", "../../../vault/config", "../../../aws/eks/cluster"]
 }
 
 inputs = {
