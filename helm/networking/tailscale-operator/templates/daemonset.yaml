@@ -63,6 +63,14 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - |
+              # Prevent --accept-routes from hijacking local subnets.
+              # Tailscale installs accepted routes in table 52 (rule 5270).
+              # If a peer advertises the same subnet we're on, traffic to local
+              # nodes would go through tailscale0 instead of eth0. Add higher-
+              # priority rules to keep local subnet traffic on the main table.
+              {{- range .Values.subnetRouter.routes }}
+              ip rule add to {{ . }} lookup main priority 5269 2>/dev/null || true
+              {{- end }}
               export TS_AUTHKEY=$(cat /auth/key)
               exec /usr/local/bin/containerboot
           env:
