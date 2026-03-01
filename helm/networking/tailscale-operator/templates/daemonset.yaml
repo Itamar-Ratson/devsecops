@@ -1,0 +1,102 @@
+{{- if .Values.subnetRouter.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: tailscale-subnet-router
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: tailscale-subnet-router
+spec:
+  selector:
+    matchLabels:
+      app: tailscale-subnet-router
+  template:
+    metadata:
+      labels:
+        app: tailscale-subnet-router
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: tailscale-subnet-router
+      automountServiceAccountToken: false
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      initContainers:
+        - name: create-auth-key
+          image: {{ .Values.subnetRouter.image.repo }}:{{ .Values.subnetRouter.image.tag }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              RESP=$(wget -q -O- --post-data="client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=client_credentials" \
+                https://api.tailscale.com/api/v2/oauth/token)
+              TOKEN=$(echo "$RESP" | sed 's/.*"access_token":"\([^"]*\)".*/\1/')
+              KRESP=$(wget -q -O- \
+                --header="Authorization: Bearer ${TOKEN}" \
+                --header="Content-Type: application/json" \
+                --post-data='{"capabilities":{"devices":{"create":{"reusable":false,"ephemeral":true,"preauthorized":true,"tags":["{{ .Values.subnetRouter.tag }}"]}}}}' \
+                https://api.tailscale.com/api/v2/tailnet/-/keys)
+              KEY=$(echo "$KRESP" | sed 's/.*"key":"\([^"]*\)".*/\1/')
+              echo -n "$KEY" > /auth/key
+          env:
+            - name: CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: operator-oauth
+                  key: client_id
+            - name: CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: operator-oauth
+                  key: client_secret
+          volumeMounts:
+            - name: auth
+              mountPath: /auth
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { cpu: 100m, memory: 64Mi }
+      containers:
+        - name: tailscale
+          image: {{ .Values.subnetRouter.image.repo }}:{{ .Values.subnetRouter.image.tag }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              export TS_AUTHKEY=$(cat /auth/key)
+              exec /usr/local/bin/containerboot
+          env:
+            - name: TS_USERSPACE
+              value: "false"
+            - name: TS_ROUTES
+              value: "{{ join "," .Values.subnetRouter.routes }}"
+            - name: TS_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: TS_STATE_DIR
+              value: /var/lib/tailscale
+            - name: TS_KUBE_SECRET
+              value: ""
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: auth
+              mountPath: /auth
+              readOnly: true
+            - name: dev-tun
+              mountPath: /dev/net/tun
+            - name: state
+              mountPath: /var/lib/tailscale
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 200m, memory: 256Mi }
+      volumes:
+        - name: auth
+          emptyDir: {}
+        - name: dev-tun
+          hostPath:
+            path: /dev/net/tun
+        - name: state
+          emptyDir: {}
+{{- end }}

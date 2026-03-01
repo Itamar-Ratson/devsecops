@@ -1,8 +1,7 @@
-connector:
-  hostname: kind-subnet-router
+subnetRouter:
   routes:
-    - "172.18.0.0/16"  # KinD node IPs (Docker bridge)
-    - "10.244.0.0/16"  # KinD pod CIDR (native routing = real pod IPs cross-cluster)
+    - "172.18.0.0/16"
+    - "10.244.0.0/16"
 
 vaultSecret:
   enabled: true

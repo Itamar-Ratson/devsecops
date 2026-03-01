@@ -1,5 +1,4 @@
-connector:
-  hostname: eks-subnet-router
+subnetRouter:
   routes:
     - "10.50.0.0/16"
 

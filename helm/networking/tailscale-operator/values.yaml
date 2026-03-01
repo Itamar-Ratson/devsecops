@@ -13,9 +13,12 @@ tailscale-operator:
   # Operator reads OAuth from existing Secret — don't let chart create one
   # The Secret is managed by VSO (KinD) or ESO (EKS)
 
-connector:
+subnetRouter:
   enabled: true
-  hostname: ""
+  image:
+    repo: tailscale/tailscale
+    tag: "v1.82.0"
+  tag: "tag:k8s-operator"
   routes: []
 
 vaultSecret:
