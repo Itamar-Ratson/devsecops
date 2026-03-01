@@ -29,17 +29,7 @@ cilium:
     enabled: false
   hostPort:
     enabled: false
-  clustermesh:
-    useAPIServer: true
-    apiserver:
-      replicas: 1
-      service:
-        type: NodePort
-        nodePort: 32379
-      resources:
-        requests:
-          cpu: 50m
-          memory: 64Mi
-        limits:
-          cpu: 200m
-          memory: 256Mi
+  # NOTE: clustermesh block is NOT included here — it comes from values.yaml
+  # via ArgoCD after nodes are running. At bootstrap time (Terraform), no nodes
+  # exist yet (node group depends_on helm_release.cilium), so the apiserver
+  # Deployment would block the Helm wait and cause a timeout.
