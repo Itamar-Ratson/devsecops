@@ -71,6 +71,15 @@ spec:
               {{- range .Values.subnetRouter.routes }}
               ip rule add to {{ . }} lookup main priority 5269 2>/dev/null || true
               {{- end }}
+
+              # Duplicate remote cluster routes into the main routing table.
+              # Cilium's eBPF FIB lookup only consults the main table, not
+              # Tailscale's table 52 (policy routing). Without this, pod traffic
+              # to remote cluster IPs is blackholed.
+              {{- range .Values.subnetRouter.remoteRoutes }}
+              ip route add {{ . }} dev tailscale0 table main 2>/dev/null || true
+              {{- end }}
+
               export TS_AUTHKEY=$(cat /auth/key)
               exec /usr/local/bin/containerboot
           env:

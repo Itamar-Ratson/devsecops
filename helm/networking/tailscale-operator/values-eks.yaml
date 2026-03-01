@@ -1,6 +1,8 @@
 subnetRouter:
   routes:
     - "10.50.0.0/16"
+  remoteRoutes:
+    - "172.18.0.0/16"
 
 externalSecret:
   enabled: true
