@@ -1,12 +1,16 @@
 # ============================================================================
-# Cilium CNI — installed BEFORE node group so nodes become Ready immediately
+# Cilium CNI — installed BEFORE node group so nodes become Ready immediately.
+# wait = false because no nodes exist yet (node group depends_on this release).
+# Deployments (operator, hubble, clustermesh-apiserver) can't schedule without
+# nodes, so Helm wait would deadlock. The DaemonSet + Secrets are created in
+# the API server immediately; pods schedule once nodes join.
 # ============================================================================
 resource "helm_release" "cilium" {
   name          = "cilium"
   namespace     = "kube-system"
   chart         = "${var.helm_values_dir}/networking/cilium"
-  wait          = true
-  wait_for_jobs = true
+  wait          = false
+  wait_for_jobs = false
   timeout       = 600
 
   values = [
