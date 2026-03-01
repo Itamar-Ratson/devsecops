@@ -61,16 +61,10 @@ locals {
   eks_endpoint = "${local.eks_node_ips[0]}:${var.clustermesh_apiserver_node_port}"
 }
 
-# Create cilium-clustermesh in KinD (connection info for reaching EKS)
-resource "kubernetes_secret" "kind_clustermesh" {
-  provider = kubernetes.kind
-
-  metadata {
-    name      = "cilium-clustermesh"
-    namespace = "kube-system"
-  }
-
-  data = {
+# Connection data reused by both cilium-clustermesh and cilium-kvstoremesh secrets.
+# cilium-clustermesh is mounted by Cilium agents; cilium-kvstoremesh by KVStoreMesh.
+locals {
+  kind_clustermesh_data = {
     "eks" = yamlencode({
       endpoints       = ["https://${local.eks_endpoint}"]
       trusted-ca-file = "/var/lib/cilium/clustermesh/eks.etcd-client-ca.crt"
@@ -81,18 +75,8 @@ resource "kubernetes_secret" "kind_clustermesh" {
     "eks.etcd-client.crt"    = data.kubernetes_secret.eks_remote_cert.data["tls.crt"]
     "eks.etcd-client.key"    = data.kubernetes_secret.eks_remote_cert.data["tls.key"]
   }
-}
 
-# Create cilium-clustermesh in EKS (connection info for reaching KinD)
-resource "kubernetes_secret" "eks_clustermesh" {
-  provider = kubernetes.eks
-
-  metadata {
-    name      = "cilium-clustermesh"
-    namespace = "kube-system"
-  }
-
-  data = {
+  eks_clustermesh_data = {
     "kind" = yamlencode({
       endpoints       = ["https://${local.kind_endpoint}"]
       trusted-ca-file = "/var/lib/cilium/clustermesh/kind.etcd-client-ca.crt"
@@ -103,4 +87,52 @@ resource "kubernetes_secret" "eks_clustermesh" {
     "kind.etcd-client.crt"    = data.kubernetes_secret.kind_remote_cert.data["tls.crt"]
     "kind.etcd-client.key"    = data.kubernetes_secret.kind_remote_cert.data["tls.key"]
   }
+}
+
+# Create cilium-clustermesh in KinD (mounted by Cilium agents)
+resource "kubernetes_secret" "kind_clustermesh" {
+  provider = kubernetes.kind
+
+  metadata {
+    name      = "cilium-clustermesh"
+    namespace = "kube-system"
+  }
+
+  data = local.kind_clustermesh_data
+}
+
+# Create cilium-kvstoremesh in KinD (mounted by KVStoreMesh sidecar)
+resource "kubernetes_secret" "kind_kvstoremesh" {
+  provider = kubernetes.kind
+
+  metadata {
+    name      = "cilium-kvstoremesh"
+    namespace = "kube-system"
+  }
+
+  data = local.kind_clustermesh_data
+}
+
+# Create cilium-clustermesh in EKS (mounted by Cilium agents)
+resource "kubernetes_secret" "eks_clustermesh" {
+  provider = kubernetes.eks
+
+  metadata {
+    name      = "cilium-clustermesh"
+    namespace = "kube-system"
+  }
+
+  data = local.eks_clustermesh_data
+}
+
+# Create cilium-kvstoremesh in EKS (mounted by KVStoreMesh sidecar)
+resource "kubernetes_secret" "eks_kvstoremesh" {
+  provider = kubernetes.eks
+
+  metadata {
+    name      = "cilium-kvstoremesh"
+    namespace = "kube-system"
+  }
+
+  data = local.eks_clustermesh_data
 }
