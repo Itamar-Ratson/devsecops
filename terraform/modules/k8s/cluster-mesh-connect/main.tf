@@ -63,26 +63,31 @@ locals {
 
 # Connection data reused by both cilium-clustermesh and cilium-kvstoremesh secrets.
 # cilium-clustermesh is mounted by Cilium agents; cilium-kvstoremesh by KVStoreMesh.
+# NOTE: Cilium's isEtcdConfigFile() does a raw string search for "endpoints:" —
+# yamlencode() quotes keys ("endpoints":) which Cilium doesn't recognize.
+# Use heredoc templates instead.
 locals {
   kind_clustermesh_data = {
-    "eks" = yamlencode({
-      endpoints       = ["https://${local.eks_endpoint}"]
-      trusted-ca-file = "/var/lib/cilium/clustermesh/eks.etcd-client-ca.crt"
-      key-file        = "/var/lib/cilium/clustermesh/eks.etcd-client.key"
-      cert-file       = "/var/lib/cilium/clustermesh/eks.etcd-client.crt"
-    })
+    "eks" = <<-YAML
+      endpoints:
+      - https://${local.eks_endpoint}
+      trusted-ca-file: /var/lib/cilium/clustermesh/eks.etcd-client-ca.crt
+      key-file: /var/lib/cilium/clustermesh/eks.etcd-client.key
+      cert-file: /var/lib/cilium/clustermesh/eks.etcd-client.crt
+    YAML
     "eks.etcd-client-ca.crt" = data.kubernetes_secret.eks_remote_cert.data["ca.crt"]
     "eks.etcd-client.crt"    = data.kubernetes_secret.eks_remote_cert.data["tls.crt"]
     "eks.etcd-client.key"    = data.kubernetes_secret.eks_remote_cert.data["tls.key"]
   }
 
   eks_clustermesh_data = {
-    "kind" = yamlencode({
-      endpoints       = ["https://${local.kind_endpoint}"]
-      trusted-ca-file = "/var/lib/cilium/clustermesh/kind.etcd-client-ca.crt"
-      key-file        = "/var/lib/cilium/clustermesh/kind.etcd-client.key"
-      cert-file       = "/var/lib/cilium/clustermesh/kind.etcd-client.crt"
-    })
+    "kind" = <<-YAML
+      endpoints:
+      - https://${local.kind_endpoint}
+      trusted-ca-file: /var/lib/cilium/clustermesh/kind.etcd-client-ca.crt
+      key-file: /var/lib/cilium/clustermesh/kind.etcd-client.key
+      cert-file: /var/lib/cilium/clustermesh/kind.etcd-client.crt
+    YAML
     "kind.etcd-client-ca.crt" = data.kubernetes_secret.kind_remote_cert.data["ca.crt"]
     "kind.etcd-client.crt"    = data.kubernetes_secret.kind_remote_cert.data["tls.crt"]
     "kind.etcd-client.key"    = data.kubernetes_secret.kind_remote_cert.data["tls.key"]
