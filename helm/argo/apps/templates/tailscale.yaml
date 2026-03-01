@@ -28,7 +28,7 @@ spec:
     - group: cilium.io
       kind: CiliumNetworkPolicy
       jsonPointers:
-        - /spec
+        - /status
   syncPolicy:
     automated:
       prune: true
