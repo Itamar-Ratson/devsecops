@@ -108,6 +108,6 @@ resource "terraform_data" "strip_eks_app_finalizer" {
 
   provisioner "local-exec" {
     when    = destroy
-    command = "kubectl patch application eks-apps -n argocd --type merge -p '{\"metadata\":{\"finalizers\":null}}' 2>/dev/null || true"
+    command = "kubectl patch application eks-apps -n argocd --context kind-on-prem --type merge -p '{\"metadata\":{\"finalizers\":null}}' 2>/dev/null || true"
   }
 }
