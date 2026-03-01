@@ -32,6 +32,9 @@ module "eks" {
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
 
+  # Disable CloudWatch control plane logging to avoid costs
+  cluster_enabled_log_types = []
+
   vpc_id     = var.vpc_id
   subnet_ids = var.private_subnet_ids
 
