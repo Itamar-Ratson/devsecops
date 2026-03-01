@@ -1,9 +1,26 @@
 # KinD-specific Cilium overrides
 # Applied after values.yaml: helm install -f values.yaml -f values-kind.yaml
 cilium:
+  cluster:
+    name: kind
+    id: 1
   hostPort:
     enabled: true
   socketLB:
     hostNamespaceOnly: true
   l2announcements:
     enabled: true
+  clustermesh:
+    useAPIServer: true
+    apiserver:
+      replicas: 1
+      service:
+        type: NodePort
+        nodePort: 32379
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi

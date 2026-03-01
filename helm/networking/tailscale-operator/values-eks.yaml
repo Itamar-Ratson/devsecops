@@ -1,0 +1,7 @@
+connector:
+  hostname: eks-subnet-router
+  routes:
+    - "10.50.0.0/16"
+
+externalSecret:
+  enabled: true

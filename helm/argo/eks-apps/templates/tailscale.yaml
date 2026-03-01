@@ -1,4 +1,4 @@
-# Wave 4 — Networking: Tailscale subnet router (EKS)
+# Wave 4 — Networking: Tailscale Kubernetes Operator (EKS)
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -13,12 +13,13 @@ spec:
   source:
     repoURL: {{ .Values.repoURL }}
     targetRevision: {{ .Values.targetRevision }}
-    path: helm/networking/tailscale/eks
+    path: helm/networking/tailscale-operator
     helm:
       valueFiles:
-        - ../../../ports.yaml
-        - ../../../globals.yaml
+        - ../../ports.yaml
+        - ../../globals.yaml
         - values.yaml
+        - values-eks.yaml
   destination:
     server: {{ .Values.eksClusterServer }}
     namespace: tailscale

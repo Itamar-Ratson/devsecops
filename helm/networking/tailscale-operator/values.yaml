@@ -1,0 +1,26 @@
+tailscale-operator:
+  oauth:
+    clientId: ""
+    clientSecret: ""
+  operatorConfig:
+    image:
+      repo: tailscale/k8s-operator
+      tag: "v1.82.0"
+    hostname: tailscale-operator
+    logging: info
+  # Operator reads OAuth from existing Secret — don't let chart create one
+  # The Secret is managed by VSO (KinD) or ESO (EKS)
+
+connector:
+  enabled: true
+  hostname: ""
+  routes: []
+
+vaultSecret:
+  enabled: false
+
+externalSecret:
+  enabled: false
+  secretStore: aws-ssm
+  ssmClientIdKey: /devsecops/tailscale-oauth-client-id
+  ssmClientSecretKey: /devsecops/tailscale-oauth-client-secret

@@ -39,6 +39,26 @@ spec:
       namespace: kube-system
       jsonPointers:
         - /data
+    - kind: Secret
+      name: cilium-clustermesh
+      namespace: kube-system
+      jsonPointers:
+        - /data
+    - kind: Secret
+      name: clustermesh-apiserver-server-cert
+      namespace: kube-system
+      jsonPointers:
+        - /data
+    - kind: Secret
+      name: clustermesh-apiserver-admin-cert
+      namespace: kube-system
+      jsonPointers:
+        - /data
+    - kind: Secret
+      name: clustermesh-apiserver-remote-cert
+      namespace: kube-system
+      jsonPointers:
+        - /data
   syncPolicy:
     automated:
       prune: true

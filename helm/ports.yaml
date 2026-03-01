@@ -148,3 +148,8 @@ ports:
   # Tailscale
   tailscale:
     metrics: 9988
+
+  # Cluster Mesh
+  clustermeshApiserver: 2379
+  clustermeshNodePort: 32379
+  wireguard: 51871

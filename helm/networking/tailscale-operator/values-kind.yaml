@@ -1,0 +1,7 @@
+connector:
+  hostname: kind-subnet-router
+  routes:
+    - "172.18.0.0/16"
+
+vaultSecret:
+  enabled: true

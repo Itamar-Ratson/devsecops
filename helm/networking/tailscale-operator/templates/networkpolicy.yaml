@@ -1,0 +1,102 @@
+---
+# CiliumNetworkPolicy for Tailscale Operator + Connector pods
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tailscale-operator
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: operator
+  egress:
+    # Tailscale control plane (coordination server, DERP relay)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    # WireGuard UDP (direct peer connections + DERP relay)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "41641"
+              protocol: UDP
+            - port: "3478"
+              protocol: UDP
+    # DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP
+    # Kubernetes API (operator needs RBAC access)
+    - toEntities:
+        - kube-apiserver
+  ingress:
+    # Kubelet probes and host access
+    - fromEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+---
+# CiliumNetworkPolicy for Tailscale Connector (subnet router) pods
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tailscale-connector
+  namespace: {{ .Release.Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.connector.hostname }}
+  egress:
+    # Tailscale control plane
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    # WireGuard UDP
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "41641"
+              protocol: UDP
+            - port: "3478"
+              protocol: UDP
+    # DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s:k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.dns }}"
+              protocol: UDP
+    # Kubernetes API
+    - toEntities:
+        - kube-apiserver
+    # Routing to advertised subnets (subnet router function)
+    - toCIDR:
+        {{- range .Values.connector.routes }}
+        - {{ . }}
+        {{- end }}
+  ingress:
+    # Kubelet probes and host access
+    - fromEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+    # Return traffic from advertised subnets
+    - fromCIDR:
+        {{- range .Values.connector.routes }}
+        - {{ . }}
+        {{- end }}

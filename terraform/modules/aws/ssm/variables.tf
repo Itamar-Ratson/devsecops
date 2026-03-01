@@ -69,20 +69,20 @@ variable "alertmanager_webhooks" {
   sensitive = true
 }
 
-variable "tailscale_auth_key" {
-  description = "Tailscale auth key for KinD subnet router (reusable + ephemeral + tag:k8s)"
-  type        = string
-  sensitive   = true
-}
-
 variable "slack_devops_webhook" {
   description = "Slack incoming webhook URL for the DevOps project channel (CI/CD notifications)"
   type        = string
   sensitive   = true
 }
 
-variable "tailscale_eks_auth_key" {
-  description = "Tailscale auth key for EKS subnet router (reusable + ephemeral + tag:k8s)"
+variable "tailscale_oauth_client_id" {
+  description = "Tailscale OAuth client ID for the Kubernetes operator (tag:k8s-operator)"
+  type        = string
+  sensitive   = true
+}
+
+variable "tailscale_oauth_client_secret" {
+  description = "Tailscale OAuth client secret for the Kubernetes operator"
   type        = string
   sensitive   = true
 }

@@ -151,15 +151,6 @@ resource "aws_ssm_parameter" "oidc_cloudflare_access" {
   overwrite = true
 }
 
-# -- Tailscale -----------------------------------------------------------------
-
-resource "aws_ssm_parameter" "tailscale_auth_key" {
-  name      = "${local.prefix}/tailscale-auth-key"
-  type      = "SecureString"
-  value     = var.tailscale_auth_key
-  overwrite = true
-}
-
 # -- Slack (CI/CD notifications) -----------------------------------------------
 
 resource "aws_ssm_parameter" "slack_devops_webhook" {
@@ -169,11 +160,18 @@ resource "aws_ssm_parameter" "slack_devops_webhook" {
   overwrite = true
 }
 
-# -- Tailscale (EKS) ----------------------------------------------------------
+# -- Tailscale OAuth (Kubernetes Operator) ------------------------------------
 
-resource "aws_ssm_parameter" "tailscale_eks_auth_key" {
-  name      = "${local.prefix}/tailscale-eks-auth-key"
+resource "aws_ssm_parameter" "tailscale_oauth_client_id" {
+  name      = "${local.prefix}/tailscale-oauth-client-id"
   type      = "SecureString"
-  value     = var.tailscale_eks_auth_key
+  value     = var.tailscale_oauth_client_id
+  overwrite = true
+}
+
+resource "aws_ssm_parameter" "tailscale_oauth_client_secret" {
+  name      = "${local.prefix}/tailscale-oauth-client-secret"
+  type      = "SecureString"
+  value     = var.tailscale_oauth_client_secret
   overwrite = true
 }

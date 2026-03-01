@@ -71,6 +71,7 @@ resource "vault_kv_secret_v2" "tailscale" {
   name  = "tailscale/operator"
 
   data_json = jsonencode({
-    "auth-key" = data.aws_ssm_parameter.tailscale_auth_key.value
+    "client_id"     = data.aws_ssm_parameter.tailscale_oauth_client_id.value
+    "client_secret" = data.aws_ssm_parameter.tailscale_oauth_client_secret.value
   })
 }

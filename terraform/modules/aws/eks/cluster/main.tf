@@ -68,6 +68,46 @@ module "eks" {
   }
 }
 
+# ============================================================================
+# Cluster Mesh + Tailscale ingress rules on node security group
+# ============================================================================
+
+# WireGuard — Cilium node-to-node encryption (Tailscale peers have arbitrary public IPs)
+resource "aws_vpc_security_group_ingress_rule" "wireguard" {
+  security_group_id = module.eks.node_security_group_id
+  description       = "WireGuard (Cilium encryption)"
+  ip_protocol       = "udp"
+  from_port         = 51871
+  to_port           = 51871
+  cidr_ipv4         = "0.0.0.0/0"
+
+  tags = { Name = "${var.cluster_name}-wireguard" }
+}
+
+# Clustermesh-apiserver NodePort — remote Cilium agents connect via Tailscale (CGNAT range)
+resource "aws_vpc_security_group_ingress_rule" "clustermesh_apiserver" {
+  security_group_id = module.eks.node_security_group_id
+  description       = "Clustermesh apiserver NodePort (Tailscale CGNAT)"
+  ip_protocol       = "tcp"
+  from_port         = 32379
+  to_port           = 32379
+  cidr_ipv4         = "100.64.0.0/10"
+
+  tags = { Name = "${var.cluster_name}-clustermesh-apiserver" }
+}
+
+# Cilium health checks — cross-cluster health probes via Tailscale
+resource "aws_vpc_security_group_ingress_rule" "cilium_health" {
+  security_group_id = module.eks.node_security_group_id
+  description       = "Cilium health checks (Tailscale CGNAT)"
+  ip_protocol       = "tcp"
+  from_port         = 4240
+  to_port           = 4240
+  cidr_ipv4         = "100.64.0.0/10"
+
+  tags = { Name = "${var.cluster_name}-cilium-health" }
+}
+
 # Write kubeconfig to disk for kubectl commands in null_resource provisioners
 resource "local_sensitive_file" "kubeconfig" {
   content = yamlencode({

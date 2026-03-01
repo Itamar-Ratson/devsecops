@@ -170,7 +170,6 @@ resource "null_resource" "host_dns" {
   triggers = {
     gateway_lb_ip          = local.gateway_lb_ip
     domain                 = local.domain
-    dns_passthrough = join(",", var.dns_passthrough_hostnames)
   }
 
   provisioner "local-exec" {
@@ -206,9 +205,6 @@ resource "null_resource" "host_dns" {
 port=5353
 bind-interfaces
 listen-address=127.0.0.1
-%{for host in var.dns_passthrough_hostnames~}
-server=/${host}.${local.domain}/8.8.8.8
-%{endfor~}
 address=/.${local.domain}/${local.gateway_lb_ip}
 no-resolv
 no-hosts

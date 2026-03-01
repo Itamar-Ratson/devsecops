@@ -24,11 +24,6 @@ variable "cache_container_id" {
   type        = string
 }
 
-variable "dns_passthrough_hostnames" {
-  description = "Subdomains that should bypass local DNS and resolve via public DNS (e.g. eks-echo for EKS tunnel)"
-  type        = list(string)
-  default     = []
-}
 
 variable "helm_values_dir" {
   description = "Absolute path to the helm/ directory containing chart values"

@@ -90,8 +90,13 @@ locals {
   alertmanager_slack_warning  = data.aws_ssm_parameter.alertmanager_slack_warning.value == "DISABLED" ? "" : data.aws_ssm_parameter.alertmanager_slack_warning.value
 }
 
-# -- Tailscale -----------------------------------------------------------------
-data "aws_ssm_parameter" "tailscale_auth_key" {
-  name            = "/devsecops/tailscale-auth-key"
+# -- Tailscale OAuth (Kubernetes Operator) ------------------------------------
+data "aws_ssm_parameter" "tailscale_oauth_client_id" {
+  name            = "/devsecops/tailscale-oauth-client-id"
+  with_decryption = true
+}
+
+data "aws_ssm_parameter" "tailscale_oauth_client_secret" {
+  name            = "/devsecops/tailscale-oauth-client-secret"
   with_decryption = true
 }

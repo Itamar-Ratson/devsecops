@@ -1,6 +1,9 @@
 # EKS-specific Cilium overrides
 # Applied after values.yaml: helm install -f values.yaml -f values-eks.yaml
 cilium:
+  cluster:
+    name: eks
+    id: 2
   # Cilium fully replaces kube-proxy via eBPF — kube-proxy addon is NOT installed
   kubeProxyReplacement: true
   # k8sServiceHost/Port set dynamically by Terraform (EKS API endpoint) —
@@ -11,8 +14,12 @@ cilium:
     awsReleaseExcessIPs: true
   ipam:
     mode: eni
-  routingMode: native
-  egressMasqueradeInterfaces: eth0
+  # Cluster Mesh requires same datapath on all clusters — tunnel mode with VXLAN
+  routingMode: tunnel
+  tunnelProtocol: vxlan
+  encryption:
+    enabled: true
+    type: wireguard
   nodeinit:
     enabled: true
     reconfigureKubelet: true
@@ -22,3 +29,17 @@ cilium:
     enabled: false
   hostPort:
     enabled: false
+  clustermesh:
+    useAPIServer: true
+    apiserver:
+      replicas: 1
+      service:
+        type: NodePort
+        nodePort: 32379
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi

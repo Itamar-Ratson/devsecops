@@ -33,6 +33,19 @@ cilium:
         keepCapNetBindService: true
     prometheus:
       enabled: true
+  clustermesh:
+    useAPIServer: true
+    apiserver:
+      replicas: 1
+      service:
+        type: NodePort
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
   hubble:
     enabled: true
     tls:
