@@ -88,3 +88,24 @@ spec:
               protocol: UDP
             - port: "{{ .Values.ports.dns }}"
               protocol: TCP
+---
+# 6. Allow clustermesh-apiserver (KVStoreMesh) to reach remote cluster
+# KVStoreMesh connects to the remote cluster's clustermesh-apiserver
+# NodePort over Tailscale. Remote IPs are classified as "world".
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-clustermesh-remote
+  namespace: kube-system
+spec:
+  description: "Allow KVStoreMesh to reach remote clustermesh-apiserver"
+  endpointSelector:
+    matchLabels:
+      k8s-app: clustermesh-apiserver
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "{{ .Values.ports.clustermeshNodePort }}"
+              protocol: TCP
