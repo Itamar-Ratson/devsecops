@@ -14,9 +14,11 @@ cilium:
     awsReleaseExcessIPs: true
   ipam:
     mode: eni
-  # Cluster Mesh requires same datapath on all clusters — tunnel mode with VXLAN
-  routingMode: tunnel
-  tunnelProtocol: vxlan
+  # Cluster Mesh requires same datapath on both clusters — native routing
+  # (ENI IPAM is incompatible with tunnel mode).
+  routingMode: native
+  ipv4NativeRoutingCIDR: "10.0.0.0/8"
+  egressMasqueradeInterfaces: eth0
   encryption:
     enabled: true
     type: wireguard

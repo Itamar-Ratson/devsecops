@@ -4,6 +4,11 @@ cilium:
   cluster:
     name: kind
     id: 1
+  # Cluster Mesh requires same datapath — native routing to match EKS (ENI).
+  # KinD nodes share a Docker bridge (L2), so autoDirectNodeRoutes works.
+  routingMode: native
+  ipv4NativeRoutingCIDR: "10.0.0.0/8"
+  autoDirectNodeRoutes: true
   hostPort:
     enabled: true
   socketLB:
