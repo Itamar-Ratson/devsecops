@@ -76,8 +76,22 @@ spec:
               # Cilium's eBPF FIB lookup only consults the main table, not
               # Tailscale's table 52 (policy routing). Without this, pod traffic
               # to remote cluster IPs is blackholed.
-              {{- range .Values.subnetRouter.remoteRoutes }}
-              ip route add {{ . }} dev tailscale0 table main 2>/dev/null || true
+              # Also MASQUERADE pod traffic to remote subnets — pod source IPs
+              # (e.g. 10.0.x.x) fall within ipv4NativeRoutingCIDR so Cilium
+              # won't masquerade them, but the remote cluster can't route back
+              # to local pod IPs. SNAT to the node's tailscale0 IP instead.
+              # Run in background: tailscale0 doesn't exist until containerboot
+              # creates it, so we wait for the interface before adding routes.
+              {{- if .Values.subnetRouter.remoteRoutes }}
+              (
+                while ! ip link show tailscale0 >/dev/null 2>&1; do sleep 1; done
+                sleep 2  # let containerboot finish interface setup
+                {{- range .Values.subnetRouter.remoteRoutes }}
+                ip route replace {{ . }} dev tailscale0 table main 2>/dev/null || true
+                iptables -t nat -C POSTROUTING -d {{ . }} -o tailscale0 -j MASQUERADE 2>/dev/null || \
+                  iptables -t nat -A POSTROUTING -d {{ . }} -o tailscale0 -j MASQUERADE 2>/dev/null || true
+                {{- end }}
+              ) &
               {{- end }}
 
               export TS_AUTHKEY=$(cat /auth/key)
