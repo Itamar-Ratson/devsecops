@@ -71,6 +71,7 @@ Every policy in this project is:
 ## Related Concepts
 
 - [Zero Trust](zero-trust.md) — Policies enforce the zero-trust model
+- [Least Privilege](least-privilege.md) — Policies enforce minimum permissions
 - [GitOps](gitops.md) — Policies deployed through Git like everything else
 - [DevSecOps](devsecops.md) — Policy as code is a core DevSecOps practice
 - [Infrastructure as Code](infrastructure-as-code.md) — Same principle applied to security rules

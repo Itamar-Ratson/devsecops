@@ -18,6 +18,7 @@ Vault provides centralized secrets management with fine-grained access control, 
 - [Sealed Secrets](sealed-secrets.md) — Complementary approach for encrypting secrets in Git
 - [Keycloak](keycloak.md) — OIDC secrets stored in Vault
 - [Secrets Management](../concepts/secrets-management.md) — Vault is the core of the secrets strategy
+- [Least Privilege](../concepts/least-privilege.md) — Vault policies scope access per identity
 - [Terraform](terraform.md) — Provisions and configures Vault
 
 ## Docs

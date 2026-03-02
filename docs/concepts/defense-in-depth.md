@@ -55,6 +55,7 @@ A vulnerability must evade secret detection, image scanning, admission control, 
 ## Related Concepts
 
 - [Zero Trust](zero-trust.md) — The networking model within defense in depth
+- [Least Privilege](least-privilege.md) — Minimum permissions at each layer limits blast radius
 - [DevSecOps](devsecops.md) — Embedding security at every stage
 - [Shift-Left Security](shift-left.md) — Pre-production defense layers
 

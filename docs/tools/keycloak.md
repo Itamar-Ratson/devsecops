@@ -20,6 +20,7 @@ The OIDC chain: User → Headlamp/Grafana → kube-oidc-proxy → Keycloak → K
 - [Vault](vault.md) — Stores Keycloak client secrets
 - [cert-manager](cert-manager.md) — TLS certificates for OIDC endpoints
 - [Zero Trust](../concepts/zero-trust.md) — Identity-based access control
+- [Least Privilege](../concepts/least-privilege.md) — RBAC scoped by OIDC identity
 
 ## Docs
 

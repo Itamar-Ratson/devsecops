@@ -18,6 +18,7 @@ Cloudflare Tunnel creates outbound-only connections from the cluster to Cloudfla
 - [Gateway API](gateway-api.md) — Internal routing after traffic enters via tunnel
 - [Tailscale](tailscale.md) — Alternative connectivity approach for private/mesh access
 - [Zero Trust](../concepts/zero-trust.md) — No open inbound ports
+- [Least Privilege](../concepts/least-privilege.md) — Per-application access policies
 
 ## Docs
 

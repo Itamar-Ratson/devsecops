@@ -51,6 +51,12 @@ Then explicit allows are added per-service — only the ports and destinations e
 - **Cosign** signs container images (keyless, via Sigstore)
 - **Trivy** scans for vulnerabilities before and after deployment
 
+## Related Concepts
+
+- [Least Privilege](least-privilege.md) — Minimum permissions at every layer
+- [Defense in Depth](defense-in-depth.md) — Multiple independent security layers
+- [Policy as Code](policy-as-code.md) — Machine-enforced zero-trust rules
+
 ## Tools
 
 - [Cilium](../tools/cilium.md) — Network policy enforcement

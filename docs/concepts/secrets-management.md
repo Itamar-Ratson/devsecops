@@ -55,6 +55,12 @@ Used for bootstrap secrets that must exist in Git before Vault is running.
 - No secrets in Terraform state (use Vault transit encryption)
 - No secrets in environment variables visible in pod specs
 
+## Related Concepts
+
+- [Least Privilege](least-privilege.md) — Scoped secret access per identity
+- [Zero Trust](zero-trust.md) — No implicit trust, identity-based access
+- [Policy as Code](policy-as-code.md) — Vault policies enforce access rules
+
 ## Tools
 
 - [Vault](../tools/vault.md) — Primary secrets manager

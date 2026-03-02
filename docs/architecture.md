@@ -85,7 +85,8 @@ These documents explain the principles behind the architecture and how they're i
 - [Infrastructure as Code](concepts/infrastructure-as-code.md) — All infrastructure defined in version-controlled code
 
 ### Security
-- [Zero Trust](concepts/zero-trust.md) — Default-deny networking and least-privilege access
+- [Zero Trust](concepts/zero-trust.md) — Default-deny networking and identity-based access
+- [Least Privilege](concepts/least-privilege.md) — Minimum permissions at every layer
 - [Shift-Left Security](concepts/shift-left.md) — Security testing early and continuously in the pipeline
 - [Defense in Depth](concepts/defense-in-depth.md) — Multiple independent security layers
 - [Supply Chain Security](concepts/supply-chain-security.md) — Securing artifacts from source to runtime
