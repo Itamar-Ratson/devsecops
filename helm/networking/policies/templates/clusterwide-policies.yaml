@@ -107,5 +107,5 @@ spec:
         - world
       toPorts:
         - ports:
-            - port: "{{ .Values.ports.clustermeshNodePort }}"
+            - port: "{{ .Values.ports.clustermeshApiserver }}"
               protocol: TCP

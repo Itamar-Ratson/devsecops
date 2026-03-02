@@ -40,6 +40,7 @@ dependency "eks_cluster" {
     cluster_endpoint                   = "https://mock.eks.amazonaws.com"
     cluster_certificate_authority_data = "bW9jaw=="
     cluster_name                       = "devsecops-eks"
+    clustermesh_nlb_dns_name           = "internal-mock.elb.eu-north-1.amazonaws.com"
   }
   mock_outputs_allowed_terraform_commands = ["init", "validate", "plan", "destroy"]
   mock_outputs_merge_strategy_with_state  = "shallow"
@@ -52,8 +53,9 @@ inputs = {
   kind_client_key             = dependency.kind_cluster.outputs.client_key
   kind_control_plane_ip       = dependency.kind_cluster.outputs.control_plane_ip
 
-  eks_endpoint        = dependency.eks_cluster.outputs.cluster_endpoint
-  eks_cluster_ca_data = dependency.eks_cluster.outputs.cluster_certificate_authority_data
-  eks_cluster_name    = dependency.eks_cluster.outputs.cluster_name
-  aws_region          = "eu-north-1"
+  eks_endpoint            = dependency.eks_cluster.outputs.cluster_endpoint
+  eks_cluster_ca_data     = dependency.eks_cluster.outputs.cluster_certificate_authority_data
+  eks_cluster_name        = dependency.eks_cluster.outputs.cluster_name
+  eks_clustermesh_nlb_dns = dependency.eks_cluster.outputs.clustermesh_nlb_dns_name
+  aws_region              = "eu-north-1"
 }

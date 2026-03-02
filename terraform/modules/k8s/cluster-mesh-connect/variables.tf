@@ -53,3 +53,8 @@ variable "aws_region" {
   type        = string
   default     = "eu-north-1"
 }
+
+variable "eks_clustermesh_nlb_dns" {
+  description = "Internal NLB DNS name for EKS clustermesh-apiserver"
+  type        = string
+}

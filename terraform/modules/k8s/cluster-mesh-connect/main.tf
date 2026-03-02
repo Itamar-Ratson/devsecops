@@ -46,19 +46,17 @@ data "kubernetes_secret" "eks_remote_cert" {
   }
 }
 
-# Read EKS node IPs for endpoint addresses
-data "kubernetes_nodes" "eks" {
-  provider = kubernetes.eks
+# Resolve NLB DNS to IP via VPC DNS (10.50.0.2, reachable over Tailscale)
+data "external" "eks_nlb_ip" {
+  program = [
+    "bash", "-c",
+    "ip=$(dig +short '${var.eks_clustermesh_nlb_dns}' @10.50.0.2 | head -1) && echo \"{\\\"ip\\\": \\\"$ip\\\"}\"",
+  ]
 }
 
 locals {
   kind_endpoint = "${var.kind_control_plane_ip}:${var.clustermesh_apiserver_node_port}"
-
-  eks_node_ips = [
-    for node in data.kubernetes_nodes.eks.nodes :
-    [for addr in node.status[0].addresses : addr.address if addr.type == "InternalIP"][0]
-  ]
-  eks_endpoint = "${local.eks_node_ips[0]}:${var.clustermesh_apiserver_node_port}"
+  eks_endpoint  = "${data.external.eks_nlb_ip.result.ip}:2379"
 }
 
 # Connection data reused by both cilium-clustermesh and cilium-kvstoremesh secrets.

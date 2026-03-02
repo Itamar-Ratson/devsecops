@@ -23,3 +23,8 @@ output "cluster_oidc_issuer_url" {
   description = "OIDC issuer URL"
   value       = module.eks.cluster_oidc_issuer_url
 }
+
+output "clustermesh_nlb_dns_name" {
+  description = "Internal NLB DNS name for clustermesh-apiserver"
+  value       = aws_lb.clustermesh.dns_name
+}
