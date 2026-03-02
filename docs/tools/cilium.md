@@ -20,7 +20,9 @@ Chosen over Calico because Cilium provides a unified platform for CNI, network p
 
 - [Tetragon](tetragon.md) — eBPF runtime security (same Cilium ecosystem)
 - [Gateway API](gateway-api.md) — Cilium implements the Gateway API spec
+- [eBPF](../concepts/ebpf.md) — The kernel technology powering Cilium
 - [Zero Trust](../concepts/zero-trust.md) — Cilium enforces network-level zero trust
+- [Policy as Code](../concepts/policy-as-code.md) — CiliumNetworkPolicy as declarative security rules
 
 ## Docs
 

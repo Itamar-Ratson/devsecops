@@ -32,15 +32,15 @@ This project uses tools from across the [CNCF landscape](https://landscape.cncf.
 |----------|-------------|--------|
 | Container Runtime | containerd | Graduated |
 | Orchestration | Kubernetes | Graduated |
-| CNI | Cilium | Graduated |
-| Service Mesh | Cilium (Gateway API) | Graduated |
-| Observability | Prometheus, OpenTelemetry | Graduated |
-| GitOps | ArgoCD | Graduated |
-| Secrets | cert-manager | Graduated |
-| Policy | Kyverno | Incubating |
-| Security | Tetragon | Incubating |
-| IaC | Crossplane | Graduated |
-| Streaming | Strimzi (Kafka) | CNCF Sandbox |
+| CNI | [Cilium](../tools/cilium.md) | Graduated |
+| Service Mesh | [Cilium (Gateway API)](../tools/gateway-api.md) | Graduated |
+| Observability | [Prometheus](../tools/prometheus-stack.md), [OpenTelemetry](../tools/opentelemetry.md) | Graduated |
+| GitOps | [ArgoCD](../tools/argocd.md) | Graduated |
+| Certificates | [cert-manager](../tools/cert-manager.md) | Graduated |
+| Policy | [Kyverno](../tools/kyverno.md) | Incubating |
+| Security | [Tetragon](../tools/tetragon.md) | Incubating |
+| IaC | [Crossplane](../tools/crossplane.md) | Graduated |
+| Streaming | [Strimzi (Kafka)](../tools/kafka.md) | CNCF Sandbox |
 
 ### Multi-Environment Portability
 

@@ -17,8 +17,9 @@ Kyverno uses Kubernetes-native YAML policies instead of a separate policy langua
 
 - [Tetragon](tetragon.md) — Runtime enforcement (Kyverno handles admission-time)
 - [Trivy](trivy.md) — Image scanning (Kyverno enforces image policies)
+- [Policy as Code](../concepts/policy-as-code.md) — Kyverno is the admission-time policy engine
 - [Zero Trust](../concepts/zero-trust.md) — Admission control layer
-- [Shift-Left Security](../concepts/shift-left.md) — Policy as code
+- [Shift-Left Security](../concepts/shift-left.md) — Policy enforcement at deploy time
 
 ## Docs
 

@@ -50,6 +50,15 @@ ArgoCD's app-of-apps pattern means adding a new service is self-service: create 
 - [CI/CD](ci-cd.md) — The automation backbone of DevOps
 - [GitOps](gitops.md) — Git-driven delivery model
 - [Infrastructure as Code](infrastructure-as-code.md) — Codified infrastructure management
+- [Cloud Native](cloud-native.md) — The ecosystem DevOps operates in
+
+## Tools
+
+- [ArgoCD](../tools/argocd.md) — GitOps reconciliation and drift detection
+- [GitHub Actions](../tools/github-actions.md) — CI pipeline automation
+- [Prometheus + Grafana Stack](../tools/prometheus-stack.md) — Production feedback loop
+- [Cilium](../tools/cilium.md) — Hubble provides network observability for developers
+- [Terraform](../tools/terraform.md) — Infrastructure automation
 
 ## Further Reading
 

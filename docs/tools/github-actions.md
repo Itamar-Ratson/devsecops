@@ -28,6 +28,8 @@ Two main workflows:
 
 - [Trivy](trivy.md) — Image scanning in CI
 - [Terraform](terraform.md) — Plan validation in CI
+- [CI/CD](../concepts/ci-cd.md) — GitHub Actions is the CI engine
+- [Supply Chain Security](../concepts/supply-chain-security.md) — Cosign signing and Syft SBOMs
 - [Shift-Left Security](../concepts/shift-left.md) — CI is where shift-left happens
 - [GitOps](../concepts/gitops.md) — CI validates; ArgoCD deploys
 

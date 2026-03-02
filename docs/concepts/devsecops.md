@@ -64,6 +64,18 @@ A failure in any one layer is caught by the next.
 - [Defense in Depth](defense-in-depth.md) — Layered security strategy
 - [Policy as Code](policy-as-code.md) — Codified security controls
 
+## Tools
+
+- [Trivy](../tools/trivy.md) — Image scanning and SBOM generation
+- [Cilium](../tools/cilium.md) — Network zero-trust enforcement
+- [Tetragon](../tools/tetragon.md) — Runtime process monitoring
+- [Kyverno](../tools/kyverno.md) — Admission control and policy enforcement
+- [Vault](../tools/vault.md) — Centralized secrets management
+- [Sealed Secrets](../tools/sealed-secrets.md) — Git-safe encrypted secrets
+- [Keycloak](../tools/keycloak.md) — Identity-based access control
+- [Cloudflare](../tools/cloudflare.md) — Edge authentication and tunnels
+- [GitHub Actions](../tools/github-actions.md) — CI pipeline with security gates
+
 ## Further Reading
 
 - [OWASP DevSecOps Guideline](https://owasp.org/www-project-devsecops-guideline/)

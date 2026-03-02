@@ -20,7 +20,9 @@ Part of the [Cilium](cilium.md) ecosystem — shares the same eBPF foundation.
 - [Cilium](cilium.md) — Same eBPF ecosystem, handles network-level security
 - [Kyverno](kyverno.md) — Admission-time policy (Tetragon handles runtime)
 - [Trivy](trivy.md) — Image scanning (Tetragon handles what happens after deployment)
+- [eBPF](../concepts/ebpf.md) — The kernel technology powering Tetragon
 - [Zero Trust](../concepts/zero-trust.md) — Runtime enforcement layer
+- [Defense in Depth](../concepts/defense-in-depth.md) — Tetragon is the runtime security layer
 - [Shift-Left Security](../concepts/shift-left.md) — Runtime security as the last defense line
 
 ## Docs

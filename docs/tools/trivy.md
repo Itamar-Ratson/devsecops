@@ -18,6 +18,8 @@ Trivy provides vulnerability scanning, misconfiguration detection, and SBOM gene
 - [Kyverno](kyverno.md) — Can enforce policies based on Trivy scan results
 - [Tetragon](tetragon.md) — Runtime security (Trivy handles pre-deployment scanning)
 - [GitHub Actions](github-actions.md) — Trivy runs as a CI step
+- [Supply Chain Security](../concepts/supply-chain-security.md) — Trivy provides vulnerability and SBOM data
+- [CI/CD](../concepts/ci-cd.md) — Trivy runs as a CI pipeline gate
 - [Shift-Left Security](../concepts/shift-left.md) — Trivy enables early vulnerability detection
 
 ## Docs

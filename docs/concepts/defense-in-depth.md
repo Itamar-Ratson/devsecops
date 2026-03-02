@@ -58,6 +58,17 @@ A vulnerability must evade secret detection, image scanning, admission control, 
 - [DevSecOps](devsecops.md) — Embedding security at every stage
 - [Shift-Left Security](shift-left.md) — Pre-production defense layers
 
+## Tools
+
+- [Cloudflare](../tools/cloudflare.md) — Edge identity verification and tunnels (layers 1-2)
+- [Gateway API](../tools/gateway-api.md) — Encrypted routing with TLS (layer 3)
+- [cert-manager](../tools/cert-manager.md) — Certificate management for TLS (layer 3)
+- [Cilium](../tools/cilium.md) — CiliumNetworkPolicy default-deny enforcement (layer 4)
+- [Kyverno](../tools/kyverno.md) — Admission control for pod security (layer 5)
+- [Vault](../tools/vault.md) — Identity-based secrets access (layer 6)
+- [Tetragon](../tools/tetragon.md) — Runtime process and syscall monitoring (layer 7)
+- [Trivy](../tools/trivy.md) — Continuous vulnerability scanning (layer 8)
+
 ## Further Reading
 
 - [NIST Defense in Depth (SP 800-53)](https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final)

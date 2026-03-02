@@ -65,6 +65,8 @@ CI and CD are intentionally decoupled. CI validates. ArgoCD delivers. Neither de
 
 - [GitHub Actions](../tools/github-actions.md) — CI pipeline
 - [ArgoCD](../tools/argocd.md) — CD via GitOps
+- [Trivy](../tools/trivy.md) — Image scanning in CI
+- [Terraform](../tools/terraform.md) — Infrastructure plan validation in CI
 
 ## Further Reading
 
