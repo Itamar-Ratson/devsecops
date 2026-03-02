@@ -64,6 +64,12 @@ This project is a DevSecOps reference implementation built on Kubernetes, demons
 | [Crossplane](tools/crossplane.md) | Provision cloud resources from Kubernetes | [docs.crossplane.io](https://docs.crossplane.io/) |
 | [Strimzi Kafka](tools/kafka.md) | Kubernetes-native Apache Kafka | [strimzi.io](https://strimzi.io/documentation/) |
 
+### Container Registry
+
+| Tool | Purpose | Docs |
+|------|---------|------|
+| [Zot](tools/zot.md) | OCI-compliant registry with pull-through caching | [zotregistry.dev](https://zotregistry.dev/docs/) |
+
 ### CI/CD
 
 | Tool | Purpose | Docs |
