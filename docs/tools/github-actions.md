@@ -27,6 +27,8 @@ Two main workflows:
 ## Related
 
 - [Trivy](trivy.md) — Image scanning in CI
+- [Cosign](cosign.md) — Keyless image signing in CI
+- [Gitleaks](gitleaks.md) — Secret detection in CI
 - [Terraform](terraform.md) — Plan validation in CI
 - [CI/CD](../concepts/ci-cd.md) — GitHub Actions is the CI engine
 - [Supply Chain Security](../concepts/supply-chain-security.md) — Cosign signing and Syft SBOMs

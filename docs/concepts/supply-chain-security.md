@@ -49,10 +49,11 @@ Kyverno policies can enforce that only signed images from trusted registries are
 
 ## Tools
 
+- [Cosign](../tools/cosign.md) — Keyless image signing and provenance
 - [Trivy](../tools/trivy.md) — Vulnerability scanning
 - [Kyverno](../tools/kyverno.md) — Image policy enforcement
 - [Zot](../tools/zot.md) — Local OCI registry as a controlled artifact store
-- [GitHub Actions](../tools/github-actions.md) — Cosign signing and Syft SBOM in CI
+- [GitHub Actions](../tools/github-actions.md) — CI pipeline executing supply chain checks
 
 ## Further Reading
 

@@ -40,7 +40,7 @@ This project uses tools from across the [CNCF landscape](https://landscape.cncf.
 | Policy | [Kyverno](../tools/kyverno.md) | Incubating |
 | Security | [Tetragon](../tools/tetragon.md) | Incubating |
 | IaC | [Crossplane](../tools/crossplane.md) | Graduated |
-| Streaming | [Strimzi (Kafka)](../tools/strimzi.md) | CNCF Sandbox |
+| Streaming | [Strimzi (Kafka)](../tools/strimzi-kafka.md) | CNCF Sandbox |
 
 ### Multi-Environment Portability
 

@@ -18,6 +18,7 @@ The authentication chain: Headlamp → kube-oidc-proxy → Keycloak → Kubernet
 ## Related
 
 - [Keycloak](keycloak.md) — OIDC identity provider for Headlamp login
+- [kube-oidc-proxy](kube-oidc-proxy.md) — Bridges OIDC tokens to the Kubernetes API
 - [Prometheus Stack](prometheus-stack.md) — Grafana provides metrics dashboards (Headlamp provides K8s resource views)
 - [Least Privilege](../concepts/least-privilege.md) — RBAC-scoped views per user identity
 - [Zero Trust](../concepts/zero-trust.md) — Identity-based access to the dashboard

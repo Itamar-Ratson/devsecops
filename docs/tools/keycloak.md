@@ -17,6 +17,7 @@ The OIDC chain: User → Headlamp/Grafana → kube-oidc-proxy → Keycloak → K
 
 ## Related
 
+- [kube-oidc-proxy](kube-oidc-proxy.md) — Proxies OIDC tokens to the Kubernetes API
 - [Headlamp](headlamp.md) — Kubernetes dashboard authenticated via Keycloak
 - [Vault](vault.md) — Stores Keycloak client secrets
 - [cert-manager](cert-manager.md) — TLS certificates for OIDC endpoints

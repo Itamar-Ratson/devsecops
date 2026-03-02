@@ -6,7 +6,7 @@ This project is a DevSecOps reference implementation built on Kubernetes, demons
 
 | Target | Purpose | Technology |
 |--------|---------|------------|
-| KinD | Local development & CI | Docker-in-Docker K8s |
+| [KinD](tools/kind.md) | Local development & CI | Docker-in-Docker K8s |
 | EKS | AWS production | Managed Kubernetes |
 
 ## Component Map
@@ -41,6 +41,7 @@ This project is a DevSecOps reference implementation built on Kubernetes, demons
 | Tool | Purpose | Docs |
 |------|---------|------|
 | [Keycloak](tools/keycloak.md) | OpenID Connect identity provider | [keycloak.org](https://www.keycloak.org/documentation) |
+| [kube-oidc-proxy](tools/kube-oidc-proxy.md) | OIDC token proxy for the Kubernetes API | [github.com/jetstack/kube-oidc-proxy](https://github.com/jetstack/kube-oidc-proxy) |
 
 ### Observability
 
@@ -63,7 +64,7 @@ This project is a DevSecOps reference implementation built on Kubernetes, demons
 | Tool | Purpose | Docs |
 |------|---------|------|
 | [Crossplane](tools/crossplane.md) | Provision cloud resources from Kubernetes | [docs.crossplane.io](https://docs.crossplane.io/) |
-| [Strimzi](tools/strimzi.md) | Kubernetes-native Kafka operator | [strimzi.io](https://strimzi.io/documentation/) |
+| [Strimzi](tools/strimzi-kafka.md) | Kubernetes-native Kafka operator | [strimzi.io](https://strimzi.io/documentation/) |
 
 ### Container Registry
 
@@ -76,6 +77,8 @@ This project is a DevSecOps reference implementation built on Kubernetes, demons
 | Tool | Purpose | Docs |
 |------|---------|------|
 | [GitHub Actions](tools/github-actions.md) | CI/CD pipelines with security scanning | [docs.github.com/actions](https://docs.github.com/en/actions) |
+| [Gitleaks](tools/gitleaks.md) | Secret detection in Git commits | [github.com/gitleaks/gitleaks](https://github.com/gitleaks/gitleaks) |
+| [Cosign](tools/cosign.md) | Keyless container image signing | [docs.sigstore.dev](https://docs.sigstore.dev/cosign/overview/) |
 
 ## Concepts
 

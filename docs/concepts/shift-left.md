@@ -51,7 +51,9 @@ Security is not a single gate — it's a series of checks at every stage, each c
 
 ## Tools
 
+- [Gitleaks](../tools/gitleaks.md) — Secret detection at the code stage
 - [Trivy](../tools/trivy.md) — Vulnerability scanning (CI + runtime)
+- [Cosign](../tools/cosign.md) — Image signing at build time
 - [Kyverno](../tools/kyverno.md) — Admission-time policy enforcement
 - [Tetragon](../tools/tetragon.md) — Runtime security monitoring
 - [GitHub Actions](../tools/github-actions.md) — CI pipeline executing security checks
