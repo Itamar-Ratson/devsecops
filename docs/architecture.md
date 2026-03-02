@@ -48,6 +48,7 @@ This project is a DevSecOps reference implementation built on Kubernetes, demons
 |------|---------|------|
 | [Prometheus + Grafana Stack](tools/prometheus-stack.md) | Metrics, logs, traces, and dashboards | [prometheus.io](https://prometheus.io/docs/) |
 | [OpenTelemetry](tools/opentelemetry.md) | Vendor-neutral telemetry collection | [opentelemetry.io](https://opentelemetry.io/docs/) |
+| [Headlamp](tools/headlamp.md) | Kubernetes dashboard with OIDC SSO | [headlamp.dev](https://headlamp.dev/docs/latest/) |
 
 ### GitOps & Deployment
 
@@ -62,7 +63,7 @@ This project is a DevSecOps reference implementation built on Kubernetes, demons
 | Tool | Purpose | Docs |
 |------|---------|------|
 | [Crossplane](tools/crossplane.md) | Provision cloud resources from Kubernetes | [docs.crossplane.io](https://docs.crossplane.io/) |
-| [Strimzi Kafka](tools/kafka.md) | Kubernetes-native Apache Kafka | [strimzi.io](https://strimzi.io/documentation/) |
+| [Strimzi](tools/strimzi.md) | Kubernetes-native Kafka operator | [strimzi.io](https://strimzi.io/documentation/) |
 
 ### Container Registry
 
