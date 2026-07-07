@@ -16,6 +16,10 @@
 !README.md
 !docs/**/*.md
 
+# Blog post images (scoped to docs/blog/ to keep the rest of the repo image-free)
+!docs/blog/**/*.png
+!docs/blog/**/*.gif
+
 # Terraform (scoped to prevent auto-generated files in terraform/live/)
 !terraform/modules/**/*.tf
 
